@@ -17,23 +17,10 @@ export default function Dashboard() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
       setUser(user)
-
-      const { data: sal } = await supabase
-        .from('salaries')
-        .select('*')
-        .eq('email', user.email)
-        .single()
+      const { data: sal } = await supabase.from('salaries').select('*').eq('email', user.email).single()
       setSalarie(sal)
-
-      const query = supabase
-        .from('dossiers')
-        .select('*, clients(*), salaries(*)')
-        .order('created_at', { ascending: false })
-
-      if (sal?.role === 'technicien') {
-        query.eq('salarie_id', sal.id)
-      }
-
+      const query = supabase.from('dossiers').select('*, clients(*), salaries(*)').order('created_at', { ascending: false })
+      if (sal?.role === 'technicien') { query.eq('salarie_id', sal.id) }
       const { data: dos } = await query
       setDossiers(dos || [])
       setLoading(false)
@@ -64,33 +51,28 @@ export default function Dashboard() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#f5f5f4', fontFamily: 'system-ui, sans-serif' }}>
-      {/* Barre du haut */}
       <div style={{ background: 'white', borderBottom: '1px solid #e5e5e5', padding: '0 2rem', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ width: 32, height: 32, borderRadius: 8, background: '#185FA5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/>
               <rect x="9" y="11" width="14" height="10" rx="2"/>
-              <circle cx="12" cy="19" r="1"/><circle cx="20" cy="19" r="1"/>
+              <circle cx="12" cy="19" r="1"/>
+              <circle cx="20" cy="19" r="1"/>
             </svg>
           </div>
-          <span style={{ fontWeight: 600, fontSize: 15, color: '#111' }}>Carrosserie de l'Abbaye</span>
+          <span style={{ fontWeight: 600, fontSize: 15, color: '#111' }}>Carrosserie de l&apos;Abbaye</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ fontSize: 13, color: '#888' }}>
-            {salarie ? `${salarie.prenom} ${salarie.nom}` : user?.email}
-          </span>
+          <span style={{ fontSize: 13, color: '#888' }}>{salarie ? salarie.prenom + ' ' + salarie.nom : user?.email}</span>
           {salarie?.role === 'chef_atelier' && (
-            <span style={{ fontSize: 11, background: '#EEEDFE', color: '#3C3489', padding: '3px 10px', borderRadius: 20, fontWeight: 500 }}>Chef d'atelier</span>
+            <span style={{ fontSize: 11, background: '#EEEDFE', color: '#3C3489', padding: '3px 10px', borderRadius: 20, fontWeight: 500 }}>Chef d&apos;atelier</span>
           )}
-          <button onClick={handleLogout} style={{ fontSize: 13, padding: '6px 12px', borderRadius: 8, border: '1px solid #ddd', background: 'white', cursor: 'pointer', color: '#555' }}>
-            Déconnexion
-          </button>
+          <button onClick={handleLogout} style={{ fontSize: 13, padding: '6px 12px', borderRadius: 8, border: '1px solid #ddd', background: 'white', cursor: 'pointer', color: '#555' }}>Déconnexion</button>
         </div>
       </div>
 
       <div style={{ padding: '1.5rem 2rem', maxWidth: 960, margin: '0 auto' }}>
-        {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
           <div style={{ background: 'white', borderRadius: 12, padding: '1rem', border: '1px solid #e5e5e5' }}>
             <div style={{ fontSize: 12, color: '#888', marginBottom: 6 }}>Dossiers en cours</div>
@@ -106,21 +88,15 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Bouton nouveau dossier (chef seulement) */}
         {salarie?.role === 'chef_atelier' && (
           <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'flex-end' }}>
-            <button style={{ background: '#185FA5', color: 'white', border: 'none', borderRadius: 8, padding: '9px 18px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-              + Nouveau dossier
-            </button>
+            <button style={{ background: '#185FA5', color: 'white', border: 'none', borderRadius: 8, padding: '9px 18px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>+ Nouveau dossier</button>
           </div>
         )}
 
-        {/* Liste des dossiers */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {dossiers.length === 0 ? (
-            <div style={{ background: 'white', borderRadius: 12, padding: '2rem', textAlign: 'center', color: '#888', border: '1px solid #e5e5e5' }}>
-              Aucun dossier pour le moment
-            </div>
+            <div style={{ background: 'white', borderRadius: 12, padding: '2rem', textAlign: 'center', color: '#888', border: '1px solid #e5e5e5' }}>Aucun dossier pour le moment</div>
           ) : dossiers.map(d => {
             const s = statusLabel[d.statut] || statusLabel.en_cours
             return (
@@ -139,10 +115,8 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontSize: 11, fontWeight: 500, padding: '4px 12px', borderRadius: 20, background: s.bg, color: s.color, whiteSpace: 'nowrap' }}>
-                    {s.label}
-                  </span>
-                   <button onClick={() => router.push(`/dossier/${d.id}`)} style={{ fontSize: 12, padding: '6px 12px', borderRadius: 8, border: '1px solid #ddd', background: 'white', cursor: 'pointer', color: '#555' }}>Voir</button
+                  <span style={{ fontSize: 11, fontWeight: 500, padding: '4px 12px', borderRadius: 20, background: s.bg, color: s.color, whiteSpace: 'nowrap' }}>{s.label}</span>
+                  <button onClick={() => router.push('/dossier/' + d.id)} style={{ fontSize: 12, padding: '6px 12px', borderRadius: 8, border: '1px solid #ddd', background: 'white', cursor: 'pointer', color: '#555' }}>Voir</button>
                 </div>
               </div>
             )
