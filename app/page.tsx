@@ -43,7 +43,6 @@ export default function Dashboard() {
   const enCours = dossiers.filter(d => !['pret_restituer', 'termine', 'facture'].includes(d.statut))
   const aFacturer = dossiers.filter(d => d.statut === 'pret_restituer')
   const archives = dossiers.filter(d => ['termine', 'facture'].includes(d.statut))
-
   const dossiersAffiches = onglet === 'en_cours' ? enCours : onglet === 'a_facturer' ? aFacturer : archives
 
   const statusLabel: any = {
@@ -68,9 +67,9 @@ export default function Dashboard() {
       <div style={{ padding: '1.5rem 2rem', maxWidth: 960, margin: '0 auto' }}>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
-          <div onClick={() => setOnglet('en_cours')} style={{ background: onglet === 'en_cours' ? '#2D3748' : 'white', borderRadius: 12, padding: '1rem', border: onglet === 'en_cours' ? '2px solid #2D3748' : '1px solid #e8e2d9', cursor: 'pointer' }}>
+          <div onClick={() => setOnglet('en_cours')} style={{ background: onglet === 'en_cours' ? '#2D3748' : 'white', borderRadius: 12, padding: '1rem', border: '1px solid #e8e2d9', cursor: 'pointer' }}>
             <div style={{ fontSize: 12, color: onglet === 'en_cours' ? '#e8e2d9' : '#888', marginBottom: 6 }}>Dossiers en cours</div>
-            <div style={{ fontSize: 28, fontWeight: 700, color: onglet === 'en_cours' ? '#E07B2A' : '#E07B2A' }}>{enCours.length}</div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: '#E07B2A' }}>{enCours.length}</div>
           </div>
           <div onClick={() => setOnglet('a_facturer')} style={{ background: onglet === 'a_facturer' ? '#2D3748' : 'white', borderRadius: 12, padding: '1rem', border: aFacturer.length > 0 ? '2px solid #E07B2A' : '1px solid #e8e2d9', cursor: 'pointer', position: 'relative' as const }}>
             <div style={{ fontSize: 12, color: onglet === 'a_facturer' ? '#e8e2d9' : '#888', marginBottom: 6 }}>A facturer</div>
@@ -83,16 +82,21 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {salarie?.role === 'chef_atelier' && onglet === 'en_cours' && (
-          <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'flex-end' }}>
-            <button onClick={() => router.push('/nouveau-dossier')} style={{ background: '#E07B2A', color: 'white', border: 'none', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>+ Nouveau dossier</button>
+        {salarie?.role === 'chef_atelier' && (
+          <div style={{ marginBottom: 16, display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+            {onglet === 'en_cours' && (
+              <button onClick={() => router.push('/nouveau-dossier')} style={{ background: '#E07B2A', color: 'white', border: 'none', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>+ Nouveau dossier</button>
+            )}
+            <button onClick={() => router.push('/courtoisie')} style={{ background: 'white', color: '#2D3748', border: '1px solid #e8e2d9', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+              Vehicules courtoisie
+            </button>
           </div>
         )}
 
         {onglet === 'a_facturer' && aFacturer.length > 0 && (
           <div style={{ background: '#FDF0E6', border: '1px solid #E07B2A', borderRadius: 12, padding: '0.75rem 1.25rem', marginBottom: 16, fontSize: 13, color: '#854F0B', display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 16 }}>⚠</span>
-            {aFacturer.length} vehicule{aFacturer.length > 1 ? 's' : ''} pret{aFacturer.length > 1 ? 's' : ''} a restituer — cliquez sur un dossier pour le facturer
+            {aFacturer.length} vehicule{aFacturer.length > 1 ? 's' : ''} pret{aFacturer.length > 1 ? 's' : ''} a restituer
           </div>
         )}
 
