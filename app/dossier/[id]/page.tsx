@@ -4,6 +4,57 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter, useParams } from 'next/navigation'
 
+function OrdreReparation({ dossierId, dossier, onUpdate }: { dossierId: string, dossier: any, onUpdate: (d: any) => void }) {
+  const [uploading, setUploading] = useState(false)
+  const supabase = createClient()
+
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.type !== 'application/pdf') { alert('Veuillez selectionner un fichier PDF'); return }
+    setUploading(true)
+    const path = dossierId + '/' + Date.now() + '_' + file.name
+    const { data, error } = await supabase.storage.from('documents').upload(path, file)
+    if (error) { console.error(error); setUploading(false); return }
+    const { data: urlData } = supabase.storage.from('documents').getPublicUrl(path)
+    await supabase.from('dossiers').update({ ordre_reparation_url: urlData.publicUrl, ordre_reparation_nom: file.name }).eq('id', dossierId)
+    onUpdate({ ...dossier, ordre_reparation_url: urlData.publicUrl, ordre_reparation_nom: file.name })
+    setUploading(false)
+  }
+
+  async function handleDelete() {
+    if (!confirm('Supprimer ce document ?')) return
+    await supabase.from('dossiers').update({ ordre_reparation_url: null, ordre_reparation_nom: null }).eq('id', dossierId)
+    onUpdate({ ...dossier, ordre_reparation_url: null, ordre_reparation_nom: null })
+  }
+
+  return (
+    <div style={{ background: 'white', borderRadius: 12, padding: '1.25rem', border: '1px solid #e8e2d9', marginBottom: 16 }}>
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 12 }}>Ordre de reparation expert</div>
+      {dossier.ordre_reparation_url ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ width: 44, height: 44, borderRadius: 8, background: '#FCEBEB', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 22 }}>📄</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#2D3748' }}>{dossier.ordre_reparation_nom}</div>
+            <div style={{ fontSize: 11, color: '#888', marginTop: 2 }}>PDF importe</div>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <a href={dossier.ordre_reparation_url} target="_blank" rel="noreferrer" style={{ padding: '7px 14px', borderRadius: 8, border: '2px solid #E07B2A', background: 'white', cursor: 'pointer', fontSize: 13, color: '#E07B2A', fontWeight: 600, textDecoration: 'none' }}>Ouvrir PDF</a>
+            <button onClick={handleDelete} style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid #e8e2d9', background: 'white', cursor: 'pointer', fontSize: 13, color: '#888' }}>Supprimer</button>
+          </div>
+        </div>
+      ) : (
+        <label style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', gap: 8, padding: '1.5rem', border: '1.5px dashed #e8e2d9', borderRadius: 10, cursor: uploading ? 'not-allowed' : 'pointer', background: '#f8f6f3' }}>
+          <span style={{ fontSize: 32 }}>📄</span>
+          <div style={{ fontSize: 14, fontWeight: 600, color: '#2D3748' }}>{uploading ? 'Import en cours...' : 'Importer le rapport expert (PDF)'}</div>
+          <div style={{ fontSize: 12, color: '#888' }}>Cliquez pour selectionner un fichier PDF</div>
+          <input type="file" accept="application/pdf" onChange={handleUpload} style={{ display: 'none' }} disabled={uploading} />
+        </label>
+      )}
+    </div>
+  )
+}
+
 function EtatsLieux({ dossierId, router }: { dossierId: string, router: any }) {
   const [etats, setEtats] = useState<any[]>([])
   const supabase = createClient()
@@ -31,7 +82,6 @@ function VehiculeCourtoisie({ dossierId, router }: { dossierId: string, router: 
   const [pret, setPret] = useState<any>(null)
   const [etatsCourtoisie, setEtatsCourtoisie] = useState<any[]>([])
   const supabase = createClient()
-
   useEffect(() => {
     supabase.from('prets_courtoisie').select('*, vehicules_courtoisie(*)').eq('dossier_id', dossierId).single().then(({ data }) => {
       if (data) {
@@ -40,67 +90,37 @@ function VehiculeCourtoisie({ dossierId, router }: { dossierId: string, router: 
       }
     })
   }, [])
-
   if (!pret) return null
-
   const today = new Date().toISOString().split('T')[0]
   const enRetard = pret.statut === 'en_cours' && pret.date_fin_prevue < today
   const aEtatDepart = etatsCourtoisie.find(e => e.type === 'depart')
   const aEtatRetour = etatsCourtoisie.find(e => e.type === 'retour')
-
   return (
     <div style={{ background: 'white', borderRadius: 12, padding: '1.25rem', border: enRetard ? '2px solid #E24B4A' : '1px solid #e8e2d9', marginBottom: 16 }}>
       <div style={{ fontSize: 12, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 12 }}>Vehicule de courtoisie</div>
-
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
         <div>
           <div style={{ fontSize: 14, fontWeight: 700, color: '#2D3748' }}>{pret.vehicules_courtoisie?.immatriculation} — {pret.vehicules_courtoisie?.marque} {pret.vehicules_courtoisie?.modele}</div>
-          <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>
-            Du {new Date(pret.date_debut).toLocaleDateString('fr-FR')} au {new Date(pret.date_fin_prevue).toLocaleDateString('fr-FR')}
-            {pret.km_depart > 0 && <span> · Depart : {pret.km_depart?.toLocaleString()} km · {pret.carburant_depart}</span>}
-          </div>
+          <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>Du {new Date(pret.date_debut).toLocaleDateString('fr-FR')} au {new Date(pret.date_fin_prevue).toLocaleDateString('fr-FR')}{pret.km_depart > 0 && <span> · {pret.km_depart?.toLocaleString()} km · {pret.carburant_depart}</span>}</div>
         </div>
         <span style={{ fontSize: 11, fontWeight: 600, padding: '4px 12px', borderRadius: 20, background: pret.statut === 'rendu' ? '#EAF3DE' : enRetard ? '#FCEBEB' : '#FAEEDA', color: pret.statut === 'rendu' ? '#27500A' : enRetard ? '#791F1F' : '#854F0B' }}>
           {pret.statut === 'rendu' ? 'Rendu' : enRetard ? 'En retard' : 'En pret'}
         </span>
       </div>
-
-      {enRetard && (
-        <div style={{ padding: '8px 12px', background: '#FCEBEB', borderRadius: 8, fontSize: 13, color: '#791F1F', fontWeight: 600, marginBottom: 12 }}>
-          Retour prevu le {new Date(pret.date_fin_prevue).toLocaleDateString('fr-FR')} — vehicule en retard !
+      {enRetard && <div style={{ padding: '8px 12px', background: '#FCEBEB', borderRadius: 8, fontSize: 13, color: '#791F1F', fontWeight: 600, marginBottom: 12 }}>Retour prevu le {new Date(pret.date_fin_prevue).toLocaleDateString('fr-FR')} — vehicule en retard !</div>}
+      {etatsCourtoisie.map(e => (
+        <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 10px', background: '#f8f6f3', borderRadius: 8, marginBottom: 4 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 20, background: e.type === 'depart' ? '#FAEEDA' : '#EAF3DE', color: e.type === 'depart' ? '#854F0B' : '#27500A' }}>{e.type === 'depart' ? 'Depart' : 'Retour'}</span>
+          <span style={{ fontSize: 12, color: '#2D3748', flex: 1 }}>{e.dommages?.length || 0} dommage{e.dommages?.length > 1 ? 's' : ''} · {e.km_releve?.toLocaleString()} km · {e.carburant}</span>
+          <span style={{ fontSize: 11, color: '#888' }}>{new Date(e.created_at).toLocaleDateString('fr-FR')}</span>
+          {e.signature_client && <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: '#EAF3DE', color: '#27500A' }}>Signe</span>}
         </div>
-      )}
-
-      {etatsCourtoisie.length > 0 && (
-        <div style={{ marginBottom: 12 }}>
-          {etatsCourtoisie.map(e => (
-            <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 10px', background: '#f8f6f3', borderRadius: 8, marginBottom: 4 }}>
-              <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 20, background: e.type === 'depart' ? '#FAEEDA' : '#EAF3DE', color: e.type === 'depart' ? '#854F0B' : '#27500A' }}>{e.type === 'depart' ? 'Depart' : 'Retour'}</span>
-              <span style={{ fontSize: 12, color: '#2D3748', flex: 1 }}>{e.dommages?.length || 0} dommage{e.dommages?.length > 1 ? 's' : ''} · {e.km_releve?.toLocaleString()} km · {e.carburant}</span>
-              <span style={{ fontSize: 11, color: '#888' }}>{new Date(e.created_at).toLocaleDateString('fr-FR')}</span>
-              {e.signature_client && <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: '#EAF3DE', color: '#27500A' }}>Signe</span>}
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' as const }}>
-        {!aEtatDepart && (
-          <button onClick={() => router.push('/courtoisie/etat?pret=' + pret.id + '&type=depart')} style={{ padding: '8px 16px', borderRadius: 8, border: '2px solid #E07B2A', background: '#E07B2A', cursor: 'pointer', fontSize: 13, color: 'white', fontWeight: 700 }}>
-            Etat des lieux depart
-          </button>
-        )}
-        {aEtatDepart && !aEtatRetour && pret.statut !== 'rendu' && (
-          <button onClick={() => router.push('/courtoisie/etat?pret=' + pret.id + '&type=retour')} style={{ padding: '8px 16px', borderRadius: 8, border: '2px solid #3B6D11', background: '#3B6D11', cursor: 'pointer', fontSize: 13, color: 'white', fontWeight: 700 }}>
-            Etat des lieux retour + valider retour
-          </button>
-        )}
-        {aEtatDepart && (
-          <span style={{ fontSize: 12, color: '#3B6D11', display: 'flex', alignItems: 'center', gap: 4 }}>✓ Etat depart effectue</span>
-        )}
-        {aEtatRetour && (
-          <span style={{ fontSize: 12, color: '#3B6D11', display: 'flex', alignItems: 'center', gap: 4 }}>✓ Etat retour effectue</span>
-        )}
+      ))}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' as const, marginTop: 8 }}>
+        {!aEtatDepart && <button onClick={() => router.push('/courtoisie/etat?pret=' + pret.id + '&type=depart')} style={{ padding: '8px 16px', borderRadius: 8, border: '2px solid #E07B2A', background: '#E07B2A', cursor: 'pointer', fontSize: 13, color: 'white', fontWeight: 700 }}>Etat des lieux depart</button>}
+        {aEtatDepart && !aEtatRetour && pret.statut !== 'rendu' && <button onClick={() => router.push('/courtoisie/etat?pret=' + pret.id + '&type=retour')} style={{ padding: '8px 16px', borderRadius: 8, border: '2px solid #3B6D11', background: '#3B6D11', cursor: 'pointer', fontSize: 13, color: 'white', fontWeight: 700 }}>Etat des lieux retour</button>}
+        {aEtatDepart && <span style={{ fontSize: 12, color: '#3B6D11', display: 'flex', alignItems: 'center', gap: 4 }}>✓ Depart effectue</span>}
+        {aEtatRetour && <span style={{ fontSize: 12, color: '#3B6D11', display: 'flex', alignItems: 'center', gap: 4 }}>✓ Retour effectue</span>}
       </div>
     </div>
   )
@@ -130,9 +150,7 @@ function TravauxDetails({ dossierId }: { dossierId: string }) {
   const [travaux, setTravaux] = useState<any[]>([])
   const [newTravail, setNewTravail] = useState('')
   const supabase = createClient()
-  useEffect(() => {
-    supabase.from('travaux_details').select('*').eq('dossier_id', dossierId).order('ordre').then(({ data }) => setTravaux(data || []))
-  }, [])
+  useEffect(() => { supabase.from('travaux_details').select('*').eq('dossier_id', dossierId).order('ordre').then(({ data }) => setTravaux(data || [])) }, [])
   async function addTravail() {
     if (!newTravail.trim()) return
     const { data } = await supabase.from('travaux_details').insert({ dossier_id: dossierId, libelle: newTravail, ordre: travaux.length }).select().single()
@@ -176,9 +194,7 @@ function SuiviPieces({ dossierId }: { dossierId: string }) {
   const [newPiece, setNewPiece] = useState({ libelle: '', reference: '', quantite: 1 })
   const [showForm, setShowForm] = useState(false)
   const supabase = createClient()
-  useEffect(() => {
-    supabase.from('pieces').select('*').eq('dossier_id', dossierId).order('created_at').then(({ data }) => setPieces(data || []))
-  }, [])
+  useEffect(() => { supabase.from('pieces').select('*').eq('dossier_id', dossierId).order('created_at').then(({ data }) => setPieces(data || [])) }, [])
   async function addPiece() {
     if (!newPiece.libelle.trim()) return
     const { data } = await supabase.from('pieces').insert({ dossier_id: dossierId, libelle: newPiece.libelle, reference: newPiece.reference, quantite: newPiece.quantite, statut: 'a_commander' }).select().single()
@@ -195,11 +211,7 @@ function SuiviPieces({ dossierId }: { dossierId: string }) {
     await supabase.from('pieces').delete().eq('id', id)
     setPieces(pieces.filter(p => p.id !== id))
   }
-  const statutColors: any = {
-    a_commander: { label: 'A commander', color: '#A32D2D', bg: '#FCEBEB' },
-    commandee: { label: 'Commandee', color: '#854F0B', bg: '#FAEEDA' },
-    recue: { label: 'Recue', color: '#27500A', bg: '#EAF3DE' },
-  }
+  const statutColors: any = { a_commander: { label: 'A commander', color: '#A32D2D', bg: '#FCEBEB' }, commandee: { label: 'Commandee', color: '#854F0B', bg: '#FAEEDA' }, recue: { label: 'Recue', color: '#27500A', bg: '#EAF3DE' } }
   const aCommander = pieces.filter(p => p.statut === 'a_commander').length
   const commandees = pieces.filter(p => p.statut === 'commandee').length
   const recues = pieces.filter(p => p.statut === 'recue').length
@@ -221,11 +233,7 @@ function SuiviPieces({ dossierId }: { dossierId: string }) {
           <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px', background: '#f8f6f3', borderRadius: 8, marginBottom: 8, flexWrap: 'wrap' as const }}>
             <div style={{ flex: 1, minWidth: 150 }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: '#2D3748' }}>{p.libelle}</div>
-              <div style={{ fontSize: 11, color: '#888', marginTop: 2 }}>
-                {p.reference && <span>Ref : {p.reference} · </span>}Qte : {p.quantite}
-                {p.date_commande && <span> · Commande le {new Date(p.date_commande).toLocaleDateString('fr-FR')}</span>}
-                {p.date_reception && <span> · Recu le {new Date(p.date_reception).toLocaleDateString('fr-FR')}</span>}
-              </div>
+              <div style={{ fontSize: 11, color: '#888', marginTop: 2 }}>{p.reference && <span>Ref : {p.reference} · </span>}Qte : {p.quantite}{p.date_commande && <span> · Commande le {new Date(p.date_commande).toLocaleDateString('fr-FR')}</span>}{p.date_reception && <span> · Recu le {new Date(p.date_reception).toLocaleDateString('fr-FR')}</span>}</div>
             </div>
             <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
               <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, background: sc.bg, color: sc.color, fontWeight: 600 }}>{sc.label}</span>
@@ -293,25 +301,21 @@ export default function DossierPage() {
     const { data } = await supabase.from('heures').insert({ dossier_id: params.id, salarie_id: salarie.id, date_travail: newHeure.date, type_travail: newHeure.type_travail, duree_heures: newHeure.duree_heures }).select('*, salaries(*)').single()
     if (data) setHeures([data, ...heures])
   }
-
   async function updateStatut(statut: string) {
     await supabase.from('dossiers').update({ statut }).eq('id', params.id)
     setDossier({ ...dossier, statut })
   }
-
   async function assignerTechnicien(salarie_id: string) {
     await supabase.from('dossiers').update({ salarie_id }).eq('id', params.id)
     const sal = salaries.find(s => s.id === salarie_id)
     setDossier({ ...dossier, salarie_id, salaries: sal })
   }
-
   async function terminerChantier() {
     setTerminating(true)
     await supabase.from('dossiers').update({ statut: 'pret_restituer', notes: commentaire }).eq('id', params.id)
     setDossier({ ...dossier, statut: 'pret_restituer', notes: commentaire })
     setTerminating(false); setTerminated(true); setShowTerminer(false)
   }
-
   async function facturer() {
     await supabase.from('dossiers').update({ statut: 'facture' }).eq('id', params.id)
     setDossier({ ...dossier, statut: 'facture' })
@@ -323,7 +327,6 @@ export default function DossierPage() {
   const totalHeures = heures.reduce((a, h) => a + Number(h.duree_heures), 0)
   const heuresEstimees = Number(dossier.heures_estimees) || 0
   const estTermine = ['pret_restituer', 'termine', 'facture'].includes(dossier.statut)
-
   const typeLabels: any = { debosselage: 'Debosselage', peinture: 'Peinture', remplacement_piece: 'Remplacement piece', finition: 'Finition', controle_qualite: 'Controle qualite', autre: 'Autre' }
   const statusOptions = [
     { value: 'en_attente_signature', label: 'En attente signature' },
@@ -390,6 +393,7 @@ export default function DossierPage() {
           </div>
         </div>
 
+        <OrdreReparation dossierId={params.id as string} dossier={dossier} onUpdate={setDossier} />
         <ProgressionHeures totalHeures={totalHeures} heuresEstimees={heuresEstimees} />
         <VehiculeCourtoisie dossierId={params.id as string} router={router} />
         <TravauxDetails dossierId={params.id as string} />
