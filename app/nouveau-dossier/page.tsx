@@ -7,7 +7,8 @@ import { useRouter } from 'next/navigation'
 export default function NouveauDossier() {
   const [salarie, setSalarie] = useState<any>(null)
   const [loading, setLoading] = useState(false)
-  const [vehiculesDisponibles, setVehiculesDisponibles] = useState<any[]>([])
+  const [vehicules, setVehicules] = useState<any[]>([])
+  const [prets, setPrets] = useState<any[]>([])
   const [form, setForm] = useState({
     immatriculation: '',
     marque: '',
@@ -25,6 +26,7 @@ export default function NouveauDossier() {
     client_assurance: '',
     client_num_police: '',
     vehicule_courtoisie_id: '',
+    courtoisie_date_debut: new Date().toISOString().split('T')[0],
     courtoisie_date_retour: '',
     courtoisie_km_depart: '',
     courtoisie_carburant: '3/4',
@@ -39,15 +41,40 @@ export default function NouveauDossier() {
       const { data: sal } = await supabase.from('salaries').select('*').eq('email', user.email).single()
       if (sal?.role !== 'chef_atelier') { router.push('/'); return }
       setSalarie(sal)
-      const { data: pretsEnCours } = await supabase.from('prets_courtoisie').select('vehicule_id').eq('statut', 'en_cours')
-      const vehiculesPretes = (pretsEnCours || []).map((p: any) => p.vehicule_id)
-      const { data: v } = await supabase.from('vehicules_courtoisie').select('*').eq('actif', true)
-      setVehiculesDisponibles((v || []).filter((veh: any) => !vehiculesPretes.includes(veh.id)))
+      const { data: v } = await supabase.from('vehicules_courtoisie').select('*').eq('actif', true).order('immatriculation')
+      setVehicules(v || [])
+      const { data: p } = await supabase.from('prets_courtoisie').select('*').eq('statut', 'en_cours')
+      setPrets(p || [])
     }
     load()
   }, [])
 
+  function getDisponibilite(vehiculeId: string): { dispo: boolean, message: string } {
+    if (!form.courtoisie_date_debut || !form.courtoisie_date_retour) {
+      return { dispo: true, message: 'Choisissez des dates pour verifier la disponibilite' }
+    }
+    const debut = new Date(form.courtoisie_date_debut)
+    const fin = new Date(form.courtoisie_date_retour)
+    const conflit = prets.find(p => {
+      if (p.vehicule_id !== vehiculeId) return false
+      const pretDebut = new Date(p.date_debut)
+      const pretFin = new Date(p.date_fin_prevue)
+      return debut <= pretFin && fin >= pretDebut
+    })
+    if (conflit) {
+      return { dispo: false, message: 'Indisponible du ' + new Date(conflit.date_debut).toLocaleDateString('fr-FR') + ' au ' + new Date(conflit.date_fin_prevue).toLocaleDateString('fr-FR') }
+    }
+    return { dispo: true, message: 'Disponible pour ces dates' }
+  }
+
   async function handleSubmit() {
+    if (form.vehicule_courtoisie_id) {
+      const dispo = getDisponibilite(form.vehicule_courtoisie_id)
+      if (!dispo.dispo) {
+        alert('Ce vehicule nest pas disponible sur les dates selectionnees !')
+        return
+      }
+    }
     setLoading(true)
     const { data: client } = await supabase.from('clients').insert({
       nom: form.client_nom, prenom: form.client_prenom,
@@ -75,7 +102,7 @@ export default function NouveauDossier() {
         vehicule_id: form.vehicule_courtoisie_id,
         dossier_id: dossier.id,
         client_id: client?.id,
-        date_debut: form.date_entree,
+        date_debut: form.courtoisie_date_debut,
         date_fin_prevue: form.courtoisie_date_retour,
         km_depart: parseInt(form.courtoisie_km_depart) || 0,
         carburant_depart: form.courtoisie_carburant,
@@ -90,7 +117,8 @@ export default function NouveauDossier() {
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }))
   const inputStyle = { width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e8e2d9', fontSize: 14, color: '#2D3748', background: 'white' }
   const labelStyle = { fontSize: 12, color: '#888', display: 'block' as const, marginBottom: 4 }
-  const selectedVehicule = vehiculesDisponibles.find(v => v.id === form.vehicule_courtoisie_id)
+  const selectedVehicule = vehicules.find(v => v.id === form.vehicule_courtoisie_id)
+  const selectedDispo = selectedVehicule ? getDisponibilite(selectedVehicule.id) : null
 
   return (
     <div style={{ minHeight: '100vh', background: '#f8f6f3', fontFamily: 'system-ui, sans-serif' }}>
@@ -142,38 +170,45 @@ export default function NouveauDossier() {
 
         <div style={{ background: 'white', borderRadius: 12, padding: '1.5rem', border: '1px solid #e8e2d9', marginBottom: 16 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 8 }}>Vehicule de courtoisie</div>
-          <div style={{ fontSize: 12, color: '#888', marginBottom: 12 }}>Le client a-t-il besoin d un vehicule de pret pendant la reparation ?</div>
+          <div style={{ fontSize: 12, color: '#888', marginBottom: 16 }}>Choisissez d abord les dates puis selectionnez un vehicule — la disponibilite sera verifiee automatiquement</div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <div style={{ gridColumn: 'span 2' }}>
-              <label style={labelStyle}>Vehicule disponible</label>
-              <select style={inputStyle} value={form.vehicule_courtoisie_id} onChange={e => set('vehicule_courtoisie_id', e.target.value)}>
-                <option value="">-- Pas de vehicule de courtoisie --</option>
-                {vehiculesDisponibles.map(v => <option key={v.id} value={v.id}>{v.immatriculation} — {v.marque} {v.modele} {v.couleur ? '(' + v.couleur + ')' : ''}</option>)}
-              </select>
-            </div>
-
-            {form.vehicule_courtoisie_id && (
-              <>
-                {selectedVehicule && (
-                  <div style={{ gridColumn: 'span 2', padding: '10px 14px', background: '#EAF3DE', borderRadius: 8, border: '1px solid #97C459', fontSize: 13, color: '#27500A' }}>
-                    Vehicule selectionne : <strong>{selectedVehicule.immatriculation}</strong> — {selectedVehicule.marque} {selectedVehicule.modele} — {selectedVehicule.km_actuel?.toLocaleString()} km
-                  </div>
-                )}
-                <div><label style={labelStyle}>Date de retour prevue</label><input style={inputStyle} type="date" value={form.courtoisie_date_retour} onChange={e => set('courtoisie_date_retour', e.target.value)} /></div>
-                <div><label style={labelStyle}>Kilometrage depart</label><input style={inputStyle} type="number" value={form.courtoisie_km_depart} onChange={e => set('courtoisie_km_depart', e.target.value)} placeholder={selectedVehicule?.km_actuel?.toString() || ''} /></div>
-                <div><label style={labelStyle}>Carburant depart</label>
-                  <select style={inputStyle} value={form.courtoisie_carburant} onChange={e => set('courtoisie_carburant', e.target.value)}>
-                    <option>vide</option><option>1/4</option><option>1/2</option><option>3/4</option><option>plein</option>
-                  </select>
-                </div>
-              </>
-            )}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+            <div><label style={labelStyle}>Date de debut du pret</label><input style={inputStyle} type="date" value={form.courtoisie_date_debut} onChange={e => set('courtoisie_date_debut', e.target.value)} /></div>
+            <div><label style={labelStyle}>Date de retour prevue</label><input style={inputStyle} type="date" value={form.courtoisie_date_retour} onChange={e => set('courtoisie_date_retour', e.target.value)} /></div>
           </div>
 
-          {form.vehicule_courtoisie_id && (
-            <div style={{ marginTop: 12, padding: '10px 14px', background: '#FDF0E6', borderRadius: 8, border: '1px solid #E07B2A', fontSize: 13, color: '#854F0B' }}>
-              Un etat des lieux de depart sera a effectuer depuis la fiche dossier apres creation.
+          <div style={{ marginBottom: 12 }}>
+            <label style={labelStyle}>Choisir un vehicule</label>
+            <select style={inputStyle} value={form.vehicule_courtoisie_id} onChange={e => set('vehicule_courtoisie_id', e.target.value)}>
+              <option value="">-- Pas de vehicule de courtoisie --</option>
+              {vehicules.map(v => {
+                const dispo = getDisponibilite(v.id)
+                return <option key={v.id} value={v.id} disabled={!dispo.dispo}>
+                  {dispo.dispo ? '✓' : '✗'} {v.immatriculation} — {v.marque} {v.modele} {v.couleur ? '(' + v.couleur + ')' : ''} — {dispo.dispo ? 'Disponible' : 'Indisponible'}
+                </option>
+              })}
+            </select>
+          </div>
+
+          {form.vehicule_courtoisie_id && selectedDispo && (
+            <div style={{ padding: '10px 14px', background: selectedDispo.dispo ? '#EAF3DE' : '#FCEBEB', borderRadius: 8, border: '1px solid ' + (selectedDispo.dispo ? '#97C459' : '#E24B4A'), fontSize: 13, color: selectedDispo.dispo ? '#27500A' : '#791F1F', marginBottom: 12 }}>
+              {selectedDispo.dispo ? '✓ ' : '✗ '}{selectedDispo.message}
+            </div>
+          )}
+
+          {form.vehicule_courtoisie_id && selectedDispo?.dispo && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              {selectedVehicule && (
+                <div style={{ gridColumn: 'span 2', padding: '10px 14px', background: '#f8f6f3', borderRadius: 8, fontSize: 13, color: '#2D3748' }}>
+                  <strong>{selectedVehicule.immatriculation}</strong> — {selectedVehicule.marque} {selectedVehicule.modele} — {selectedVehicule.km_actuel?.toLocaleString()} km actuels
+                </div>
+              )}
+              <div><label style={labelStyle}>Kilometrage depart</label><input style={inputStyle} type="number" value={form.courtoisie_km_depart} onChange={e => set('courtoisie_km_depart', e.target.value)} placeholder={selectedVehicule?.km_actuel?.toString() || ''} /></div>
+              <div><label style={labelStyle}>Carburant depart</label>
+                <select style={inputStyle} value={form.courtoisie_carburant} onChange={e => set('courtoisie_carburant', e.target.value)}>
+                  <option>vide</option><option>1/4</option><option>1/2</option><option>3/4</option><option>plein</option>
+                </select>
+              </div>
             </div>
           )}
         </div>
