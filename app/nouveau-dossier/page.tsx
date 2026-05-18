@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 export default function NouveauDossier() {
   const [salarie, setSalarie] = useState<any>(null)
   const [loading, setLoading] = useState(false)
+  const [vehiculesDisponibles, setVehiculesDisponibles] = useState<any[]>([])
   const [form, setForm] = useState({
     immatriculation: '',
     marque: '',
@@ -23,6 +24,10 @@ export default function NouveauDossier() {
     client_email: '',
     client_assurance: '',
     client_num_police: '',
+    vehicule_courtoisie_id: '',
+    courtoisie_date_retour: '',
+    courtoisie_km_depart: '',
+    courtoisie_carburant: '3/4',
   })
   const router = useRouter()
   const supabase = createClient()
@@ -34,6 +39,10 @@ export default function NouveauDossier() {
       const { data: sal } = await supabase.from('salaries').select('*').eq('email', user.email).single()
       if (sal?.role !== 'chef_atelier') { router.push('/'); return }
       setSalarie(sal)
+      const { data: pretsEnCours } = await supabase.from('prets_courtoisie').select('vehicule_id').eq('statut', 'en_cours')
+      const vehiculesPretes = (pretsEnCours || []).map((p: any) => p.vehicule_id)
+      const { data: v } = await supabase.from('vehicules_courtoisie').select('*').eq('actif', true)
+      setVehiculesDisponibles((v || []).filter((veh: any) => !vehiculesPretes.includes(veh.id)))
     }
     load()
   }, [])
@@ -41,22 +50,16 @@ export default function NouveauDossier() {
   async function handleSubmit() {
     setLoading(true)
     const { data: client } = await supabase.from('clients').insert({
-      nom: form.client_nom,
-      prenom: form.client_prenom,
-      telephone: form.client_telephone,
-      email: form.client_email,
-      assurance: form.client_assurance,
-      num_police: form.client_num_police,
+      nom: form.client_nom, prenom: form.client_prenom,
+      telephone: form.client_telephone, email: form.client_email,
+      assurance: form.client_assurance, num_police: form.client_num_police,
     }).select().single()
 
     const numero = '2026-' + String(Math.floor(Math.random() * 900) + 100)
-
     const { data: dossier } = await supabase.from('dossiers').insert({
       numero_dossier: numero,
       immatriculation: form.immatriculation.toUpperCase(),
-      marque: form.marque,
-      modele: form.modele,
-      couleur: form.couleur,
+      marque: form.marque, modele: form.modele, couleur: form.couleur,
       km_entree: parseInt(form.km_entree) || 0,
       carburant_entree: form.carburant_entree,
       date_entree: form.date_entree,
@@ -67,6 +70,19 @@ export default function NouveauDossier() {
       statut: 'en_attente_signature',
     }).select().single()
 
+    if (form.vehicule_courtoisie_id && form.courtoisie_date_retour && dossier) {
+      await supabase.from('prets_courtoisie').insert({
+        vehicule_id: form.vehicule_courtoisie_id,
+        dossier_id: dossier.id,
+        client_id: client?.id,
+        date_debut: form.date_entree,
+        date_fin_prevue: form.courtoisie_date_retour,
+        km_depart: parseInt(form.courtoisie_km_depart) || 0,
+        carburant_depart: form.courtoisie_carburant,
+        statut: 'en_cours'
+      })
+    }
+
     setLoading(false)
     if (dossier) router.push('/dossier/' + dossier.id)
   }
@@ -74,6 +90,7 @@ export default function NouveauDossier() {
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }))
   const inputStyle = { width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e8e2d9', fontSize: 14, color: '#2D3748', background: 'white' }
   const labelStyle = { fontSize: 12, color: '#888', display: 'block' as const, marginBottom: 4 }
+  const selectedVehicule = vehiculesDisponibles.find(v => v.id === form.vehicule_courtoisie_id)
 
   return (
     <div style={{ minHeight: '100vh', background: '#f8f6f3', fontFamily: 'system-ui, sans-serif' }}>
@@ -98,7 +115,7 @@ export default function NouveauDossier() {
         </div>
 
         <div style={{ background: 'white', borderRadius: 12, padding: '1.5rem', border: '1px solid #e8e2d9', marginBottom: 16 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 16 }}>Vehicule</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 16 }}>Vehicule client</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div><label style={labelStyle}>Immatriculation</label><input style={inputStyle} value={form.immatriculation} onChange={e => set('immatriculation', e.target.value)} placeholder="AB-123-CD" /></div>
             <div><label style={labelStyle}>Marque</label><input style={inputStyle} value={form.marque} onChange={e => set('marque', e.target.value)} placeholder="Citroen" /></div>
@@ -110,21 +127,53 @@ export default function NouveauDossier() {
                 <option>vide</option><option>1/4</option><option>1/2</option><option>3/4</option><option>plein</option>
               </select>
             </div>
-            <div><label style={labelStyle}>Date d entree</label><input style={inputStyle} type="date" value={form.date_entree} onChange={e => set('date_entree', e.target.value)} /></div>
-            <div><label style={labelStyle}>Devis (€) — optionnel</label><input style={inputStyle} type="number" value={form.devis_montant} onChange={e => set('devis_montant', e.target.value)} placeholder="950" /></div>
+            <div><label style={labelStyle}>Date entree</label><input style={inputStyle} type="date" value={form.date_entree} onChange={e => set('date_entree', e.target.value)} /></div>
+            <div><label style={labelStyle}>Devis (€)</label><input style={inputStyle} type="number" value={form.devis_montant} onChange={e => set('devis_montant', e.target.value)} placeholder="950" /></div>
           </div>
         </div>
 
         <div style={{ background: 'white', borderRadius: 12, padding: '1.5rem', border: '1px solid #e8e2d9', marginBottom: 16 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 8 }}>Temps estime du chantier</div>
-          <div style={{ fontSize: 12, color: '#888', marginBottom: 12 }}>Entrez le nombre d heures prevu pour ce chantier. Le technicien verra sa progression en temps reel.</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 8 }}>Temps estime</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <input style={{ ...inputStyle, maxWidth: 160, fontSize: 18, fontWeight: 700, textAlign: 'center' as const }} type="number" min="0.5" step="0.5" value={form.heures_estimees} onChange={e => set('heures_estimees', e.target.value)} placeholder="8" />
             <span style={{ fontSize: 16, color: '#2D3748', fontWeight: 500 }}>heures estimees</span>
           </div>
-          {form.heures_estimees && (
+        </div>
+
+        <div style={{ background: 'white', borderRadius: 12, padding: '1.5rem', border: '1px solid #e8e2d9', marginBottom: 16 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 8 }}>Vehicule de courtoisie</div>
+          <div style={{ fontSize: 12, color: '#888', marginBottom: 12 }}>Le client a-t-il besoin d un vehicule de pret pendant la reparation ?</div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{ gridColumn: 'span 2' }}>
+              <label style={labelStyle}>Vehicule disponible</label>
+              <select style={inputStyle} value={form.vehicule_courtoisie_id} onChange={e => set('vehicule_courtoisie_id', e.target.value)}>
+                <option value="">-- Pas de vehicule de courtoisie --</option>
+                {vehiculesDisponibles.map(v => <option key={v.id} value={v.id}>{v.immatriculation} — {v.marque} {v.modele} {v.couleur ? '(' + v.couleur + ')' : ''}</option>)}
+              </select>
+            </div>
+
+            {form.vehicule_courtoisie_id && (
+              <>
+                {selectedVehicule && (
+                  <div style={{ gridColumn: 'span 2', padding: '10px 14px', background: '#EAF3DE', borderRadius: 8, border: '1px solid #97C459', fontSize: 13, color: '#27500A' }}>
+                    Vehicule selectionne : <strong>{selectedVehicule.immatriculation}</strong> — {selectedVehicule.marque} {selectedVehicule.modele} — {selectedVehicule.km_actuel?.toLocaleString()} km
+                  </div>
+                )}
+                <div><label style={labelStyle}>Date de retour prevue</label><input style={inputStyle} type="date" value={form.courtoisie_date_retour} onChange={e => set('courtoisie_date_retour', e.target.value)} /></div>
+                <div><label style={labelStyle}>Kilometrage depart</label><input style={inputStyle} type="number" value={form.courtoisie_km_depart} onChange={e => set('courtoisie_km_depart', e.target.value)} placeholder={selectedVehicule?.km_actuel?.toString() || ''} /></div>
+                <div><label style={labelStyle}>Carburant depart</label>
+                  <select style={inputStyle} value={form.courtoisie_carburant} onChange={e => set('courtoisie_carburant', e.target.value)}>
+                    <option>vide</option><option>1/4</option><option>1/2</option><option>3/4</option><option>plein</option>
+                  </select>
+                </div>
+              </>
+            )}
+          </div>
+
+          {form.vehicule_courtoisie_id && (
             <div style={{ marginTop: 12, padding: '10px 14px', background: '#FDF0E6', borderRadius: 8, border: '1px solid #E07B2A', fontSize: 13, color: '#854F0B' }}>
-              Le technicien aura {form.heures_estimees}h pour ce chantier. Une alerte s affichera s il depasse.
+              Un etat des lieux de depart sera a effectuer depuis la fiche dossier apres creation.
             </div>
           )}
         </div>
