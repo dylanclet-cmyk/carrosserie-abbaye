@@ -52,7 +52,7 @@ function ProgressionHeures({ totalHeures, heuresEstimees }: { totalHeures: numbe
       </div>
       {depasse ? (
         <div style={{ fontSize: 13, color: '#E24B4A', fontWeight: 600 }}>
-          Depassement de {Math.round((totalHeures - heuresEstimees) * 10) / 10}h — chantier hors budget temps !
+          Depassement de {Math.round((totalHeures - heuresEstimees) * 10) / 10}h !
         </div>
       ) : (
         <div style={{ fontSize: 13, color: '#888' }}>
@@ -67,6 +67,7 @@ export default function DossierPage() {
   const [dossier, setDossier] = useState<any>(null)
   const [heures, setHeures] = useState<any[]>([])
   const [salarie, setSalarie] = useState<any>(null)
+  const [salaries, setSalaries] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [newHeure, setNewHeure] = useState({ date: new Date().toISOString().split('T')[0], type_travail: 'debosselage', duree_heures: 2 })
   const [showTerminer, setShowTerminer] = useState(false)
@@ -88,6 +89,10 @@ export default function DossierPage() {
       if (dos?.notes) setCommentaire(dos.notes)
       const { data: h } = await supabase.from('heures').select('*, salaries(*)').eq('dossier_id', params.id).order('date_travail', { ascending: false })
       setHeures(h || [])
+      if (sal?.role === 'chef_atelier') {
+        const { data: sals } = await supabase.from('salaries').select('*').eq('actif', true).eq('role', 'technicien')
+        setSalaries(sals || [])
+      }
       setLoading(false)
     }
     load()
@@ -107,6 +112,12 @@ export default function DossierPage() {
   async function updateStatut(statut: string) {
     await supabase.from('dossiers').update({ statut }).eq('id', params.id)
     setDossier({ ...dossier, statut })
+  }
+
+  async function assignerTechnicien(salarie_id: string) {
+    await supabase.from('dossiers').update({ salarie_id }).eq('id', params.id)
+    const sal = salaries.find(s => s.id === salarie_id)
+    setDossier({ ...dossier, salarie_id, salaries: sal })
   }
 
   async function terminerChantier() {
@@ -158,7 +169,7 @@ export default function DossierPage() {
         <button onClick={() => router.push('/')} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: '#e8e2d9' }}>← Retour</button>
         <img src="/logo.png" alt="Logo" style={{ height: 44, objectFit: 'contain' }} />
         <span style={{ fontWeight: 600, fontSize: 15, color: 'white' }}>{dossier.immatriculation} — {dossier.marque} {dossier.modele}</span>
-        <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: sc.bg, color: sc.color, marginLeft: 4 }}>
+        <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: sc.bg, color: sc.color }}>
           {statusOptions.find(s => s.value === dossier.statut)?.label}
         </span>
       </div>
@@ -168,13 +179,15 @@ export default function DossierPage() {
         {terminated && (
           <div style={{ background: '#EAF3DE', border: '1px solid #97C459', borderRadius: 12, padding: '1rem 1.25rem', marginBottom: 16, color: '#27500A', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ fontSize: 20 }}>✓</span>
-            Chantier termine ! Le chef d atelier a ete prevenu. Vehicule pret a restituer.
+            Chantier termine ! Le chef a ete prevenu. Vehicule pret a restituer.
           </div>
         )}
 
         {dossier.notes && (
-          <div style={{ background: '#FDF0E6', border: '1px solid #E07B2A', borderRadius: 12, padding: '1rem 1.25rem', marginBottom: 16 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 6 }}>Note du technicien</div>
+          <div style={{ background: '#FDF0E6', border: '2px solid #E07B2A', borderRadius: 12, padding: '1rem 1.25rem', marginBottom: 16 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 6 }}>
+              Note du technicien {dossier.salaries ? '— ' + dossier.salaries.prenom + ' ' + dossier.salaries.nom : ''}
+            </div>
             <div style={{ fontSize: 14, color: '#2D3748' }}>{dossier.notes}</div>
           </div>
         )}
@@ -188,12 +201,21 @@ export default function DossierPage() {
             <div style={{ fontSize: 13, color: '#555' }}>Entree : <strong>{new Date(dossier.date_entree).toLocaleDateString('fr-FR')}</strong></div>
             <div style={{ fontSize: 13, color: '#555', marginTop: 4 }}>Kilometrage : <strong>{dossier.km_entree?.toLocaleString()} km</strong></div>
             {salarie?.role === 'chef_atelier' && (
-              <div style={{ marginTop: 12 }}>
-                <div style={{ fontSize: 12, color: '#888', marginBottom: 6 }}>Statut</div>
-                <select onChange={e => updateStatut(e.target.value)} value={dossier.statut} style={{ width: '100%', padding: '7px 10px', borderRadius: 8, border: '1px solid #e8e2d9', fontSize: 13, color: '#2D3748' }}>
-                  {statusOptions.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-                </select>
-              </div>
+              <>
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ fontSize: 12, color: '#888', marginBottom: 6 }}>Statut</div>
+                  <select onChange={e => updateStatut(e.target.value)} value={dossier.statut} style={{ width: '100%', padding: '7px 10px', borderRadius: 8, border: '1px solid #e8e2d9', fontSize: 13, color: '#2D3748' }}>
+                    {statusOptions.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                  </select>
+                </div>
+                <div style={{ marginTop: 10 }}>
+                  <div style={{ fontSize: 12, color: '#888', marginBottom: 6 }}>Technicien assigne</div>
+                  <select onChange={e => assignerTechnicien(e.target.value)} value={dossier.salarie_id || ''} style={{ width: '100%', padding: '7px 10px', borderRadius: 8, border: '1px solid #e8e2d9', fontSize: 13, color: '#2D3748' }}>
+                    <option value="">-- Choisir un technicien --</option>
+                    {salaries.map(s => <option key={s.id} value={s.id}>{s.prenom} {s.nom}</option>)}
+                  </select>
+                </div>
+              </>
             )}
           </div>
 
@@ -208,6 +230,12 @@ export default function DossierPage() {
                 <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Heures estimees</div>
                 <div style={{ fontSize: 22, fontWeight: 600, color: '#E07B2A' }}>{heuresEstimees > 0 ? heuresEstimees + ' h' : '—'}</div>
               </div>
+              {dossier.salaries && (
+                <div style={{ background: '#f8f6f3', borderRadius: 8, padding: '0.75rem', gridColumn: 'span 2' }}>
+                  <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Technicien assigne</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: '#2D3748' }}>{dossier.salaries.prenom} {dossier.salaries.nom}</div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -225,12 +253,12 @@ export default function DossierPage() {
         {showTerminer && (
           <div style={{ background: 'white', borderRadius: 12, padding: '1.25rem', border: '2px solid #3B6D11', marginBottom: 16 }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#27500A', marginBottom: 12 }}>Terminer le chantier</div>
-            <div style={{ fontSize: 13, color: '#888', marginBottom: 8 }}>Ajoutez une note pour le chef d atelier (supplement, anomalie, recommandation...)</div>
+            <div style={{ fontSize: 13, color: '#888', marginBottom: 8 }}>Ajoutez une note pour le chef (supplement, anomalie, recommandation...)</div>
             <textarea
               value={commentaire}
               onChange={e => setCommentaire(e.target.value)}
-              placeholder="Ex : Supplement fait sur vehicule — remplacement filtre a air. Prevoir changement des pneus avant lors du prochain passage."
-              style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #e8e2d9', fontSize: 13, color: '#2D3748', minHeight: 100, resize: 'vertical', fontFamily: 'system-ui' }}
+              placeholder="Ex : Supplement fait — remplacement filtre a air. Prevoir changement des pneus avant."
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #e8e2d9', fontSize: 13, color: '#2D3748', minHeight: 100, resize: 'vertical' as const, fontFamily: 'system-ui' }}
             />
             <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
               <button onClick={() => setShowTerminer(false)} style={{ padding: '9px 18px', borderRadius: 8, border: '1px solid #e8e2d9', background: 'white', cursor: 'pointer', fontSize: 13, color: '#2D3748' }}>Annuler</button>
