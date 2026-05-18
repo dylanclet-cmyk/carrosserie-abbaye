@@ -27,21 +27,10 @@ export default function PlanningPage() {
 
   const annee = moisActuel.getFullYear()
   const mois = moisActuel.getMonth()
-  const premierJour = new Date(annee, mois, 1)
   const dernierJour = new Date(annee, mois + 1, 0)
   const nbJours = dernierJour.getDate()
   const nomsMois = ['Janvier', 'Fevrier', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Aout', 'Septembre', 'Octobre', 'Novembre', 'Decembre']
   const today = new Date()
-
-  function pretsDuVehicule(vehiculeId: string) {
-    return prets.filter(p => {
-      const debut = new Date(p.date_debut)
-      const fin = new Date(p.date_fin_prevue)
-      const debutMois = new Date(annee, mois, 1)
-      const finMois = new Date(annee, mois + 1, 0)
-      return p.vehicule_id === vehiculeId && debut <= finMois && fin >= debutMois
-    })
-  }
 
   function getPretForDay(vehiculeId: string, jour: number) {
     const date = new Date(annee, mois, jour)
@@ -49,12 +38,12 @@ export default function PlanningPage() {
       const debut = new Date(p.date_debut)
       const fin = p.date_retour ? new Date(p.date_retour) : new Date(p.date_fin_prevue)
       return p.vehicule_id === vehiculeId && date >= debut && date <= fin
-    })
+    }) || null
   }
 
   if (loading) return <div style={{ padding: '2rem', fontFamily: 'system-ui', color: '#888' }}>Chargement...</div>
 
-  const colors = ['#E07B2A', '#185FA5', '#3B6D11', '#854F0B', '#3C3489', '#A32D2D']
+  const colors: string[] = ['#E07B2A', '#185FA5', '#3B6D11', '#854F0B', '#3C3489', '#A32D2D']
 
   return (
     <div style={{ minHeight: '100vh', background: '#f8f6f3', fontFamily: 'system-ui, sans-serif' }}>
@@ -87,7 +76,7 @@ export default function PlanningPage() {
             })}
           </div>
 
-          {vehicules.map((v, vi) => (
+          {vehicules.map((v) => (
             <div key={v.id} style={{ display: 'grid', gridTemplateColumns: '140px repeat(' + nbJours + ', 1fr)', gap: 1, marginBottom: 2 }}>
               <div style={{ padding: '8px 6px', background: 'white', borderRadius: 6, fontSize: 11, fontWeight: 600, color: '#2D3748' }}>
                 <div>{v.immatriculation}</div>
@@ -99,15 +88,15 @@ export default function PlanningPage() {
                 const isWeekend = date.getDay() === 0 || date.getDay() === 6
                 const isToday = date.toDateString() === today.toDateString()
                 const pretIndex = pret ? prets.filter(p => p.vehicule_id === v.id).indexOf(pret) : -1
-                const color = pret ? colors[pretIndex % colors.length] : null
-                const isDebut = pret && new Date(pret.date_debut).toDateString() === date.toDateString()
-                const enRetard = pret && pret.statut === 'en_cours' && pret.date_fin_prevue < new Date().toISOString().split('T')[0]
+                const color: string = pret ? colors[pretIndex % colors.length] : '#888'
+                const isDebut = pret ? new Date(pret.date_debut).toDateString() === date.toDateString() : false
+                const enRetard = pret ? (pret.statut === 'en_cours' && pret.date_fin_prevue < new Date().toISOString().split('T')[0]) : false
                 return (
-                  <div key={i} title={pret ? (pret.dossiers?.clients?.prenom + ' ' + pret.dossiers?.clients?.nom) : ''} style={{
+                  <div key={i} title={pret ? ((pret.dossiers?.clients?.prenom || '') + ' ' + (pret.dossiers?.clients?.nom || '')) : ''} style={{
                     height: 32, borderRadius: 3,
                     background: pret ? (enRetard ? '#FCEBEB' : color + '33') : isWeekend ? '#f5f3f0' : isToday ? '#FDF0E6' : 'white',
                     border: isToday ? '1px solid #E07B2A' : '1px solid #f0ede8',
-                    borderLeft: pret && isDebut ? '3px solid ' + (enRetard ? '#E24B4A' : color) : undefined,
+                    borderLeft: pret && isDebut ? ('3px solid ' + (enRetard ? '#E24B4A' : color)) : undefined,
                     display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
                     cursor: pret ? 'pointer' : 'default'
                   }}>
