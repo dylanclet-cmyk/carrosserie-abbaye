@@ -51,13 +51,9 @@ function ProgressionHeures({ totalHeures, heuresEstimees }: { totalHeures: numbe
         <div style={{ height: '100%', width: pct + '%', background: depasse ? '#E24B4A' : pct >= 80 ? '#EF9F27' : '#3B6D11', borderRadius: 6, transition: 'width 0.3s' }} />
       </div>
       {depasse ? (
-        <div style={{ fontSize: 13, color: '#E24B4A', fontWeight: 600 }}>
-          Depassement de {Math.round((totalHeures - heuresEstimees) * 10) / 10}h !
-        </div>
+        <div style={{ fontSize: 13, color: '#E24B4A', fontWeight: 600 }}>Depassement de {Math.round((totalHeures - heuresEstimees) * 10) / 10}h !</div>
       ) : (
-        <div style={{ fontSize: 13, color: '#888' }}>
-          Il reste <strong style={{ color: '#2D3748' }}>{Math.round((heuresEstimees - totalHeures) * 10) / 10}h</strong> disponibles
-        </div>
+        <div style={{ fontSize: 13, color: '#888' }}>Il reste <strong style={{ color: '#2D3748' }}>{Math.round((heuresEstimees - totalHeures) * 10) / 10}h</strong> disponibles</div>
       )}
     </div>
   )
@@ -122,14 +118,16 @@ export default function DossierPage() {
 
   async function terminerChantier() {
     setTerminating(true)
-    await supabase.from('dossiers').update({
-      statut: 'pret_restituer',
-      notes: commentaire,
-    }).eq('id', params.id)
+    await supabase.from('dossiers').update({ statut: 'pret_restituer', notes: commentaire }).eq('id', params.id)
     setDossier({ ...dossier, statut: 'pret_restituer', notes: commentaire })
     setTerminating(false)
     setTerminated(true)
     setShowTerminer(false)
+  }
+
+  async function facturer() {
+    await supabase.from('dossiers').update({ statut: 'facture' }).eq('id', params.id)
+    setDossier({ ...dossier, statut: 'facture' })
   }
 
   if (loading) return <div style={{ padding: '2rem', fontFamily: 'system-ui', color: '#888' }}>Chargement...</div>
@@ -137,15 +135,12 @@ export default function DossierPage() {
 
   const totalHeures = heures.reduce((a, h) => a + Number(h.duree_heures), 0)
   const heuresEstimees = Number(dossier.heures_estimees) || 0
-  const estTermine = dossier.statut === 'pret_restituer' || dossier.statut === 'termine'
+  const estTermine = ['pret_restituer', 'termine', 'facture'].includes(dossier.statut)
 
   const typeLabels: any = {
-    debosselage: 'Debosselage',
-    peinture: 'Peinture',
-    remplacement_piece: 'Remplacement piece',
-    finition: 'Finition',
-    controle_qualite: 'Controle qualite',
-    autre: 'Autre'
+    debosselage: 'Debosselage', peinture: 'Peinture',
+    remplacement_piece: 'Remplacement piece', finition: 'Finition',
+    controle_qualite: 'Controle qualite', autre: 'Autre'
   }
 
   const statusOptions = [
@@ -153,6 +148,7 @@ export default function DossierPage() {
     { value: 'en_cours', label: 'En cours' },
     { value: 'pret_restituer', label: 'Pret a restituer' },
     { value: 'termine', label: 'Termine' },
+    { value: 'facture', label: 'Facture' },
   ]
 
   const statusColors: any = {
@@ -160,6 +156,7 @@ export default function DossierPage() {
     en_cours: { color: '#0C447C', bg: '#E6F1FB' },
     pret_restituer: { color: '#27500A', bg: '#EAF3DE' },
     termine: { color: '#444441', bg: '#F1EFE8' },
+    facture: { color: '#3C3489', bg: '#EEEDFE' },
   }
   const sc = statusColors[dossier.statut] || statusColors.en_cours
 
@@ -254,9 +251,7 @@ export default function DossierPage() {
           <div style={{ background: 'white', borderRadius: 12, padding: '1.25rem', border: '2px solid #3B6D11', marginBottom: 16 }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#27500A', marginBottom: 12 }}>Terminer le chantier</div>
             <div style={{ fontSize: 13, color: '#888', marginBottom: 8 }}>Ajoutez une note pour le chef (supplement, anomalie, recommandation...)</div>
-            <textarea
-              value={commentaire}
-              onChange={e => setCommentaire(e.target.value)}
+            <textarea value={commentaire} onChange={e => setCommentaire(e.target.value)}
               placeholder="Ex : Supplement fait — remplacement filtre a air. Prevoir changement des pneus avant."
               style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #e8e2d9', fontSize: 13, color: '#2D3748', minHeight: 100, resize: 'vertical' as const, fontFamily: 'system-ui' }}
             />
@@ -266,6 +261,14 @@ export default function DossierPage() {
                 {terminating ? 'En cours...' : '✓ Confirmer — chantier termine'}
               </button>
             </div>
+          </div>
+        )}
+
+        {dossier.statut === 'pret_restituer' && salarie?.role === 'chef_atelier' && (
+          <div style={{ marginBottom: 16 }}>
+            <button onClick={facturer} style={{ width: '100%', padding: '14px', borderRadius: 12, border: '2px solid #3C3489', background: '#EEEDFE', cursor: 'pointer', fontSize: 15, fontWeight: 700, color: '#3C3489', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+              Marquer comme facture — archiver le dossier
+            </button>
           </div>
         )}
 
