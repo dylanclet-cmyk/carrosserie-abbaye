@@ -106,8 +106,7 @@ export default function Dashboard() {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <span style={{ fontSize: 11, fontWeight: 500, padding: '4px 12px', borderRadius: 20, background: s.bg, color: s.color, whiteSpace: 'nowrap' }}>{s.label}</span>
-                  <button onClick={() => router.push('/dossier/' + d.id)} style={{ fontSize: 13, padding: '7px 16px', borderRadius: 8, border: '2px solid #E07B2A', background: 'white', cursor: 'pointer', color: '#E07B2A', fontWeight: 600 }}>Voir</button>
-                </div>
+<button onClick={() => router.push('/nouveau-dossier')} style={{ background: '#E07B2A', color: 'white', border: 'none', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>+ Nouveau dossier</button>                </div>
               </div>
             )
           })}
