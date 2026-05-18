@@ -36,7 +36,6 @@ function ProgressionHeures({ totalHeures, heuresEstimees }: { totalHeures: numbe
   if (!heuresEstimees || heuresEstimees === 0) return null
   const pct = Math.min(Math.round(totalHeures / heuresEstimees * 100), 100)
   const depasse = totalHeures > heuresEstimees
-  const restant = Math.max(heuresEstimees - totalHeures, 0)
 
   return (
     <div style={{ background: 'white', borderRadius: 12, padding: '1.25rem', border: depasse ? '2px solid #E24B4A' : '1px solid #e8e2d9', marginBottom: 16 }}>
@@ -52,12 +51,12 @@ function ProgressionHeures({ totalHeures, heuresEstimees }: { totalHeures: numbe
         <div style={{ height: '100%', width: pct + '%', background: depasse ? '#E24B4A' : pct >= 80 ? '#EF9F27' : '#3B6D11', borderRadius: 6, transition: 'width 0.3s' }} />
       </div>
       {depasse ? (
-        <div style={{ fontSize: 13, color: '#E24B4A', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div style={{ fontSize: 13, color: '#E24B4A', fontWeight: 600 }}>
           Depassement de {Math.round((totalHeures - heuresEstimees) * 10) / 10}h — chantier hors budget temps !
         </div>
       ) : (
         <div style={{ fontSize: 13, color: '#888' }}>
-          Il reste <strong style={{ color: '#2D3748' }}>{Math.round(restant * 10) / 10}h</strong> disponibles sur ce chantier
+          Il reste <strong style={{ color: '#2D3748' }}>{Math.round((heuresEstimees - totalHeures) * 10) / 10}h</strong> disponibles
         </div>
       )}
     </div>
@@ -70,6 +69,10 @@ export default function DossierPage() {
   const [salarie, setSalarie] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [newHeure, setNewHeure] = useState({ date: new Date().toISOString().split('T')[0], type_travail: 'debosselage', duree_heures: 2 })
+  const [showTerminer, setShowTerminer] = useState(false)
+  const [commentaire, setCommentaire] = useState('')
+  const [terminating, setTerminating] = useState(false)
+  const [terminated, setTerminated] = useState(false)
   const router = useRouter()
   const params = useParams()
   const supabase = createClient()
@@ -82,6 +85,7 @@ export default function DossierPage() {
       setSalarie(sal)
       const { data: dos } = await supabase.from('dossiers').select('*, clients(*), salaries(*)').eq('id', params.id).single()
       setDossier(dos)
+      if (dos?.notes) setCommentaire(dos.notes)
       const { data: h } = await supabase.from('heures').select('*, salaries(*)').eq('dossier_id', params.id).order('date_travail', { ascending: false })
       setHeures(h || [])
       setLoading(false)
@@ -105,11 +109,24 @@ export default function DossierPage() {
     setDossier({ ...dossier, statut })
   }
 
+  async function terminerChantier() {
+    setTerminating(true)
+    await supabase.from('dossiers').update({
+      statut: 'pret_restituer',
+      notes: commentaire,
+    }).eq('id', params.id)
+    setDossier({ ...dossier, statut: 'pret_restituer', notes: commentaire })
+    setTerminating(false)
+    setTerminated(true)
+    setShowTerminer(false)
+  }
+
   if (loading) return <div style={{ padding: '2rem', fontFamily: 'system-ui', color: '#888' }}>Chargement...</div>
   if (!dossier) return <div style={{ padding: '2rem', fontFamily: 'system-ui', color: '#888' }}>Dossier introuvable</div>
 
   const totalHeures = heures.reduce((a, h) => a + Number(h.duree_heures), 0)
   const heuresEstimees = Number(dossier.heures_estimees) || 0
+  const estTermine = dossier.statut === 'pret_restituer' || dossier.statut === 'termine'
 
   const typeLabels: any = {
     debosselage: 'Debosselage',
@@ -127,15 +144,41 @@ export default function DossierPage() {
     { value: 'termine', label: 'Termine' },
   ]
 
+  const statusColors: any = {
+    en_attente_signature: { color: '#854F0B', bg: '#FAEEDA' },
+    en_cours: { color: '#0C447C', bg: '#E6F1FB' },
+    pret_restituer: { color: '#27500A', bg: '#EAF3DE' },
+    termine: { color: '#444441', bg: '#F1EFE8' },
+  }
+  const sc = statusColors[dossier.statut] || statusColors.en_cours
+
   return (
     <div style={{ minHeight: '100vh', background: '#f8f6f3', fontFamily: 'system-ui, sans-serif' }}>
       <div style={{ background: '#2D3748', padding: '0 2rem', height: 64, display: 'flex', alignItems: 'center', gap: 12 }}>
         <button onClick={() => router.push('/')} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: '#e8e2d9' }}>← Retour</button>
         <img src="/logo.png" alt="Logo" style={{ height: 44, objectFit: 'contain' }} />
         <span style={{ fontWeight: 600, fontSize: 15, color: 'white' }}>{dossier.immatriculation} — {dossier.marque} {dossier.modele}</span>
+        <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: sc.bg, color: sc.color, marginLeft: 4 }}>
+          {statusOptions.find(s => s.value === dossier.statut)?.label}
+        </span>
       </div>
 
       <div style={{ padding: '1.5rem 2rem', maxWidth: 960, margin: '0 auto' }}>
+
+        {terminated && (
+          <div style={{ background: '#EAF3DE', border: '1px solid #97C459', borderRadius: 12, padding: '1rem 1.25rem', marginBottom: 16, color: '#27500A', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 20 }}>✓</span>
+            Chantier termine ! Le chef d atelier a ete prevenu. Vehicule pret a restituer.
+          </div>
+        )}
+
+        {dossier.notes && (
+          <div style={{ background: '#FDF0E6', border: '1px solid #E07B2A', borderRadius: 12, padding: '1rem 1.25rem', marginBottom: 16 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 6 }}>Note du technicien</div>
+            <div style={{ fontSize: 14, color: '#2D3748' }}>{dossier.notes}</div>
+          </div>
+        )}
+
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
           <div style={{ background: 'white', borderRadius: 12, padding: '1.25rem', border: '1px solid #e8e2d9' }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 12 }}>Client</div>
@@ -170,6 +213,33 @@ export default function DossierPage() {
         </div>
 
         <ProgressionHeures totalHeures={totalHeures} heuresEstimees={heuresEstimees} />
+
+        {!estTermine && salarie?.role === 'technicien' && !showTerminer && (
+          <div style={{ marginBottom: 16 }}>
+            <button onClick={() => setShowTerminer(true)} style={{ width: '100%', padding: '14px', borderRadius: 12, border: '2px solid #3B6D11', background: '#EAF3DE', cursor: 'pointer', fontSize: 15, fontWeight: 700, color: '#27500A', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+              ✓ Terminer le chantier et prevenir le chef
+            </button>
+          </div>
+        )}
+
+        {showTerminer && (
+          <div style={{ background: 'white', borderRadius: 12, padding: '1.25rem', border: '2px solid #3B6D11', marginBottom: 16 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#27500A', marginBottom: 12 }}>Terminer le chantier</div>
+            <div style={{ fontSize: 13, color: '#888', marginBottom: 8 }}>Ajoutez une note pour le chef d atelier (supplement, anomalie, recommandation...)</div>
+            <textarea
+              value={commentaire}
+              onChange={e => setCommentaire(e.target.value)}
+              placeholder="Ex : Supplement fait sur vehicule — remplacement filtre a air. Prevoir changement des pneus avant lors du prochain passage."
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #e8e2d9', fontSize: 13, color: '#2D3748', minHeight: 100, resize: 'vertical', fontFamily: 'system-ui' }}
+            />
+            <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
+              <button onClick={() => setShowTerminer(false)} style={{ padding: '9px 18px', borderRadius: 8, border: '1px solid #e8e2d9', background: 'white', cursor: 'pointer', fontSize: 13, color: '#2D3748' }}>Annuler</button>
+              <button onClick={terminerChantier} disabled={terminating} style={{ flex: 1, padding: '9px 18px', borderRadius: 8, border: 'none', background: '#3B6D11', color: 'white', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>
+                {terminating ? 'En cours...' : '✓ Confirmer — chantier termine'}
+              </button>
+            </div>
+          </div>
+        )}
 
         <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
           <button onClick={() => router.push('/etat-des-lieux?dossier=' + params.id + '&type=entree')} style={{ padding: '10px 18px', borderRadius: 8, border: '2px solid #E07B2A', background: '#E07B2A', cursor: 'pointer', fontSize: 13, color: 'white', fontWeight: 700 }}>
