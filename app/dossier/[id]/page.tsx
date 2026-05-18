@@ -272,12 +272,15 @@ export default function DossierPage() {
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
+        <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' as const }}>
           <button onClick={() => router.push('/etat-des-lieux?dossier=' + params.id + '&type=entree')} style={{ padding: '10px 18px', borderRadius: 8, border: '2px solid #E07B2A', background: '#E07B2A', cursor: 'pointer', fontSize: 13, color: 'white', fontWeight: 700 }}>
             Etat des lieux entree
           </button>
           <button onClick={() => router.push('/etat-des-lieux?dossier=' + params.id + '&type=sortie')} style={{ padding: '10px 18px', borderRadius: 8, border: '2px solid #2D3748', background: 'white', cursor: 'pointer', fontSize: 13, color: '#2D3748', fontWeight: 600 }}>
             Etat des lieux sortie
+          </button>
+          <button onClick={() => router.push('/dossier/' + params.id + '/pdf')} style={{ padding: '10px 18px', borderRadius: 8, border: '2px solid #3C3489', background: 'white', cursor: 'pointer', fontSize: 13, color: '#3C3489', fontWeight: 600 }}>
+            Exporter PDF
           </button>
         </div>
 
