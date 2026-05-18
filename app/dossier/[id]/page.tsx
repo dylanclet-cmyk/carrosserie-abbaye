@@ -4,6 +4,39 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter, useParams } from 'next/navigation'
 
+function EtatsLieux({ dossierId }: { dossierId: string }) {
+  const [etats, setEtats] = useState<any[]>([])
+  const supabase = createClient()
+
+  useEffect(() => {
+    supabase.from('etats_lieux').select('*').eq('dossier_id', dossierId).order('created_at', { ascending: false }).then(({ data }) => setEtats(data || []))
+  }, [])
+
+  if (etats.length === 0) return null
+
+  return (
+    <div style={{ background: 'white', borderRadius: 12, padding: '1.25rem', border: '1px solid #e8e2d9', marginBottom: 16 }}>
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 12 }}>Etats des lieux</div>
+      {etats.map(e => (
+        <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 10px', background: '#f8f6f3', borderRadius: 8, marginBottom: 6 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: e.type === 'entree' ? '#E6F1FB' : '#EAF3DE', color: e.type === 'entree' ? '#0C447C' : '#27500A' }}>
+            {e.type === 'entree' ? 'Entree' : 'Sortie'}
+          </span>
+          <span style={{ fontSize: 13, color: '#2D3748', flex: 1 }}>
+            {e.dommages?.length || 0} dommage{e.dommages?.length > 1 ? 's' : ''} note{e.dommages?.length > 1 ? 's' : ''}
+          </span>
+          <span style={{ fontSize: 12, color: '#888' }}>
+            {new Date(e.created_at).toLocaleDateString('fr-FR')}
+          </span>
+          {e.signature_client && (
+            <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, background: '#EAF3DE', color: '#27500A' }}>Signe</span>
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export default function DossierPage() {
   const [dossier, setDossier] = useState<any>(null)
   const [heures, setHeures] = useState<any[]>([])
@@ -130,6 +163,8 @@ export default function DossierPage() {
             Etat des lieux sortie
           </button>
         </div>
+
+        <EtatsLieux dossierId={params.id as string} />
 
         <div style={{ background: 'white', borderRadius: 12, padding: '1.25rem', border: '1px solid #e8e2d9' }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 12 }}>Saisie des heures</div>
