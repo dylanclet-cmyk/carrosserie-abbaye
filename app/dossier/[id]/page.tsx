@@ -22,14 +22,44 @@ function EtatsLieux({ dossierId, router }: { dossierId: string, router: any }) {
           <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: e.type === 'entree' ? '#E6F1FB' : '#EAF3DE', color: e.type === 'entree' ? '#0C447C' : '#27500A' }}>
             {e.type === 'entree' ? 'Entree' : 'Sortie'}
           </span>
-          <span style={{ fontSize: 13, color: '#2D3748', flex: 1 }}>
-            {e.dommages?.length || 0} dommage{e.dommages?.length > 1 ? 's' : ''} note{e.dommages?.length > 1 ? 's' : ''}
-          </span>
+          <span style={{ fontSize: 13, color: '#2D3748', flex: 1 }}>{e.dommages?.length || 0} dommage{e.dommages?.length > 1 ? 's' : ''} note{e.dommages?.length > 1 ? 's' : ''}</span>
           <span style={{ fontSize: 12, color: '#888' }}>{new Date(e.created_at).toLocaleDateString('fr-FR')}</span>
           {e.signature_client && <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, background: '#EAF3DE', color: '#27500A' }}>Signe</span>}
           <span style={{ fontSize: 12, color: '#E07B2A' }}>Voir →</span>
         </div>
       ))}
+    </div>
+  )
+}
+
+function ProgressionHeures({ totalHeures, heuresEstimees }: { totalHeures: number, heuresEstimees: number }) {
+  if (!heuresEstimees || heuresEstimees === 0) return null
+  const pct = Math.min(Math.round(totalHeures / heuresEstimees * 100), 100)
+  const depasse = totalHeures > heuresEstimees
+  const restant = Math.max(heuresEstimees - totalHeures, 0)
+
+  return (
+    <div style={{ background: 'white', borderRadius: 12, padding: '1.25rem', border: depasse ? '2px solid #E24B4A' : '1px solid #e8e2d9', marginBottom: 16 }}>
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 12 }}>Progression du chantier</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 8 }}>
+        <div>
+          <span style={{ fontSize: 28, fontWeight: 700, color: depasse ? '#E24B4A' : '#2D3748' }}>{totalHeures}h</span>
+          <span style={{ fontSize: 16, color: '#888', marginLeft: 4 }}>/ {heuresEstimees}h estimees</span>
+        </div>
+        <span style={{ fontSize: 20, fontWeight: 700, color: depasse ? '#E24B4A' : pct >= 80 ? '#EF9F27' : '#3B6D11' }}>{pct}%</span>
+      </div>
+      <div style={{ height: 12, background: '#f0ede8', borderRadius: 6, overflow: 'hidden', marginBottom: 8 }}>
+        <div style={{ height: '100%', width: pct + '%', background: depasse ? '#E24B4A' : pct >= 80 ? '#EF9F27' : '#3B6D11', borderRadius: 6, transition: 'width 0.3s' }} />
+      </div>
+      {depasse ? (
+        <div style={{ fontSize: 13, color: '#E24B4A', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+          Depassement de {Math.round((totalHeures - heuresEstimees) * 10) / 10}h — chantier hors budget temps !
+        </div>
+      ) : (
+        <div style={{ fontSize: 13, color: '#888' }}>
+          Il reste <strong style={{ color: '#2D3748' }}>{Math.round(restant * 10) / 10}h</strong> disponibles sur ce chantier
+        </div>
+      )}
     </div>
   )
 }
@@ -79,8 +109,7 @@ export default function DossierPage() {
   if (!dossier) return <div style={{ padding: '2rem', fontFamily: 'system-ui', color: '#888' }}>Dossier introuvable</div>
 
   const totalHeures = heures.reduce((a, h) => a + Number(h.duree_heures), 0)
-  const coutMO = Math.round(totalHeures * (salarie?.taux_horaire || 38))
-  const rentabilite = dossier.devis_montant > 0 ? Math.round((dossier.devis_montant - coutMO) / dossier.devis_montant * 100) : null
+  const heuresEstimees = Number(dossier.heures_estimees) || 0
 
   const typeLabels: any = {
     debosselage: 'Debosselage',
@@ -126,31 +155,21 @@ export default function DossierPage() {
           </div>
 
           <div style={{ background: 'white', borderRadius: 12, padding: '1.25rem', border: '1px solid #e8e2d9' }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 12 }}>Rentabilite</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 12 }}>Infos chantier</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               <div style={{ background: '#f8f6f3', borderRadius: 8, padding: '0.75rem' }}>
                 <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Heures saisies</div>
                 <div style={{ fontSize: 22, fontWeight: 600, color: '#2D3748' }}>{totalHeures} h</div>
               </div>
               <div style={{ background: '#f8f6f3', borderRadius: 8, padding: '0.75rem' }}>
-                <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Cout MO</div>
-                <div style={{ fontSize: 22, fontWeight: 600, color: '#A32D2D' }}>{coutMO} €</div>
+                <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Heures estimees</div>
+                <div style={{ fontSize: 22, fontWeight: 600, color: '#E07B2A' }}>{heuresEstimees > 0 ? heuresEstimees + ' h' : '—'}</div>
               </div>
-              {salarie?.role === 'chef_atelier' && (
-                <>
-                  <div style={{ background: '#f8f6f3', borderRadius: 8, padding: '0.75rem' }}>
-                    <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Devis</div>
-                    <div style={{ fontSize: 22, fontWeight: 600, color: '#3B6D11' }}>{dossier.devis_montant ? dossier.devis_montant + ' €' : '—'}</div>
-                  </div>
-                  <div style={{ background: '#f8f6f3', borderRadius: 8, padding: '0.75rem' }}>
-                    <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Rentabilite</div>
-                    <div style={{ fontSize: 22, fontWeight: 600, color: rentabilite && rentabilite >= 50 ? '#3B6D11' : '#A32D2D' }}>{rentabilite !== null ? rentabilite + ' %' : '—'}</div>
-                  </div>
-                </>
-              )}
             </div>
           </div>
         </div>
+
+        <ProgressionHeures totalHeures={totalHeures} heuresEstimees={heuresEstimees} />
 
         <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
           <button onClick={() => router.push('/etat-des-lieux?dossier=' + params.id + '&type=entree')} style={{ padding: '10px 18px', borderRadius: 8, border: '2px solid #E07B2A', background: '#E07B2A', cursor: 'pointer', fontSize: 13, color: 'white', fontWeight: 700 }}>
@@ -190,7 +209,6 @@ export default function DossierPage() {
               <span style={{ fontSize: 13, color: '#2D3748', flex: 1 }}>{typeLabels[h.type_travail] || h.type_travail}</span>
               <span style={{ fontSize: 13, color: '#555' }}>{h.salaries?.prenom} {h.salaries?.nom}</span>
               <span style={{ fontSize: 13, fontWeight: 600, color: '#2D3748', minWidth: 40 }}>{h.duree_heures} h</span>
-              <span style={{ fontSize: 12, color: '#888' }}>{Math.round(Number(h.duree_heures) * (h.salaries?.taux_horaire || 38))} €</span>
             </div>
           ))}
         </div>
