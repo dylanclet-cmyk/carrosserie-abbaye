@@ -1,168 +1,223 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { createClient } from '@/lib/supabase'
-import { useRouter, useParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
-export default function DossierPage() {
+const ZONES = [
+  { id: 'aile_av_g', label: 'Aile avant gauche', x: 120, y: 80 },
+  { id: 'aile_av_d', label: 'Aile avant droite', x: 120, y: 200 },
+  { id: 'capot', label: 'Capot', x: 80, y: 140 },
+  { id: 'pare_choc_av', label: 'Pare-chocs avant', x: 40, y: 140 },
+  { id: 'porte_av_g', label: 'Porte avant gauche', x: 220, y: 80 },
+  { id: 'porte_av_d', label: 'Porte avant droite', x: 220, y: 200 },
+  { id: 'porte_ar_g', label: 'Porte arriere gauche', x: 320, y: 80 },
+  { id: 'porte_ar_d', label: 'Porte arriere droite', x: 320, y: 200 },
+  { id: 'aile_ar_g', label: 'Aile arriere gauche', x: 420, y: 80 },
+  { id: 'aile_ar_d', label: 'Aile arriere droite', x: 420, y: 200 },
+  { id: 'coffre', label: 'Coffre', x: 480, y: 140 },
+  { id: 'toit', label: 'Toit', x: 270, y: 140 },
+]
+
+const CTRL_INT = ['Proprete interieure', 'Tableau de bord', 'Sieges / sellerie', 'Tapis de sol', 'Coffre']
+const CTRL_EQ = ['Roue de secours', 'Cric / cle de roue', 'Gilet / triangle', 'Documents de bord', '2e jeu de cles']
+
+function Content() {
+  const [type, setType] = useState<'entree' | 'sortie'>('entree')
   const [dossier, setDossier] = useState<any>(null)
-  const [heures, setHeures] = useState<any[]>([])
-  const [salarie, setSalarie] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [newHeure, setNewHeure] = useState({ date: new Date().toISOString().split('T')[0], type_travail: 'debosselage', duree_heures: 2 })
+  const [dommages, setDommages] = useState<any>({})
+  const [selectedZone, setSelectedZone] = useState<string | null>(null)
+  const [controleInt, setControleInt] = useState<any>({})
+  const [controleEquip, setControleEquip] = useState<any>({})
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const sigCanvas = useRef<HTMLCanvasElement>(null)
+  const [drawing, setDrawing] = useState(false)
+  const [hasSig, setHasSig] = useState(false)
   const router = useRouter()
-  const params = useParams()
+  const searchParams = useSearchParams()
   const supabase = createClient()
 
   useEffect(() => {
+    const dossierId = searchParams.get('dossier')
+    const typeParam = searchParams.get('type') as 'entree' | 'sortie'
+    if (typeParam) setType(typeParam)
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
-      const { data: sal } = await supabase.from('salaries').select('*').eq('email', user.email).single()
-      setSalarie(sal)
-      const { data: dos } = await supabase.from('dossiers').select('*, clients(*), salaries(*)').eq('id', params.id).single()
-      setDossier(dos)
-      const { data: h } = await supabase.from('heures').select('*, salaries(*)').eq('dossier_id', params.id).order('date_travail', { ascending: false })
-      setHeures(h || [])
+      if (dossierId) {
+        const { data } = await supabase.from('dossiers').select('*, clients(*)').eq('id', dossierId).single()
+        setDossier(data)
+      }
       setLoading(false)
     }
     load()
   }, [])
 
-  async function addHeure() {
-    const { data } = await supabase.from('heures').insert({
-      dossier_id: params.id,
-      salarie_id: salarie.id,
-      date_travail: newHeure.date,
-      type_travail: newHeure.type_travail,
-      duree_heures: newHeure.duree_heures
-    }).select('*, salaries(*)').single()
-    if (data) setHeures([data, ...heures])
+  function toggleDommage(zoneId: string, gravite: string) {
+    setDommages((prev: any) => {
+      const current = prev[zoneId]
+      if (current?.gravite === gravite) {
+        const next = { ...prev }
+        delete next[zoneId]
+        return next
+      }
+      return { ...prev, [zoneId]: { gravite, description: current?.description || '' } }
+    })
   }
 
-  async function updateStatut(statut: string) {
-    await supabase.from('dossiers').update({ statut }).eq('id', params.id)
-    setDossier({ ...dossier, statut })
+  function startDraw(e: React.MouseEvent<HTMLCanvasElement>) {
+    setDrawing(true)
+    const canvas = sigCanvas.current!
+    const ctx = canvas.getContext('2d')!
+    const rect = canvas.getBoundingClientRect()
+    ctx.beginPath()
+    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top)
+  }
+
+  function draw(e: React.MouseEvent<HTMLCanvasElement>) {
+    if (!drawing) return
+    const canvas = sigCanvas.current!
+    const ctx = canvas.getContext('2d')!
+    const rect = canvas.getBoundingClientRect()
+    ctx.lineWidth = 2
+    ctx.strokeStyle = '#2D3748'
+    ctx.lineCap = 'round'
+    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top)
+    ctx.stroke()
+    setHasSig(true)
+  }
+
+  function clearSig() {
+    const canvas = sigCanvas.current!
+    canvas.getContext('2d')!.clearRect(0, 0, canvas.width, canvas.height)
+    setHasSig(false)
+  }
+
+  async function handleSave() {
+    setSaving(true)
+    const signature = hasSig ? sigCanvas.current!.toDataURL() : null
+    const dommagesArray = Object.entries(dommages).map(([zone, v]: any) => ({ zone, gravite: v.gravite, description: v.description }))
+    await supabase.from('etats_lieux').insert({
+      dossier_id: dossier?.id,
+      type,
+      dommages: dommagesArray,
+      controle_interieur: controleInt,
+      controle_equipements: controleEquip,
+      signature_client: signature,
+      signe_le: signature ? new Date().toISOString() : null,
+      signe_par: dossier?.clients?.prenom + ' ' + dossier?.clients?.nom,
+    })
+    setSaving(false)
+    setSaved(true)
+    setTimeout(() => router.push('/dossier/' + dossier?.id), 1500)
   }
 
   if (loading) return <div style={{ padding: '2rem', fontFamily: 'system-ui', color: '#888' }}>Chargement...</div>
-  if (!dossier) return <div style={{ padding: '2rem', fontFamily: 'system-ui', color: '#888' }}>Dossier introuvable</div>
-
-  const totalHeures = heures.reduce((a, h) => a + Number(h.duree_heures), 0)
-  const coutMO = Math.round(totalHeures * (salarie?.taux_horaire || 38))
-  const rentabilite = dossier.devis_montant > 0 ? Math.round((dossier.devis_montant - coutMO) / dossier.devis_montant * 100) : null
-
-  const typeLabels: any = {
-    debosselage: 'Debosselage',
-    peinture: 'Peinture',
-    remplacement_piece: 'Remplacement piece',
-    finition: 'Finition',
-    controle_qualite: 'Controle qualite',
-    autre: 'Autre'
-  }
-
-  const statusOptions = [
-    { value: 'en_attente_signature', label: 'En attente signature' },
-    { value: 'en_cours', label: 'En cours' },
-    { value: 'pret_restituer', label: 'Pret a restituer' },
-    { value: 'termine', label: 'Termine' },
-  ]
+  if (!dossier) return <div style={{ padding: '2rem', fontFamily: 'system-ui', color: '#888' }}>Dossier introuvable — verifie le lien</div>
 
   return (
     <div style={{ minHeight: '100vh', background: '#f8f6f3', fontFamily: 'system-ui, sans-serif' }}>
       <div style={{ background: '#2D3748', padding: '0 2rem', height: 64, display: 'flex', alignItems: 'center', gap: 12 }}>
-        <button onClick={() => router.push('/')} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: '#e8e2d9' }}>← Retour</button>
+        <button onClick={() => router.back()} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: '#e8e2d9' }}>← Retour</button>
         <img src="/logo.png" alt="Logo" style={{ height: 44, objectFit: 'contain' }} />
-        <span style={{ fontWeight: 600, fontSize: 15, color: 'white' }}>{dossier.immatriculation} — {dossier.marque} {dossier.modele}</span>
+        <span style={{ color: 'white', fontSize: 15, fontWeight: 600 }}>Etat des lieux — {type === 'entree' ? 'Entree' : 'Sortie'} — {dossier.immatriculation}</span>
       </div>
 
-      <div style={{ padding: '1.5rem 2rem', maxWidth: 960, margin: '0 auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-          <div style={{ background: 'white', borderRadius: 12, padding: '1.25rem', border: '1px solid #e8e2d9' }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 12 }}>Client</div>
-            <div style={{ fontSize: 15, fontWeight: 600, color: '#2D3748', marginBottom: 4 }}>{dossier.clients?.prenom} {dossier.clients?.nom}</div>
-            <div style={{ fontSize: 13, color: '#888', marginBottom: 2 }}>{dossier.clients?.telephone}</div>
-            <div style={{ fontSize: 13, color: '#888', marginBottom: 12 }}>{dossier.clients?.assurance}</div>
-            <div style={{ fontSize: 13, color: '#555' }}>Entree : <strong>{new Date(dossier.date_entree).toLocaleDateString('fr-FR')}</strong></div>
-            <div style={{ fontSize: 13, color: '#555', marginTop: 4 }}>Kilometrage : <strong>{dossier.km_entree?.toLocaleString()} km</strong></div>
-            {salarie?.role === 'chef_atelier' && (
-              <div style={{ marginTop: 12 }}>
-                <div style={{ fontSize: 12, color: '#888', marginBottom: 6 }}>Statut</div>
-                <select onChange={e => updateStatut(e.target.value)} value={dossier.statut} style={{ width: '100%', padding: '7px 10px', borderRadius: 8, border: '1px solid #e8e2d9', fontSize: 13, color: '#2D3748' }}>
-                  {statusOptions.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-                </select>
-              </div>
-            )}
+      <div style={{ padding: '1.5rem 2rem', maxWidth: 900, margin: '0 auto' }}>
+        {saved && <div style={{ background: '#EAF3DE', border: '1px solid #97C459', borderRadius: 12, padding: '1rem', marginBottom: 16, color: '#27500A', fontWeight: 600, textAlign: 'center' }}>Sauvegarde !</div>}
+
+        <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
+          {(['entree', 'sortie'] as const).map(t => (
+            <button key={t} onClick={() => setType(t)} style={{ padding: '8px 20px', borderRadius: 8, border: '2px solid ' + (type === t ? '#E07B2A' : '#e8e2d9'), background: type === t ? '#E07B2A' : 'white', color: type === t ? 'white' : '#2D3748', fontWeight: 600, cursor: 'pointer', fontSize: 14 }}>
+              {t === 'entree' ? 'Entree du vehicule' : 'Sortie du vehicule'}
+            </button>
+          ))}
+        </div>
+
+        <div style={{ background: 'white', borderRadius: 12, padding: '1.5rem', border: '1px solid #e8e2d9', marginBottom: 16 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 16 }}>Schema du vehicule — cliquez sur une zone</div>
+          <svg viewBox="0 0 600 280" style={{ width: '100%', display: 'block', background: '#f8f6f3', borderRadius: 8, marginBottom: 12 }}>
+            <rect x="60" y="100" width="480" height="80" rx="10" fill="#D3D1C7" />
+            <rect x="120" y="70" width="280" height="80" rx="8" fill="#B4B2A9" />
+            <rect x="60" y="170" width="480" height="18" rx="4" fill="#B4B2A9" />
+            <ellipse cx="140" cy="200" rx="30" ry="16" fill="#888780" />
+            <ellipse cx="140" cy="200" rx="18" ry="10" fill="#5F5E5A" />
+            <ellipse cx="460" cy="200" rx="30" ry="16" fill="#888780" />
+            <ellipse cx="460" cy="200" rx="18" ry="10" fill="#5F5E5A" />
+            <text x="300" y="22" textAnchor="middle" fontSize="12" fill="#888">AVANT</text>
+            <text x="300" y="268" textAnchor="middle" fontSize="12" fill="#888">ARRIERE</text>
+            <text x="30" y="145" textAnchor="middle" fontSize="11" fill="#888">G</text>
+            <text x="570" y="145" textAnchor="middle" fontSize="11" fill="#888">D</text>
+            {ZONES.map(z => {
+              const dmg = dommages[z.id]
+              const color = dmg ? (dmg.gravite === 'grave' ? '#E24B4A' : '#EF9F27') : '#E07B2A'
+              const isSelected = selectedZone === z.id
+              return (
+                <g key={z.id} onClick={() => setSelectedZone(selectedZone === z.id ? null : z.id)} style={{ cursor: 'pointer' }}>
+                  <circle cx={z.x} cy={z.y} r={isSelected ? 14 : 10} fill={dmg ? color : 'rgba(224,123,42,0.15)'} stroke={color} strokeWidth={isSelected ? 2.5 : 1} />
+                  {dmg && <text x={z.x} y={z.y + 4} textAnchor="middle" fontSize="10" fill="white" fontWeight="700">{dmg.gravite === 'grave' ? '!' : '~'}</text>}
+                </g>
+              )
+            })}
+          </svg>
+
+          <div style={{ display: 'flex', gap: 16, marginBottom: 12, flexWrap: 'wrap' as const }}>
+            <span style={{ fontSize: 12, color: '#888' }}><span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: '50%', background: '#E24B4A', marginRight: 4 }} />Grave</span>
+            <span style={{ fontSize: 12, color: '#888' }}><span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: '50%', background: '#EF9F27', marginRight: 4 }} />Leger</span>
           </div>
 
-          <div style={{ background: 'white', borderRadius: 12, padding: '1.25rem', border: '1px solid #e8e2d9' }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 12 }}>Rentabilite</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <div style={{ background: '#f8f6f3', borderRadius: 8, padding: '0.75rem' }}>
-                <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Heures saisies</div>
-                <div style={{ fontSize: 22, fontWeight: 600, color: '#2D3748' }}>{totalHeures} h</div>
+          {selectedZone && (
+            <div style={{ background: '#FDF0E6', borderRadius: 10, padding: '1rem', border: '1px solid #E07B2A' }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#2D3748', marginBottom: 10 }}>{ZONES.find(z => z.id === selectedZone)?.label}</div>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+                <button onClick={() => toggleDommage(selectedZone, 'leger')} style={{ padding: '6px 14px', borderRadius: 8, border: '2px solid ' + (dommages[selectedZone]?.gravite === 'leger' ? '#EF9F27' : '#e8e2d9'), background: dommages[selectedZone]?.gravite === 'leger' ? '#FAEEDA' : 'white', color: '#854F0B', fontWeight: 600, cursor: 'pointer', fontSize: 13 }}>Leger</button>
+                <button onClick={() => toggleDommage(selectedZone, 'grave')} style={{ padding: '6px 14px', borderRadius: 8, border: '2px solid ' + (dommages[selectedZone]?.gravite === 'grave' ? '#E24B4A' : '#e8e2d9'), background: dommages[selectedZone]?.gravite === 'grave' ? '#FCEBEB' : 'white', color: '#791F1F', fontWeight: 600, cursor: 'pointer', fontSize: 13 }}>Grave</button>
+                {dommages[selectedZone] && <button onClick={() => { const n = {...dommages}; delete n[selectedZone]; setDommages(n) }} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e8e2d9', background: 'white', color: '#888', cursor: 'pointer', fontSize: 13 }}>Effacer</button>}
               </div>
-              <div style={{ background: '#f8f6f3', borderRadius: 8, padding: '0.75rem' }}>
-                <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Cout MO</div>
-                <div style={{ fontSize: 22, fontWeight: 600, color: '#A32D2D' }}>{coutMO} €</div>
-              </div>
-              {salarie?.role === 'chef_atelier' && (
-                <>
-                  <div style={{ background: '#f8f6f3', borderRadius: 8, padding: '0.75rem' }}>
-                    <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Devis</div>
-                    <div style={{ fontSize: 22, fontWeight: 600, color: '#3B6D11' }}>{dossier.devis_montant ? dossier.devis_montant + ' €' : '—'}</div>
-                  </div>
-                  <div style={{ background: '#f8f6f3', borderRadius: 8, padding: '0.75rem' }}>
-                    <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Rentabilite</div>
-                    <div style={{ fontSize: 22, fontWeight: 600, color: rentabilite && rentabilite >= 50 ? '#3B6D11' : '#A32D2D' }}>{rentabilite !== null ? rentabilite + ' %' : '—'}</div>
-                  </div>
-                </>
+              {dommages[selectedZone] && (
+                <input style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e8e2d9', fontSize: 13, color: '#2D3748' }} placeholder="Description..." value={dommages[selectedZone]?.description || ''} onChange={e => setDommages((p: any) => ({ ...p, [selectedZone]: { ...p[selectedZone], description: e.target.value } }))} />
               )}
             </div>
-          </div>
+          )}
         </div>
 
-        <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
-          <button onClick={() => router.push('/etat-des-lieux?dossier=' + params.id + '&type=entree')} style={{ padding: '10px 18px', borderRadius: 8, border: '2px solid #E07B2A', background: '#E07B2A', cursor: 'pointer', fontSize: 13, color: 'white', fontWeight: 700 }}>
-            Etat des lieux entree
-          </button>
-          <button onClick={() => router.push('/etat-des-lieux?dossier=' + params.id + '&type=sortie')} style={{ padding: '10px 18px', borderRadius: 8, border: '2px solid #2D3748', background: 'white', cursor: 'pointer', fontSize: 13, color: '#2D3748', fontWeight: 600 }}>
-            Etat des lieux sortie
-          </button>
-        </div>
-
-        <div style={{ background: 'white', borderRadius: 12, padding: '1.25rem', border: '1px solid #e8e2d9' }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 12 }}>Saisie des heures</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 80px auto', gap: 8, marginBottom: 12, alignItems: 'end' }}>
-            <div>
-              <div style={{ fontSize: 12, color: '#888', marginBottom: 4 }}>Date</div>
-              <input type="date" value={newHeure.date} onChange={e => setNewHeure({ ...newHeure, date: e.target.value })} style={{ width: '100%', padding: '7px 10px', borderRadius: 8, border: '1px solid #e8e2d9', fontSize: 13, color: '#2D3748' }} />
-            </div>
-            <div>
-              <div style={{ fontSize: 12, color: '#888', marginBottom: 4 }}>Type</div>
-              <select value={newHeure.type_travail} onChange={e => setNewHeure({ ...newHeure, type_travail: e.target.value })} style={{ width: '100%', padding: '7px 10px', borderRadius: 8, border: '1px solid #e8e2d9', fontSize: 13, color: '#2D3748' }}>
-                {Object.entries(typeLabels).map(([k, v]) => <option key={k} value={k}>{v as string}</option>)}
-              </select>
-            </div>
-            <div>
-              <div style={{ fontSize: 12, color: '#888', marginBottom: 4 }}>Heures</div>
-              <input type="number" min="0.5" max="12" step="0.5" value={newHeure.duree_heures} onChange={e => setNewHeure({ ...newHeure, duree_heures: Number(e.target.value) })} style={{ width: '100%', padding: '7px 10px', borderRadius: 8, border: '1px solid #e8e2d9', fontSize: 13, color: '#2D3748' }} />
-            </div>
-            <button onClick={addHeure} style={{ background: '#E07B2A', color: 'white', border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: 14, fontWeight: 700, cursor: 'pointer', marginTop: 20 }}>+ Ajouter</button>
-          </div>
-          {heures.length === 0 ? (
-            <div style={{ textAlign: 'center', color: '#888', fontSize: 13, padding: '1rem' }}>Aucune heure saisie</div>
-          ) : heures.map(h => (
-            <div key={h.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 10px', background: '#f8f6f3', borderRadius: 8, marginBottom: 6 }}>
-              <span style={{ fontSize: 12, color: '#888', minWidth: 80 }}>{new Date(h.date_travail).toLocaleDateString('fr-FR')}</span>
-              <span style={{ fontSize: 13, color: '#2D3748', flex: 1 }}>{typeLabels[h.type_travail] || h.type_travail}</span>
-              <span style={{ fontSize: 13, color: '#555' }}>{h.salaries?.prenom} {h.salaries?.nom}</span>
-              <span style={{ fontSize: 13, fontWeight: 600, color: '#2D3748', minWidth: 40 }}>{h.duree_heures} h</span>
-              <span style={{ fontSize: 12, color: '#888' }}>{Math.round(Number(h.duree_heures) * (h.salaries?.taux_horaire || 38))} €</span>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+          {[{ title: 'Controle interieur', items: CTRL_INT, state: controleInt, setter: setControleInt }, { title: 'Controle equipements', items: CTRL_EQ, state: controleEquip, setter: setControleEquip }].map(({ title, items, state, setter }) => (
+            <div key={title} style={{ background: 'white', borderRadius: 12, padding: '1.25rem', border: '1px solid #e8e2d9' }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 12 }}>{title}</div>
+              {items.map(item => (
+                <div key={item} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f5f5f5' }}>
+                  <span style={{ fontSize: 13, color: '#2D3748' }}>{item}</span>
+                  <input type="checkbox" checked={state[item] || false} onChange={e => setter((p: any) => ({ ...p, [item]: e.target.checked }))} style={{ width: 16, height: 16, cursor: 'pointer' }} />
+                </div>
+              ))}
             </div>
           ))}
         </div>
+
+        <div style={{ background: 'white', borderRadius: 12, padding: '1.25rem', border: '1px solid #e8e2d9', marginBottom: 16 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 8 }}>Signature client</div>
+          <canvas ref={sigCanvas} width={800} height={150} style={{ border: '1.5px dashed #e8e2d9', borderRadius: 8, width: '100%', cursor: 'crosshair', background: '#fafafa', display: 'block' }} onMouseDown={startDraw} onMouseMove={draw} onMouseUp={() => setDrawing(false)} onMouseLeave={() => setDrawing(false)} />
+          <button onClick={clearSig} style={{ marginTop: 8, fontSize: 12, padding: '4px 12px', borderRadius: 6, border: '1px solid #e8e2d9', background: 'white', cursor: 'pointer', color: '#888' }}>Effacer</button>
+        </div>
+
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+          <button onClick={() => router.back()} style={{ padding: '10px 20px', borderRadius: 8, border: '1px solid #e8e2d9', background: 'white', cursor: 'pointer', fontSize: 14, color: '#2D3748' }}>Annuler</button>
+          <button onClick={handleSave} disabled={saving} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: '#E07B2A', color: 'white', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>
+            {saving ? 'Sauvegarde...' : 'Sauvegarder'}
+          </button>
+        </div>
       </div>
     </div>
+  )
+}
+
+export default function EtatDesLieux() {
+  return (
+    <Suspense fallback={<div style={{ padding: '2rem', fontFamily: 'system-ui', color: '#888' }}>Chargement...</div>}>
+      <Content />
+    </Suspense>
   )
 }
