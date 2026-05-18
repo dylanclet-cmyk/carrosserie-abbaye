@@ -143,8 +143,6 @@ export default function Dashboard() {
                     {s.label}
                   </span>
                   <button onClick={() => router.push(`/dossier/${d.id}`)} style={{ fontSize: 12, padding: '6px 12px', borderRadius: 8, border: '1px solid #ddd', background: 'white', cursor: 'pointer', color: '#555' }}>
-  Voir
-</button>
                   </button>
                 </div>
               </div>
