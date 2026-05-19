@@ -187,6 +187,9 @@ export default function Dashboard() {
   Planning atelier
 </button>
                   <button onClick={() => router.push('/dossier/' + d.id)} style={{ fontSize: 13, padding: '7px 16px', borderRadius: 8, border: '2px solid #E07B2A', background: 'white', cursor: 'pointer', color: '#E07B2A', fontWeight: 600 }}>Voir</button>
+                  <button onClick={() => router.push('/salaries')} style={{ background: 'white', color: '#2D3748', border: '1px solid #e8e2d9', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+  Equipe & Messagerie
+</button>
                 </div>
               </div>
             )
