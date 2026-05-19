@@ -64,10 +64,14 @@ export default function Dashboard() {
     facture: { label: 'Facture', color: '#3C3489', bg: '#EEEDFE' },
   }
 
-  const btnOrange = { background: '#E07B2A', color: 'white', border: 'none', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }
-
   return (
     <div style={{ minHeight: '100vh', background: '#f8f6f3', fontFamily: 'system-ui, sans-serif' }}>
+      <style>{`
+        .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+        .action-btn { padding: 12px 16px; border-radius: 10px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 48px; }
+        @media (max-width: 640px) { .action-btn { font-size: 13px; padding: 10px 12px; } }
+      `}</style>
+
       <div style={{ background: '#2D3748', padding: '0 2rem', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <img src="/logo.png" alt="Logo" style={{ height: 44, objectFit: 'contain' }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -131,17 +135,13 @@ export default function Dashboard() {
           </div>
         </div>
 
-      {/* Boutons actions */}
-        <style>{`
-          .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-          .action-btn { padding: 12px 16px; border-radius: 10px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 48px; }
-          @media (max-width: 640px) { .action-btn { font-size: 13px; padding: 10px 12px; } }
-        `}</style>
+        {/* Boutons actions */}
         <div className="actions-grid">
           {salarie?.role === 'chef_atelier' && onglet === 'en_cours' && (
             <button className="action-btn" onClick={() => router.push('/nouveau-dossier')} style={{ background: '#E07B2A', color: 'white' }}>+ Nouveau dossier</button>
           )}
-          <button className="action-btn" onClick={() => router.push('/passage-rapide')} style={{ background: '#3B6D11', color: 'white', gridColumn: 'span 1' }}>⚡ Passage rapide</button>
+          <button className="action-btn" onClick={() => router.push('/passage-rapide')} style={{ background: '#3B6D11', color: 'white' }}>⚡ Passage rapide</button>
+          <button className="action-btn" onClick={() => router.push('/clients')} style={{ background: '#E07B2A', color: 'white' }}>👤 Clients</button>
           {salarie?.role === 'chef_atelier' && (
             <button className="action-btn" onClick={() => router.push('/courtoisie')} style={{ background: '#E07B2A', color: 'white' }}>🚗 Courtoisie</button>
           )}
@@ -158,9 +158,6 @@ export default function Dashboard() {
           </button>
           {salarie?.role === 'chef_atelier' && (
             <button className="action-btn" onClick={() => router.push('/admin')} style={{ background: '#2D3748', color: 'white' }}>⚙ Admin</button>
-            <button className="action-btn" onClick={() => router.push('/clients')} style={{ background: '#E07B2A', color: 'white' }}>
-  👤 Clients
-</button>
           )}
         </div>
 
