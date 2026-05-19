@@ -158,6 +158,9 @@ export default function Dashboard() {
           </button>
           {salarie?.role === 'chef_atelier' && (
             <button className="action-btn" onClick={() => router.push('/admin')} style={{ background: '#2D3748', color: 'white' }}>⚙ Admin</button>
+            <button className="action-btn" onClick={() => router.push('/clients')} style={{ background: '#E07B2A', color: 'white' }}>
+  👤 Clients
+</button>
           )}
         </div>
 
