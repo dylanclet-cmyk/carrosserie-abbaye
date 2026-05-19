@@ -7,27 +7,24 @@ import { useRouter, useParams } from 'next/navigation'
 function OrdreReparation({ dossierId, dossier, onUpdate }: { dossierId: string, dossier: any, onUpdate: (d: any) => void }) {
   const [uploading, setUploading] = useState(false)
   const supabase = createClient()
-
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
     if (file.type !== 'application/pdf') { alert('Veuillez selectionner un fichier PDF'); return }
     setUploading(true)
     const path = dossierId + '/' + Date.now() + '_' + file.name
-    const { data, error } = await supabase.storage.from('documents').upload(path, file)
+    const { error } = await supabase.storage.from('documents').upload(path, file)
     if (error) { console.error(error); setUploading(false); return }
     const { data: urlData } = supabase.storage.from('documents').getPublicUrl(path)
     await supabase.from('dossiers').update({ ordre_reparation_url: urlData.publicUrl, ordre_reparation_nom: file.name }).eq('id', dossierId)
     onUpdate({ ...dossier, ordre_reparation_url: urlData.publicUrl, ordre_reparation_nom: file.name })
     setUploading(false)
   }
-
   async function handleDelete() {
     if (!confirm('Supprimer ce document ?')) return
     await supabase.from('dossiers').update({ ordre_reparation_url: null, ordre_reparation_nom: null }).eq('id', dossierId)
     onUpdate({ ...dossier, ordre_reparation_url: null, ordre_reparation_nom: null })
   }
-
   return (
     <div style={{ background: 'white', borderRadius: 12, padding: '1.25rem', border: '1px solid #e8e2d9', marginBottom: 16 }}>
       <div style={{ fontSize: 12, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 12 }}>Ordre de reparation expert</div>
@@ -146,23 +143,23 @@ function ProgressionHeures({ totalHeures, heuresEstimees }: { totalHeures: numbe
   )
 }
 
-function TravauxDetails({ dossierId }: { dossierId: string }) {
+function TravauxDetails({ dossierId, onStatsChange }: { dossierId: string, onStatsChange?: (fait: number, total: number) => void }) {
   const [travaux, setTravaux] = useState<any[]>([])
   const [newTravail, setNewTravail] = useState('')
   const supabase = createClient()
-  useEffect(() => { supabase.from('travaux_details').select('*').eq('dossier_id', dossierId).order('ordre').then(({ data }) => setTravaux(data || [])) }, [])
+  useEffect(() => { supabase.from('travaux_details').select('*').eq('dossier_id', dossierId).order('ordre').then(({ data }) => { setTravaux(data || []); if (onStatsChange) onStatsChange((data || []).filter((t: any) => t.fait).length, (data || []).length) }) }, [])
   async function addTravail() {
     if (!newTravail.trim()) return
     const { data } = await supabase.from('travaux_details').insert({ dossier_id: dossierId, libelle: newTravail, ordre: travaux.length }).select().single()
-    if (data) { setTravaux([...travaux, data]); setNewTravail('') }
+    if (data) { const newList = [...travaux, data]; setTravaux(newList); setNewTravail(''); if (onStatsChange) onStatsChange(newList.filter(t => t.fait).length, newList.length) }
   }
   async function toggleTravail(t: any) {
     await supabase.from('travaux_details').update({ fait: !t.fait }).eq('id', t.id)
-    setTravaux(travaux.map(x => x.id === t.id ? { ...x, fait: !x.fait } : x))
+    const newList = travaux.map(x => x.id === t.id ? { ...x, fait: !x.fait } : x); setTravaux(newList); if (onStatsChange) onStatsChange(newList.filter(x => x.fait).length, newList.length)
   }
   async function deleteTravail(id: string) {
     await supabase.from('travaux_details').delete().eq('id', id)
-    setTravaux(travaux.filter(t => t.id !== id))
+    const newList = travaux.filter(t => t.id !== id); setTravaux(newList); if (onStatsChange) onStatsChange(newList.filter(t => t.fait).length, newList.length)
   }
   const fait = travaux.filter(t => t.fait).length
   const total = travaux.length
@@ -267,12 +264,15 @@ export default function DossierPage() {
   const [heures, setHeures] = useState<any[]>([])
   const [salarie, setSalarie] = useState<any>(null)
   const [salaries, setSalaries] = useState<any[]>([])
+  const [salariesenArret, setSalariesEnArret] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [newHeure, setNewHeure] = useState({ date: new Date().toISOString().split('T')[0], type_travail: 'debosselage', duree_heures: 2 })
   const [showTerminer, setShowTerminer] = useState(false)
   const [commentaire, setCommentaire] = useState('')
   const [terminating, setTerminating] = useState(false)
   const [terminated, setTerminated] = useState(false)
+  const [travauxFait, setTravauxFait] = useState(0)
+  const [travauxTotal, setTravauxTotal] = useState(0)
   const router = useRouter()
   const params = useParams()
   const supabase = createClient()
@@ -291,6 +291,10 @@ export default function DossierPage() {
       if (sal?.role === 'chef_atelier') {
         const { data: sals } = await supabase.from('salaries').select('*').eq('actif', true).eq('role', 'technicien')
         setSalaries(sals || [])
+        // Vérifier qui est en arrêt aujourd'hui
+        const today = new Date().toISOString().split('T')[0]
+        const { data: arrets } = await supabase.from('conges').select('salarie_id').eq('statut', 'accepte').eq('type', 'maladie').lte('date_debut', today).gte('date_fin', today)
+        setSalariesEnArret((arrets || []).map((a: any) => a.salarie_id))
       }
       setLoading(false)
     }
@@ -306,6 +310,15 @@ export default function DossierPage() {
     setDossier({ ...dossier, statut })
   }
   async function assignerTechnicien(salarie_id: string) {
+    if (!salarie_id) {
+      await supabase.from('dossiers').update({ salarie_id: null }).eq('id', params.id)
+      setDossier({ ...dossier, salarie_id: null, salaries: null })
+      return
+    }
+    if (salariesenArret.includes(salarie_id)) {
+      alert('Ce technicien est actuellement en arret maladie ! Choisissez un autre technicien.')
+      return
+    }
     await supabase.from('dossiers').update({ salarie_id }).eq('id', params.id)
     const sal = salaries.find(s => s.id === salarie_id)
     setDossier({ ...dossier, salarie_id, salaries: sal })
@@ -377,18 +390,36 @@ export default function DossierPage() {
                   <div style={{ fontSize: 12, color: '#888', marginBottom: 6 }}>Technicien assigne</div>
                   <select onChange={e => assignerTechnicien(e.target.value)} value={dossier.salarie_id || ''} style={{ width: '100%', padding: '7px 10px', borderRadius: 8, border: '1px solid #e8e2d9', fontSize: 13, color: '#2D3748' }}>
                     <option value="">-- Choisir un technicien --</option>
-                    {salaries.map(s => <option key={s.id} value={s.id}>{s.prenom} {s.nom}</option>)}
+                    {salaries.map(s => (
+                      <option key={s.id} value={s.id} disabled={salariesenArret.includes(s.id)}>
+                        {salariesenArret.includes(s.id) ? '🔴 ' : '✓ '}{s.prenom} {s.nom}{salariesenArret.includes(s.id) ? ' — EN ARRET MALADIE' : ''}
+                      </option>
+                    ))}
                   </select>
+                  {salariesenArret.length > 0 && (
+                    <div style={{ fontSize: 11, color: '#A32D2D', marginTop: 4 }}>
+                      🔴 {salariesenArret.length} technicien{salariesenArret.length > 1 ? 's' : ''} en arret maladie aujourd hui
+                    </div>
+                  )}
                 </div>
               </>
             )}
           </div>
+
           <div style={{ background: 'white', borderRadius: 12, padding: '1.25rem', border: '1px solid #e8e2d9' }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 12 }}>Infos chantier</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               <div style={{ background: '#f8f6f3', borderRadius: 8, padding: '0.75rem' }}><div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Heures saisies</div><div style={{ fontSize: 22, fontWeight: 600, color: '#2D3748' }}>{totalHeures} h</div></div>
               <div style={{ background: '#f8f6f3', borderRadius: 8, padding: '0.75rem' }}><div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Heures estimees</div><div style={{ fontSize: 22, fontWeight: 600, color: '#E07B2A' }}>{heuresEstimees > 0 ? heuresEstimees + ' h' : '—'}</div></div>
-              {dossier.salaries && <div style={{ background: '#f8f6f3', borderRadius: 8, padding: '0.75rem', gridColumn: 'span 2' }}><div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Technicien assigne</div><div style={{ fontSize: 15, fontWeight: 600, color: '#2D3748' }}>{dossier.salaries.prenom} {dossier.salaries.nom}</div></div>}
+              {dossier.salaries && (
+                <div style={{ background: salariesenArret.includes(dossier.salarie_id) ? '#FCEBEB' : '#f8f6f3', borderRadius: 8, padding: '0.75rem', gridColumn: 'span 2' }}>
+                  <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Technicien assigne</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: salariesenArret.includes(dossier.salarie_id) ? '#A32D2D' : '#2D3748' }}>
+                    {salariesenArret.includes(dossier.salarie_id) ? '🔴 ' : ''}{dossier.salaries.prenom} {dossier.salaries.nom}
+                    {salariesenArret.includes(dossier.salarie_id) && <span style={{ fontSize: 11, marginLeft: 8, color: '#A32D2D' }}>EN ARRET</span>}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -396,12 +427,18 @@ export default function DossierPage() {
         <OrdreReparation dossierId={params.id as string} dossier={dossier} onUpdate={setDossier} />
         <ProgressionHeures totalHeures={totalHeures} heuresEstimees={heuresEstimees} />
         <VehiculeCourtoisie dossierId={params.id as string} router={router} />
-        <TravauxDetails dossierId={params.id as string} />
+        <TravauxDetails dossierId={params.id as string} onStatsChange={(fait, total) => { setTravauxFait(fait); setTravauxTotal(total) }} />
         <SuiviPieces dossierId={params.id as string} />
 
         {!estTermine && salarie?.role === 'technicien' && !showTerminer && (
           <div style={{ marginBottom: 16 }}>
-            <button onClick={() => setShowTerminer(true)} style={{ width: '100%', padding: '14px', borderRadius: 12, border: '2px solid #3B6D11', background: '#EAF3DE', cursor: 'pointer', fontSize: 15, fontWeight: 700, color: '#27500A', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            {travauxTotal > 0 && travauxFait < travauxTotal && (
+              <div style={{ background: '#FAEEDA', border: '1px solid #E07B2A', borderRadius: 10, padding: '10px 14px', marginBottom: 10, fontSize: 13, color: '#854F0B', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 16 }}>⚠</span>
+                <strong>Attention :</strong> {travauxTotal - travauxFait} tache{travauxTotal - travauxFait > 1 ? 's' : ''} non effectuee{travauxTotal - travauxFait > 1 ? 's' : ''} sur {travauxTotal} — veuillez les cocher avant de terminer
+              </div>
+            )}
+            <button onClick={() => { if (travauxTotal > 0 && travauxFait < travauxTotal) { alert('Attention ! ' + (travauxTotal - travauxFait) + ' tache(s) non effectuee(s). Veuillez cocher toutes les taches avant de terminer le chantier.'); return }; setShowTerminer(true) }} style={{ width: '100%', padding: '14px', borderRadius: 12, border: '2px solid #3B6D11', background: '#EAF3DE', cursor: 'pointer', fontSize: 15, fontWeight: 700, color: '#27500A', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
               ✓ Terminer le chantier et prevenir le chef
             </button>
           </div>
