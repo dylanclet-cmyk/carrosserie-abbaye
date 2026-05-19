@@ -33,7 +33,6 @@ export default function Dashboard() {
       } else {
         const { count } = await supabase.from('notifications').select('*', { count: 'exact', head: true }).eq('salarie_id', sal.id).eq('lu', false)
         setNotifCount(count || 0)
-        // Jours maladie cette annee
         const annee = new Date().getFullYear()
         const { data: congesMaladie } = await supabase.from('conges').select('nb_jours').eq('salarie_id', sal.id).eq('type', 'maladie').eq('statut', 'accepte').gte('date_debut', annee + '-01-01')
         const total = (congesMaladie || []).reduce((a: number, c: any) => a + (c.nb_jours || 0), 0)
@@ -55,6 +54,7 @@ export default function Dashboard() {
   const aFacturer = dossiers.filter(d => d.statut === 'pret_restituer')
   const archives = dossiers.filter(d => ['termine', 'facture'].includes(d.statut))
   const dossiersAffiches = onglet === 'en_cours' ? enCours : onglet === 'a_facturer' ? aFacturer : archives
+  const annee = new Date().getFullYear()
 
   const statusLabel: any = {
     en_attente_signature: { label: 'En attente signature', color: '#854F0B', bg: '#FAEEDA' },
@@ -64,7 +64,7 @@ export default function Dashboard() {
     facture: { label: 'Facture', color: '#3C3489', bg: '#EEEDFE' },
   }
 
-  const annee = new Date().getFullYear()
+  const btnOrange = { background: '#E07B2A', color: 'white', border: 'none', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }
 
   return (
     <div style={{ minHeight: '100vh', background: '#f8f6f3', fontFamily: 'system-ui, sans-serif' }}>
@@ -79,7 +79,7 @@ export default function Dashboard() {
 
       <div style={{ padding: '1.5rem 2rem', maxWidth: 960, margin: '0 auto' }}>
 
-        {/* Compteur jours maladie pour technicien */}
+        {/* Compteur maladie technicien */}
         {salarie?.role === 'technicien' && (
           <div style={{ background: joursMaladie >= 10 ? '#FCEBEB' : joursMaladie >= 5 ? '#FDF0E6' : 'white', borderRadius: 12, padding: '1rem 1.5rem', border: joursMaladie >= 10 ? '2px solid #E24B4A' : joursMaladie >= 5 ? '2px solid #E07B2A' : '1px solid #e8e2d9', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
@@ -89,26 +89,33 @@ export default function Dashboard() {
                 <span style={{ fontSize: 16, color: '#888' }}>jour{joursMaladie > 1 ? 's' : ''}</span>
               </div>
             </div>
-            <div style={{ textAlign: 'right' as const }}>
-              {joursMaladie === 0 && <div style={{ fontSize: 28 }}>🏆</div>}
-              {joursMaladie > 0 && joursMaladie < 5 && <div style={{ fontSize: 28 }}>👍</div>}
-              {joursMaladie >= 5 && joursMaladie < 10 && (
-                <div>
-                  <div style={{ fontSize: 24 }}>⚠️</div>
-                  <div style={{ fontSize: 11, color: '#854F0B', fontWeight: 600, marginTop: 2 }}>Attention</div>
-                </div>
-              )}
-              {joursMaladie >= 10 && (
-                <div>
-                  <div style={{ fontSize: 24 }}>🔴</div>
-                  <div style={{ fontSize: 11, color: '#A32D2D', fontWeight: 600, marginTop: 2 }}>Taux eleve</div>
-                </div>
-              )}
+            <div>
+              {joursMaladie === 0 && <span style={{ fontSize: 28 }}>🏆</span>}
+              {joursMaladie > 0 && joursMaladie < 5 && <span style={{ fontSize: 28 }}>👍</span>}
+              {joursMaladie >= 5 && joursMaladie < 10 && <span style={{ fontSize: 24 }}>⚠️</span>}
+              {joursMaladie >= 10 && <span style={{ fontSize: 24 }}>🔴</span>}
             </div>
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
+        {/* Gros bouton planning chef */}
+        {salarie?.role === 'chef_atelier' && (
+          <div onClick={() => router.push('/planning')} style={{ background: '#2D3748', borderRadius: 12, padding: '1.25rem 1.5rem', marginBottom: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '2px solid #3a4a5c' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div style={{ width: 48, height: 48, borderRadius: 10, background: '#E07B2A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>📅</div>
+              <div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: 'white' }}>Planning de l atelier</div>
+                <div style={{ fontSize: 12, color: '#a0aec0', marginTop: 2 }}>Calendrier des vehicules et dates de sortie</div>
+              </div>
+            </div>
+            <div style={{ fontSize: 13, color: '#E07B2A', fontWeight: 600 }}>
+              {enCours.length + aFacturer.length} vehicule{(enCours.length + aFacturer.length) > 1 ? 's' : ''} en atelier →
+            </div>
+          </div>
+        )}
+
+        {/* Compteurs */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
           <div onClick={() => setOnglet('en_cours')} style={{ background: onglet === 'en_cours' ? '#2D3748' : 'white', borderRadius: 12, padding: '1rem', border: '1px solid #e8e2d9', cursor: 'pointer' }}>
             <div style={{ fontSize: 12, color: onglet === 'en_cours' ? '#e8e2d9' : '#888', marginBottom: 6 }}>Dossiers en cours</div>
             <div style={{ fontSize: 28, fontWeight: 700, color: '#E07B2A' }}>{enCours.length}</div>
@@ -124,41 +131,45 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div style={{ marginBottom: 16, display: 'flex', gap: 10, justifyContent: 'flex-end', flexWrap: 'wrap' as const }}>
+        {/* Boutons actions — tous orange */}
+        <div style={{ marginBottom: 16, display: 'flex', gap: 10, flexWrap: 'wrap' as const }}>
           {salarie?.role === 'chef_atelier' && onglet === 'en_cours' && (
-            <button onClick={() => router.push('/nouveau-dossier')} style={{ background: '#E07B2A', color: 'white', border: 'none', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>+ Nouveau dossier</button>
+            <button onClick={() => router.push('/nouveau-dossier')} style={btnOrange}>+ Nouveau dossier</button>
           )}
           {salarie?.role === 'chef_atelier' && (
-            <button onClick={() => router.push('/courtoisie')} style={{ background: 'white', color: '#2D3748', border: '1px solid #e8e2d9', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Vehicules courtoisie</button>
+            <button onClick={() => router.push('/courtoisie')} style={btnOrange}>Vehicules courtoisie</button>
           )}
-          <button onClick={() => router.push('/conges')} style={{ background: (congesEnAttente > 0 || notifCount > 0) ? '#FDF0E6' : 'white', color: '#2D3748', border: (congesEnAttente > 0 || notifCount > 0) ? '2px solid #E07B2A' : '1px solid #e8e2d9', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+          {salarie?.role === 'chef_atelier' && (
+            <button onClick={() => router.push('/salaries')} style={btnOrange}>Equipe & Messagerie</button>
+          )}
+          <button onClick={() => router.push('/conges')} style={{ ...btnOrange, position: 'relative' as const, display: 'flex', alignItems: 'center', gap: 8 }}>
             {salarie?.role === 'chef_atelier' ? 'Gestion conges' : 'Mes conges'}
-            {congesEnAttente > 0 && <span style={{ background: '#E24B4A', color: 'white', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 20 }}>{congesEnAttente}</span>}
-            {notifCount > 0 && <span style={{ background: '#E24B4A', color: 'white', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 20 }}>{notifCount}</span>}
+            {congesEnAttente > 0 && <span style={{ background: 'white', color: '#E07B2A', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 20 }}>{congesEnAttente}</span>}
+            {notifCount > 0 && <span style={{ background: 'white', color: '#E07B2A', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 20 }}>{notifCount}</span>}
           </button>
+          {salarie?.role === 'technicien' && (
+            <button onClick={() => router.push('/salaries')} style={btnOrange}>Equipe & Messagerie</button>
+          )}
         </div>
 
+        {/* Alertes */}
         {congesEnAttente > 0 && salarie?.role === 'chef_atelier' && (
           <div onClick={() => router.push('/conges')} style={{ background: '#FDF0E6', border: '1px solid #E07B2A', borderRadius: 12, padding: '0.75rem 1.25rem', marginBottom: 16, fontSize: 13, color: '#854F0B', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-            <span style={{ fontSize: 16 }}>🗓</span>
-            <strong>{congesEnAttente} demande{congesEnAttente > 1 ? 's' : ''} de conge{congesEnAttente > 1 ? 's' : ''} en attente</strong> — cliquez pour traiter
+            <span>🗓</span> <strong>{congesEnAttente} demande{congesEnAttente > 1 ? 's' : ''} de conge en attente</strong> — cliquez pour traiter
           </div>
         )}
-
         {notifCount > 0 && salarie?.role === 'technicien' && (
           <div onClick={() => router.push('/conges')} style={{ background: '#EAF3DE', border: '1px solid #97C459', borderRadius: 12, padding: '0.75rem 1.25rem', marginBottom: 16, fontSize: 13, color: '#27500A', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-            <span style={{ fontSize: 16 }}>🔔</span>
-            <strong>{notifCount} notification{notifCount > 1 ? 's' : ''} non lue{notifCount > 1 ? 's' : ''}</strong> — reponse a votre demande de conge
+            <span>🔔</span> <strong>{notifCount} notification{notifCount > 1 ? 's' : ''} non lue{notifCount > 1 ? 's' : ''}</strong>
           </div>
         )}
-
         {onglet === 'a_facturer' && aFacturer.length > 0 && (
           <div style={{ background: '#FDF0E6', border: '1px solid #E07B2A', borderRadius: 12, padding: '0.75rem 1.25rem', marginBottom: 16, fontSize: 13, color: '#854F0B', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 16 }}>⚠</span>
-            {aFacturer.length} vehicule{aFacturer.length > 1 ? 's' : ''} pret{aFacturer.length > 1 ? 's' : ''} a restituer
+            <span>⚠</span> {aFacturer.length} vehicule{aFacturer.length > 1 ? 's' : ''} pret{aFacturer.length > 1 ? 's' : ''} a restituer
           </div>
         )}
 
+        {/* Liste dossiers */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {dossiersAffiches.length === 0 ? (
             <div style={{ background: 'white', borderRadius: 12, padding: '2rem', textAlign: 'center', color: '#888', border: '1px solid #e8e2d9' }}>
@@ -175,21 +186,21 @@ export default function Dashboard() {
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 15, fontWeight: 600, color: '#2D3748' }}>{d.immatriculation} <span style={{ fontWeight: 400, color: '#888', fontSize: 13 }}>-- {d.marque} {d.modele}</span></div>
                     <div style={{ fontSize: 13, color: '#888', marginTop: 2 }}>
-                      {d.clients?.prenom} {d.clients?.nom} - Entree le {new Date(d.date_entree).toLocaleDateString('fr-FR')}
+                      {d.clients?.prenom} {d.clients?.nom} — Entree le {new Date(d.date_entree).toLocaleDateString('fr-FR')}
                       {d.salaries && <span style={{ marginLeft: 8, color: '#E07B2A' }}>· {d.salaries.prenom} {d.salaries.nom}</span>}
                     </div>
+                    {d.date_sortie_prevue && (
+                      <div style={{ fontSize: 12, color: new Date(d.date_sortie_prevue) < new Date() ? '#A32D2D' : '#3B6D11', marginTop: 2 }}>
+                        Sortie prevue : {new Date(d.date_sortie_prevue).toLocaleDateString('fr-FR')}
+                        {new Date(d.date_sortie_prevue) < new Date() && ' — EN RETARD'}
+                      </div>
+                    )}
                     {d.notes && <div style={{ marginTop: 6, padding: '6px 10px', background: '#FDF0E6', borderRadius: 6, fontSize: 12, color: '#854F0B', border: '1px solid #E07B2A' }}>Note : {d.notes}</div>}
                   </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'flex-end', gap: 8, flexShrink: 0 }}>
                   <span style={{ fontSize: 11, fontWeight: 500, padding: '4px 12px', borderRadius: 20, background: s.bg, color: s.color, whiteSpace: 'nowrap' as const }}>{s.label}</span>
-                 <button onClick={() => router.push('/planning')} style={{ background: 'white', color: '#2D3748', border: '1px solid #e8e2d9', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-  Planning atelier
-</button>
                   <button onClick={() => router.push('/dossier/' + d.id)} style={{ fontSize: 13, padding: '7px 16px', borderRadius: 8, border: '2px solid #E07B2A', background: 'white', cursor: 'pointer', color: '#E07B2A', fontWeight: 600 }}>Voir</button>
-                  <button onClick={() => router.push('/salaries')} style={{ background: 'white', color: '#2D3748', border: '1px solid #e8e2d9', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-  Equipe & Messagerie
-</button>
                 </div>
               </div>
             )
