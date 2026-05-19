@@ -143,8 +143,8 @@ export default function PassageRapide() {
               <button onClick={() => router.push('/dossier/' + savedData.dossier?.id)} style={{ flex: 1, padding: '14px', borderRadius: 12, border: 'none', background: '#2D3748', cursor: 'pointer', fontSize: 15, fontWeight: 700, color: 'white' }}>
                 Voir le dossier
               </button>
-              <button onClick={() => router.push('/')} style={{ flex: 1, padding: '14px', borderRadius: 12, border: 'none', background: '#E07B2A', cursor: 'pointer', fontSize: 15, fontWeight: 700, color: 'white' }}>
-                Tableau de bord
+              <button onClick={() => router.push('/avis?dossier=' + savedData.dossier?.id)} style={{ flex: 1, padding: '14px', borderRadius: 12, border: 'none', background: '#E07B2A', cursor: 'pointer', fontSize: 15, fontWeight: 700, color: 'white' }}>
+                ⭐ Laisser un avis
               </button>
             </div>
           </div>
