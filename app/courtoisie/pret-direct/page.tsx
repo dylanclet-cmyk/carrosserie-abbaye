@@ -54,10 +54,11 @@ export default function PretDirectPage() {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
-      // Charger tous les véhicules actifs et tous les prêts
+      // Charger tous les véhicules actifs
       const { data: v } = await supabase.from('vehicules_courtoisie').select('*').eq('actif', true)
       setVehicules(v || [])
-      const { data: tousLesPrets } = await supabase.from('prets_courtoisie').select('vehicule_id, date_debut, date_fin_prevue, statut').eq('statut', 'en_cours')
+      // Charger TOUS les prêts en cours (pas les rendus) pour vérif chevauchement
+      const { data: tousLesPrets } = await supabase.from('prets_courtoisie').select('vehicule_id, date_debut, date_fin_prevue, date_retour, statut').eq('statut', 'en_cours')
       setPrets(tousLesPrets || [])
       const { data: c } = await supabase.from('clients').select('*').order('nom')
       setClients(c || [])
@@ -287,11 +288,12 @@ export default function PretDirectPage() {
                   <select style={inputStyle} value={form.vehicule_id} onChange={e => set('vehicule_id', e.target.value)}>
                     <option value="">-- Choisir un vehicule --</option>
                     {vehicules.map(v => {
-                      const isOccupe = form.date_debut && form.date_fin_prevue && prets.some((p: any) =>
-                        p.vehicule_id === v.id &&
-                        new Date(p.date_debut) <= new Date(form.date_fin_prevue) &&
-                        new Date(p.date_fin_prevue) >= new Date(form.date_debut)
-                      )
+                      const isOccupe = form.date_debut && form.date_fin_prevue && prets.some((p: any) => {
+                        if (p.vehicule_id !== v.id) return false
+                        // Utiliser date_retour réelle si disponible, sinon date_fin_prevue
+                        const finReelle = p.date_retour ? new Date(p.date_retour) : new Date(p.date_fin_prevue)
+                        return new Date(p.date_debut) <= new Date(form.date_fin_prevue) && finReelle >= new Date(form.date_debut)
+                      })
                       return <option key={v.id} value={v.id} disabled={isOccupe}>{isOccupe ? '🔴 ' : '✓ '}{v.immatriculation} — {v.marque} {v.modele} {v.couleur ? '(' + v.couleur + ')' : ''}{isOccupe ? ' — INDISPONIBLE' : ''}</option>
                     })}
                   </select>

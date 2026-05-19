@@ -48,7 +48,7 @@ export default function NouveauDossier() {
       setSalarie(sal)
       const { data: v } = await supabase.from('vehicules_courtoisie').select('*').eq('actif', true)
       setVehiculesDisponibles(v || [])
-      const { data: pretsActifs } = await supabase.from('prets_courtoisie').select('vehicule_id, date_debut, date_fin_prevue').eq('statut', 'en_cours')
+      const { data: pretsActifs } = await supabase.from('prets_courtoisie').select('vehicule_id, date_debut, date_fin_prevue, date_retour, statut').eq('statut', 'en_cours')
       setPretsActifs(pretsActifs || [])
       const { data: c } = await supabase.from('clients').select('*').order('nom')
       setClients(c || [])
