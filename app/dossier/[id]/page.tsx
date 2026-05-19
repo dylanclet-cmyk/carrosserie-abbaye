@@ -115,7 +115,7 @@ function VehiculeCourtoisie({ dossierId, router }: { dossierId: string, router: 
       ))}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' as const, marginTop: 8 }}>
         {!aEtatDepart && <button onClick={() => router.push('/courtoisie/etat?pret=' + pret.id + '&type=depart')} style={{ padding: '8px 16px', borderRadius: 8, border: '2px solid #E07B2A', background: '#E07B2A', cursor: 'pointer', fontSize: 13, color: 'white', fontWeight: 700 }}>Etat des lieux depart</button>}
-        {aEtatDepart && !aEtatRetour && pret.statut !== 'rendu' && <button onClick={() => router.push('/courtoisie/etat?pret=' + pret.id + '&type=retour')} style={{ padding: '8px 16px', borderRadius: 8, border: '2px solid #3B6D11', background: '#3B6D11', cursor: 'pointer', fontSize: 13, color: 'white', fontWeight: 700 }}>Etat des lieux retour</button>}
+        {aEtatDepart && !aEtatRetour && pret.statut !== 'rendu' && <button onClick={() => router.push('/courtoisie/etat?pret=' + pret.id + '&type=retour')} style={{ padding: '12px 20px', borderRadius: 10, border: '2px solid #3B6D11', background: '#3B6D11', cursor: 'pointer', fontSize: 14, color: 'white', fontWeight: 700, width: '100%', marginTop: 8 }}>Etat des lieux retour</button>}
         {aEtatDepart && <span style={{ fontSize: 12, color: '#3B6D11', display: 'flex', alignItems: 'center', gap: 4 }}>✓ Depart effectue</span>}
         {aEtatRetour && <span style={{ fontSize: 12, color: '#3B6D11', display: 'flex', alignItems: 'center', gap: 4 }}>✓ Retour effectue</span>}
       </div>
