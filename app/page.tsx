@@ -142,20 +142,15 @@ export default function Dashboard() {
           {salarie?.role === 'chef_atelier' && (
             <button onClick={() => router.push('/salaries')} style={btnOrange}>Equipe & Messagerie</button>
           )}
-          <button onClick={() => router.push('/passage-rapide')} style={{ ...btnOrange, background: '#3B6D11' }}>
-            ⚡ Passage rapide
-          </button>
           <button onClick={() => router.push('/conges')} style={{ ...btnOrange, position: 'relative' as const, display: 'flex', alignItems: 'center', gap: 8 }}>
-            {salarie?.role === 'chef_atelier' ? 'Gestion absences' : 'Mes conges'}
+            {salarie?.role === 'chef_atelier' ? 'Gestion absences' : 'Gestion absences'}
             {congesEnAttente > 0 && <span style={{ background: 'white', color: '#E07B2A', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 20 }}>{congesEnAttente}</span>}
             {notifCount > 0 && <span style={{ background: 'white', color: '#E07B2A', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 20 }}>{notifCount}</span>}
           </button>
           {salarie?.role === 'technicien' && (
             <button onClick={() => router.push('/salaries')} style={btnOrange}>Equipe & Messagerie</button>
           )}
-          <button onClick={() => router.push('/passage-rapide')} style={{ ...btnOrange, background: '#3B6D11' }}>
-            ⚡ Passage rapide
-          </button>
+          <button onClick={() => router.push('/passage-rapide')} style={{ ...btnOrange, background: '#3B6D11' }}>⚡ Passage rapide</button>
         </div>
 
         {/* Alertes */}
