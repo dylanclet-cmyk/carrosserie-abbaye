@@ -148,8 +148,11 @@ export default function Dashboard() {
             {notifCount > 0 && <span style={{ background: 'white', color: '#E07B2A', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 20 }}>{notifCount}</span>}
           </button>
           {salarie?.role === 'technicien' && (
-            <button onClick={() => router.push('/salaries')} style={btnOrange}>Equipe & Messagerie</button>
-          )}
+<button onClick={() => router.push('/salaries')} style={btnOrange}>Equipe & Messagerie</button>
+<button onClick={() => router.push('/passage-rapide')} style={{ ...btnOrange, background: '#3B6D11' }}>
+  ⚡ Passage rapide
+</button>
+)}
         </div>
 
         {/* Alertes */}
