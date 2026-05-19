@@ -329,9 +329,11 @@ export default function DossierPage() {
     setDossier({ ...dossier, statut: 'pret_restituer', notes: commentaire })
     setTerminating(false); setTerminated(true); setShowTerminer(false)
   }
-  async function facturer() {
-    await supabase.from('dossiers').update({ statut: 'facture' }).eq('id', params.id)
-    setDossier({ ...dossier, statut: 'facture' })
+async function facturer() {
+  await supabase.from('dossiers').update({ statut: 'facture' }).eq('id', params.id)
+  setDossier({ ...dossier, statut: 'facture' })
+  router.push('/avis?dossier=' + params.id)
+}
   }
 
   if (loading) return <div style={{ padding: '2rem', fontFamily: 'system-ui', color: '#888' }}>Chargement...</div>
