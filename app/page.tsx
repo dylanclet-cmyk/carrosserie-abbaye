@@ -10,6 +10,7 @@ export default function Dashboard() {
   const [dossiers, setDossiers] = useState<any[]>([])
   const [congesEnAttente, setCongesEnAttente] = useState(0)
   const [notifCount, setNotifCount] = useState(0)
+  const [joursMaladie, setJoursMaladie] = useState(0)
   const [loading, setLoading] = useState(true)
   const [onglet, setOnglet] = useState<'en_cours' | 'a_facturer' | 'archives'>('en_cours')
   const router = useRouter()
@@ -32,6 +33,11 @@ export default function Dashboard() {
       } else {
         const { count } = await supabase.from('notifications').select('*', { count: 'exact', head: true }).eq('salarie_id', sal.id).eq('lu', false)
         setNotifCount(count || 0)
+        // Jours maladie cette annee
+        const annee = new Date().getFullYear()
+        const { data: congesMaladie } = await supabase.from('conges').select('nb_jours').eq('salarie_id', sal.id).eq('type', 'maladie').eq('statut', 'accepte').gte('date_debut', annee + '-01-01')
+        const total = (congesMaladie || []).reduce((a: number, c: any) => a + (c.nb_jours || 0), 0)
+        setJoursMaladie(total)
       }
       setLoading(false)
     }
@@ -58,6 +64,8 @@ export default function Dashboard() {
     facture: { label: 'Facture', color: '#3C3489', bg: '#EEEDFE' },
   }
 
+  const annee = new Date().getFullYear()
+
   return (
     <div style={{ minHeight: '100vh', background: '#f8f6f3', fontFamily: 'system-ui, sans-serif' }}>
       <div style={{ background: '#2D3748', padding: '0 2rem', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -70,6 +78,36 @@ export default function Dashboard() {
       </div>
 
       <div style={{ padding: '1.5rem 2rem', maxWidth: 960, margin: '0 auto' }}>
+
+        {/* Compteur jours maladie pour technicien */}
+        {salarie?.role === 'technicien' && (
+          <div style={{ background: joursMaladie >= 10 ? '#FCEBEB' : joursMaladie >= 5 ? '#FDF0E6' : 'white', borderRadius: 12, padding: '1rem 1.5rem', border: joursMaladie >= 10 ? '2px solid #E24B4A' : joursMaladie >= 5 ? '2px solid #E07B2A' : '1px solid #e8e2d9', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontSize: 12, color: '#888', marginBottom: 4 }}>Jours d arret maladie en {annee}</div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                <span style={{ fontSize: 36, fontWeight: 700, color: joursMaladie >= 10 ? '#A32D2D' : joursMaladie >= 5 ? '#854F0B' : '#2D3748' }}>{joursMaladie}</span>
+                <span style={{ fontSize: 16, color: '#888' }}>jour{joursMaladie > 1 ? 's' : ''}</span>
+              </div>
+            </div>
+            <div style={{ textAlign: 'right' as const }}>
+              {joursMaladie === 0 && <div style={{ fontSize: 28 }}>🏆</div>}
+              {joursMaladie > 0 && joursMaladie < 5 && <div style={{ fontSize: 28 }}>👍</div>}
+              {joursMaladie >= 5 && joursMaladie < 10 && (
+                <div>
+                  <div style={{ fontSize: 24 }}>⚠️</div>
+                  <div style={{ fontSize: 11, color: '#854F0B', fontWeight: 600, marginTop: 2 }}>Attention</div>
+                </div>
+              )}
+              {joursMaladie >= 10 && (
+                <div>
+                  <div style={{ fontSize: 24 }}>🔴</div>
+                  <div style={{ fontSize: 11, color: '#A32D2D', fontWeight: 600, marginTop: 2 }}>Taux eleve</div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
           <div onClick={() => setOnglet('en_cours')} style={{ background: onglet === 'en_cours' ? '#2D3748' : 'white', borderRadius: 12, padding: '1rem', border: '1px solid #e8e2d9', cursor: 'pointer' }}>
             <div style={{ fontSize: 12, color: onglet === 'en_cours' ? '#e8e2d9' : '#888', marginBottom: 6 }}>Dossiers en cours</div>
