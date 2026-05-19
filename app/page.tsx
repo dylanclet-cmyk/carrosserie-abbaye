@@ -131,29 +131,34 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Boutons actions — tous orange */}
-        <div style={{ marginBottom: 16, display: 'flex', gap: 10, flexWrap: 'wrap' as const }}>
+      {/* Boutons actions */}
+        <style>{`
+          .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+          .action-btn { padding: 12px 16px; border-radius: 10px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 48px; }
+          @media (max-width: 640px) { .action-btn { font-size: 13px; padding: 10px 12px; } }
+        `}</style>
+        <div className="actions-grid">
           {salarie?.role === 'chef_atelier' && onglet === 'en_cours' && (
-            <button onClick={() => router.push('/nouveau-dossier')} style={btnOrange}>+ Nouveau dossier</button>
+            <button className="action-btn" onClick={() => router.push('/nouveau-dossier')} style={{ background: '#E07B2A', color: 'white' }}>+ Nouveau dossier</button>
+          )}
+          <button className="action-btn" onClick={() => router.push('/passage-rapide')} style={{ background: '#3B6D11', color: 'white', gridColumn: 'span 1' }}>⚡ Passage rapide</button>
+          {salarie?.role === 'chef_atelier' && (
+            <button className="action-btn" onClick={() => router.push('/courtoisie')} style={{ background: '#E07B2A', color: 'white' }}>🚗 Courtoisie</button>
           )}
           {salarie?.role === 'chef_atelier' && (
-            <button onClick={() => router.push('/courtoisie')} style={btnOrange}>Vehicules courtoisie</button>
+            <button className="action-btn" onClick={() => router.push('/salaries')} style={{ background: '#E07B2A', color: 'white' }}>👥 Equipe</button>
           )}
-          {salarie?.role === 'chef_atelier' && (
-            <button onClick={() => router.push('/salaries')} style={btnOrange}>Equipe & Messagerie</button>
-          )}
-          {salarie?.role === 'chef_atelier' && (
-            <button onClick={() => router.push('/admin')} style={{ ...btnOrange, background: '#2D3748' }}>⚙ Admin salaries</button>
-          )}
-          <button onClick={() => router.push('/conges')} style={{ ...btnOrange, position: 'relative' as const, display: 'flex', alignItems: 'center', gap: 8 }}>
-            {salarie?.role === 'chef_atelier' ? 'Gestion absences' : 'Gestion absences'}
-            {congesEnAttente > 0 && <span style={{ background: 'white', color: '#E07B2A', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 20 }}>{congesEnAttente}</span>}
-            {notifCount > 0 && <span style={{ background: 'white', color: '#E07B2A', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 20 }}>{notifCount}</span>}
-          </button>
           {salarie?.role === 'technicien' && (
-            <button onClick={() => router.push('/salaries')} style={btnOrange}>Equipe & Messagerie</button>
+            <button className="action-btn" onClick={() => router.push('/salaries')} style={{ background: '#E07B2A', color: 'white' }}>👥 Equipe</button>
           )}
-          <button onClick={() => router.push('/passage-rapide')} style={{ ...btnOrange, background: '#3B6D11' }}>⚡ Passage rapide</button>
+          <button className="action-btn" onClick={() => router.push('/conges')} style={{ background: '#E07B2A', color: 'white' }}>
+            📅 Absences
+            {congesEnAttente > 0 && <span style={{ background: 'white', color: '#E07B2A', fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 20 }}>{congesEnAttente}</span>}
+            {notifCount > 0 && <span style={{ background: 'white', color: '#E07B2A', fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 20 }}>{notifCount}</span>}
+          </button>
+          {salarie?.role === 'chef_atelier' && (
+            <button className="action-btn" onClick={() => router.push('/admin')} style={{ background: '#2D3748', color: 'white' }}>⚙ Admin</button>
+          )}
         </div>
 
         {/* Alertes */}
