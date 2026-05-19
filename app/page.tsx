@@ -82,16 +82,17 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {salarie?.role === 'chef_atelier' && (
-          <div style={{ marginBottom: 16, display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-            {onglet === 'en_cours' && (
-              <button onClick={() => router.push('/nouveau-dossier')} style={{ background: '#E07B2A', color: 'white', border: 'none', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>+ Nouveau dossier</button>
-            )}
-            <button onClick={() => router.push('/courtoisie')} style={{ background: 'white', color: '#2D3748', border: '1px solid #e8e2d9', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-              Vehicules courtoisie
-            </button>
-          </div>
-        )}
+        <div style={{ marginBottom: 16, display: 'flex', gap: 10, justifyContent: 'flex-end', flexWrap: 'wrap' as const }}>
+          {salarie?.role === 'chef_atelier' && onglet === 'en_cours' && (
+            <button onClick={() => router.push('/nouveau-dossier')} style={{ background: '#E07B2A', color: 'white', border: 'none', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>+ Nouveau dossier</button>
+          )}
+          {salarie?.role === 'chef_atelier' && (
+            <button onClick={() => router.push('/courtoisie')} style={{ background: 'white', color: '#2D3748', border: '1px solid #e8e2d9', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Vehicules courtoisie</button>
+          )}
+          <button onClick={() => router.push('/conges')} style={{ background: 'white', color: '#2D3748', border: '1px solid #e8e2d9', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+            {salarie?.role === 'chef_atelier' ? 'Gestion conges' : 'Mes conges'}
+          </button>
+        </div>
 
         {onglet === 'a_facturer' && aFacturer.length > 0 && (
           <div style={{ background: '#FDF0E6', border: '1px solid #E07B2A', borderRadius: 12, padding: '0.75rem 1.25rem', marginBottom: 16, fontSize: 13, color: '#854F0B', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -131,9 +132,6 @@ export default function Dashboard() {
                 <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'flex-end', gap: 8, flexShrink: 0 }}>
                   <span style={{ fontSize: 11, fontWeight: 500, padding: '4px 12px', borderRadius: 20, background: s.bg, color: s.color, whiteSpace: 'nowrap' as const }}>{s.label}</span>
                   <button onClick={() => router.push('/dossier/' + d.id)} style={{ fontSize: 13, padding: '7px 16px', borderRadius: 8, border: '2px solid #E07B2A', background: 'white', cursor: 'pointer', color: '#E07B2A', fontWeight: 600 }}>Voir</button>
-                  <button onClick={() => router.push('/conges')} style={{ background: 'white', color: '#2D3748', border: '1px solid #e8e2d9', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-  Conges
-</button>
                 </div>
               </div>
             )
@@ -142,3 +140,4 @@ export default function Dashboard() {
       </div>
     </div>
   )
+}
