@@ -8,6 +8,7 @@ export default function NouveauDossier() {
   const [salarie, setSalarie] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [vehiculesDisponibles, setVehiculesDisponibles] = useState<any[]>([])
+  const [pretsActifs, setPretsActifs] = useState<any[]>([])
   const [clients, setClients] = useState<any[]>([])
   const [searchClient, setSearchClient] = useState('')
   const [clientMode, setClientMode] = useState<'search' | 'new'>('search')
