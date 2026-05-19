@@ -294,7 +294,7 @@ export default function PretDirectPage() {
                         const finReelle = p.date_retour ? new Date(p.date_retour) : new Date(p.date_fin_prevue)
                         return new Date(p.date_debut) <= new Date(form.date_fin_prevue) && finReelle >= new Date(form.date_debut)
                       })
-                      return <option key={v.id} value={v.id} disabled={isOccupe}>{isOccupe ? '🔴 ' : '✓ '}{v.immatriculation} — {v.marque} {v.modele} {v.couleur ? '(' + v.couleur + ')' : ''}{isOccupe ? ' — INDISPONIBLE' : ''}</option>
+                      return <option key={v.id} value={v.id} disabled={!!isOccupe}>{isOccupe ? '🔴 ' : '✓ '}{v.immatriculation} — {v.marque} {v.modele} {v.couleur ? '(' + v.couleur + ')' : ''}{isOccupe ? ' — INDISPONIBLE' : ''}</option>
                     })}
                   </select>
                   {!form.date_debut || !form.date_fin_prevue ? <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>Choisissez d abord les dates pour voir la disponibilite</div> : null}
