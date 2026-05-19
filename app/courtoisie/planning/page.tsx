@@ -215,48 +215,71 @@ export default function PlanningPage() {
                   const color = colors[si % colors.length]
                   const dossierssal = dossiers.filter(d => d.salarie_id === sal.id && !['facture', 'termine'].includes(d.statut))
                   return (
-                    <div key={sal.id} style={{ marginBottom: 12 }}>
-                      {/* Ligne technicien */}
-                      <div style={{ display: 'grid', gridTemplateColumns: '160px repeat(' + nbJours + ', 1fr)', gap: 1, marginBottom: 2 }}>
-                        <div style={{ padding: '8px', background: color + '15', borderRadius: 6, borderLeft: '3px solid ' + color }}>
-                          <div style={{ fontSize: 12, fontWeight: 700, color: '#2D3748' }}>{sal.prenom} {sal.nom}</div>
-                          <div style={{ fontSize: 10, color: '#888' }}>{dossierssal.length} dossier{dossierssal.length > 1 ? 's' : ''}</div>
+                    <div key={sal.id} style={{ marginBottom: 16 }}>
+                      {/* Header technicien */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '180px repeat(' + nbJours + ', 1fr)', gap: 1, marginBottom: 3 }}>
+                        <div style={{ padding: '10px 12px', background: color + '20', borderRadius: 8, borderLeft: '4px solid ' + color, display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <div style={{ width: 32, height: 32, borderRadius: '50%', background: color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'white', flexShrink: 0 }}>
+                            {sal.prenom?.[0]}{sal.nom?.[0]}
+                          </div>
+                          <div>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: '#2D3748' }}>{sal.prenom} {sal.nom}</div>
+                            <div style={{ fontSize: 11, color: '#888' }}>{dossierssal.length} dossier{dossierssal.length > 1 ? 's' : ''}</div>
+                          </div>
                         </div>
                         {Array.from({ length: nbJours }, (_, i) => {
                           const date = new Date(annee, mois, i + 1)
                           const isWeekend = date.getDay() === 0 || date.getDay() === 6
                           const isToday = date.toDateString() === today.toDateString()
                           const dossiersJour = getDossiersDuJour(sal.id, i + 1)
-                          const nbDossiers = dossiersJour.length
+                          const nbDoss = dossiersJour.length
                           return (
-                            <div key={i} title={dossiersJour.map(d => d.immatriculation).join(', ')} style={{ height: 40, borderRadius: 3, background: isWeekend ? '#f8f6f3' : nbDossiers > 0 ? color + '30' : isToday ? '#FDF0E6' : 'white', border: isToday ? '1px solid #E07B2A' : '1px solid #f0ede8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              {nbDossiers > 0 && <span style={{ fontSize: 10, color, fontWeight: 700 }}>{nbDossiers}</span>}
+                            <div key={i} title={dossiersJour.map(d => d.immatriculation).join(', ')}
+                              style={{ height: 50, borderRadius: 4, background: isWeekend ? '#f0ede8' : nbDoss > 0 ? color + '35' : isToday ? '#FDF0E6' : 'white', border: isToday ? '2px solid #E07B2A' : '1px solid #e8e2d9', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+                              {nbDoss > 0 && (
+                                <>
+                                  <span style={{ fontSize: 14, fontWeight: 700, color }}>{nbDoss}</span>
+                                  <span style={{ fontSize: 8, color: '#888' }}>véh.</span>
+                                </>
+                              )}
                             </div>
                           )
                         })}
                       </div>
 
-                      {/* Sous-lignes par dossier */}
-                      {dossierssal.map(d => {
-                        const dcolor = colors[dossiers.indexOf(d) % colors.length]
+                      {/* Lignes par dossier */}
+                      {dossierssal.map((d, di) => {
+                        const dcolor = color
+                        const sc = statusColors[d.statut]
                         return (
-                          <div key={d.id} style={{ display: 'grid', gridTemplateColumns: '160px repeat(' + nbJours + ', 1fr)', gap: 1, marginBottom: 1 }}>
-                            <div onClick={() => router.push('/dossier/' + d.id)} style={{ padding: '4px 8px', background: 'white', borderRadius: 4, cursor: 'pointer', borderLeft: '2px solid ' + dcolor, marginLeft: 8 }}>
-                              <div style={{ fontSize: 10, fontWeight: 600, color: '#2D3748', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{d.immatriculation}</div>
-                              <div style={{ fontSize: 9, color: '#888', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{d.clients?.prenom} {d.clients?.nom}</div>
+                          <div key={d.id} style={{ display: 'grid', gridTemplateColumns: '180px repeat(' + nbJours + ', 1fr)', gap: 1, marginBottom: 2 }}>
+                            <div onClick={() => router.push('/dossier/' + d.id)} style={{ padding: '6px 10px', background: 'white', borderRadius: 6, cursor: 'pointer', borderLeft: '3px solid ' + dcolor, display: 'flex', flexDirection: 'column' as const, justifyContent: 'center', gap: 2 }}>
+                              <div style={{ fontSize: 12, fontWeight: 700, color: '#2D3748', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{d.immatriculation} <span style={{ fontSize: 10, color: '#888', fontWeight: 400 }}>{d.marque}</span></div>
+                              <div style={{ fontSize: 11, color: '#888', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{d.clients?.prenom} {d.clients?.nom}</div>
+                              {sc && <span style={{ fontSize: 9, padding: '1px 6px', borderRadius: 10, background: sc.bg, color: sc.color, fontWeight: 600, alignSelf: 'flex-start' as const }}>{sc.label}</span>}
                             </div>
                             {Array.from({ length: nbJours }, (_, i) => {
                               const date = new Date(annee, mois, i + 1)
                               const debut = new Date(d.date_entree)
                               const fin = d.date_sortie_prevue ? new Date(d.date_sortie_prevue) : null
                               const isWeekend = date.getDay() === 0 || date.getDay() === 6
+                              const isToday = date.toDateString() === today.toDateString()
                               const isInRange = date >= debut && (fin ? date <= fin : true)
                               const isDebut = debut.toDateString() === date.toDateString()
                               const isFin = fin && fin.toDateString() === date.toDateString()
+                              const isDepassee = fin && date > fin
                               return (
-                                <div key={i} style={{ height: 28, borderRadius: 2, background: isWeekend ? '#f8f6f3' : isInRange ? dcolor + '20' : 'white', border: '1px solid #f5f5f5', borderLeft: isDebut ? ('2px solid ' + dcolor) : undefined, borderRight: isFin ? ('2px solid ' + dcolor) : undefined, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                  {isDebut && <span style={{ fontSize: 7, color: dcolor, fontWeight: 700 }}>E</span>}
-                                  {isFin && <span style={{ fontSize: 7, color: dcolor, fontWeight: 700 }}>S</span>}
+                                <div key={i} style={{
+                                  height: 38, borderRadius: 3,
+                                  background: isWeekend ? '#f5f3f0' : isInRange ? (isDepassee ? '#FCEBEB' : dcolor + '25') : isToday ? '#FDF0E6' : 'white',
+                                  border: isToday ? '1px solid #E07B2A' : '1px solid #f0ede8',
+                                  borderLeft: isDebut ? ('3px solid ' + dcolor) : undefined,
+                                  borderRight: isFin ? ('3px solid ' + dcolor) : undefined,
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' as const
+                                }}>
+                                  {isDebut && <div style={{ position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: 9, color: dcolor, fontWeight: 700, background: dcolor + '30', padding: '1px 4px', borderRadius: 4 }}>Entrée</span></div>}
+                                  {isFin && !isDebut && <div style={{ position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: 9, color: '#27500A', fontWeight: 700, background: '#EAF3DE', padding: '1px 4px', borderRadius: 4 }}>Sortie</span></div>}
+                                  {isDepassee && isInRange && !isFin && <span style={{ fontSize: 9, color: '#A32D2D' }}>!</span>}
                                 </div>
                               )
                             })}
