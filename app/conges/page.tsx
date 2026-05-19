@@ -1,0 +1,341 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { createClient } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
+
+export default function CongesPage() {
+  const [salarie, setSalarie] = useState<any>(null)
+  const [conges, setConges] = useState<any[]>([])
+  const [salaries, setSalaries] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [newConge, setNewConge] = useState({ date_debut: '', date_fin: '', type: 'conge', motif: '' })
+  const [saving, setSaving] = useState(false)
+  const router = useRouter()
+  const supabase = createClient()
+
+  useEffect(() => {
+    async function load() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/login'); return }
+      const { data: sal } = await supabase.from('salaries').select('*').eq('email', user.email).single()
+      setSalarie(sal)
+      if (sal?.role === 'chef_atelier') {
+        const { data: sals } = await supabase.from('salaries').select('*').eq('actif', true)
+        setSalaries(sals || [])
+        const { data: c } = await supabase.from('conges').select('*, salaries(*)').order('created_at', { ascending: false })
+        setConges(c || [])
+      } else {
+        const { data: c } = await supabase.from('conges').select('*').eq('salarie_id', sal.id).order('created_at', { ascending: false })
+        setConges(c || [])
+      }
+      setLoading(false)
+    }
+    load()
+  }, [])
+
+  function nbJours(debut: string, fin: string) {
+    if (!debut || !fin) return 0
+    const d1 = new Date(debut)
+    const d2 = new Date(fin)
+    let count = 0
+    const current = new Date(d1)
+    while (current <= d2) {
+      const day = current.getDay()
+      if (day !== 0 && day !== 6) count++
+      current.setDate(current.getDate() + 1)
+    }
+    return count
+  }
+
+  async function submitConge() {
+    if (!newConge.date_debut || !newConge.date_fin) return
+    setSaving(true)
+    const jours = nbJours(newConge.date_debut, newConge.date_fin)
+    const { data } = await supabase.from('conges').insert({
+      salarie_id: salarie.id,
+      date_debut: newConge.date_debut,
+      date_fin: newConge.date_fin,
+      type: newConge.type,
+      motif: newConge.motif,
+      statut: 'en_attente',
+      nb_jours: jours
+    }).select('*, salaries(*)').single()
+    if (data) setConges([data, ...conges])
+    setNewConge({ date_debut: '', date_fin: '', type: 'conge', motif: '' })
+    setShowForm(false)
+    setSaving(false)
+  }
+
+  async function updateStatut(id: string, statut: string, commentaire?: string) {
+    await supabase.from('conges').update({ statut, commentaire_chef: commentaire || null }).eq('id', id)
+    setConges(conges.map(c => c.id === id ? { ...c, statut, commentaire_chef: commentaire || null } : c))
+  }
+
+  async function deleteConge(id: string) {
+    await supabase.from('conges').delete().eq('id', id)
+    setConges(conges.filter(c => c.id !== id))
+  }
+
+  if (loading) return <div style={{ padding: '2rem', fontFamily: 'system-ui', color: '#888' }}>Chargement...</div>
+
+  const enAttente = conges.filter(c => c.statut === 'en_attente')
+  const acceptes = conges.filter(c => c.statut === 'accepte')
+  const refuses = conges.filter(c => c.statut === 'refuse')
+
+  const typeLabels: any = { conge: 'Conge paye', rtt: 'RTT', maladie: 'Maladie', autre: 'Autre' }
+  const statutColors: any = {
+    en_attente: { label: 'En attente', color: '#854F0B', bg: '#FAEEDA' },
+    accepte: { label: 'Accepte', color: '#27500A', bg: '#EAF3DE' },
+    refuse: { label: 'Refuse', color: '#791F1F', bg: '#FCEBEB' },
+    modifie: { label: 'Modifie', color: '#3C3489', bg: '#EEEDFE' },
+  }
+
+  const inputStyle = { width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e8e2d9', fontSize: 13, color: '#2D3748', background: 'white' }
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#f8f6f3', fontFamily: 'system-ui, sans-serif' }}>
+      <div style={{ background: '#2D3748', padding: '0 2rem', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button onClick={() => router.push('/')} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: '#e8e2d9' }}>← Retour</button>
+          <img src="/logo.png" alt="Logo" style={{ height: 44, objectFit: 'contain' }} />
+          <span style={{ color: 'white', fontSize: 15, fontWeight: 600 }}>
+            {salarie?.role === 'chef_atelier' ? 'Gestion des conges' : 'Mes conges'}
+          </span>
+        </div>
+        {salarie?.role === 'technicien' && (
+          <button onClick={() => setShowForm(true)} style={{ background: '#E07B2A', color: 'white', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+            + Demander un conge
+          </button>
+        )}
+      </div>
+
+      <div style={{ padding: '1.5rem 2rem', maxWidth: 960, margin: '0 auto' }}>
+
+        {salarie?.role === 'chef_atelier' && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
+            <div style={{ background: 'white', borderRadius: 12, padding: '1rem', border: enAttente.length > 0 ? '2px solid #E07B2A' : '1px solid #e8e2d9', position: 'relative' as const }}>
+              <div style={{ fontSize: 12, color: '#888', marginBottom: 6 }}>En attente</div>
+              <div style={{ fontSize: 28, fontWeight: 700, color: enAttente.length > 0 ? '#E07B2A' : '#888' }}>{enAttente.length}</div>
+              {enAttente.length > 0 && <div style={{ position: 'absolute' as const, top: 8, right: 8, width: 10, height: 10, borderRadius: '50%', background: '#E07B2A' }} />}
+            </div>
+            <div style={{ background: 'white', borderRadius: 12, padding: '1rem', border: '1px solid #e8e2d9' }}>
+              <div style={{ fontSize: 12, color: '#888', marginBottom: 6 }}>Acceptes</div>
+              <div style={{ fontSize: 28, fontWeight: 700, color: '#3B6D11' }}>{acceptes.length}</div>
+            </div>
+            <div style={{ background: 'white', borderRadius: 12, padding: '1rem', border: '1px solid #e8e2d9' }}>
+              <div style={{ fontSize: 12, color: '#888', marginBottom: 6 }}>Refuses</div>
+              <div style={{ fontSize: 28, fontWeight: 700, color: '#888' }}>{refuses.length}</div>
+            </div>
+          </div>
+        )}
+
+        {enAttente.length > 0 && salarie?.role === 'chef_atelier' && (
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#2D3748', marginBottom: 12 }}>Demandes en attente</div>
+            {enAttente.map(c => (
+              <DemandeConge key={c.id} conge={c} isChef={true} typeLabels={typeLabels} statutColors={statutColors} onUpdate={updateStatut} onDelete={deleteConge} />
+            ))}
+          </div>
+        )}
+
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#2D3748', marginBottom: 12 }}>
+            {salarie?.role === 'chef_atelier' ? 'Toutes les demandes' : 'Mes demandes'}
+          </div>
+          {conges.filter(c => c.statut !== 'en_attente' || salarie?.role === 'technicien').length === 0 ? (
+            <div style={{ background: 'white', borderRadius: 12, padding: '2rem', textAlign: 'center' as const, color: '#888', border: '1px solid #e8e2d9' }}>
+              Aucune demande de conge
+            </div>
+          ) : conges.filter(c => salarie?.role === 'chef_atelier' ? c.statut !== 'en_attente' : true).map(c => (
+            <DemandeConge key={c.id} conge={c} isChef={salarie?.role === 'chef_atelier'} typeLabels={typeLabels} statutColors={statutColors} onUpdate={updateStatut} onDelete={deleteConge} />
+          ))}
+        </div>
+
+        {salarie?.role === 'chef_atelier' && (
+          <div style={{ background: 'white', borderRadius: 12, padding: '1.5rem', border: '1px solid #e8e2d9' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 16 }}>Planning des conges acceptes</div>
+            <PlanningConges conges={acceptes} salaries={salaries} />
+          </div>
+        )}
+      </div>
+
+      {showForm && (
+        <div style={{ position: 'fixed' as const, inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+          <div style={{ background: 'white', borderRadius: 16, padding: '1.5rem', width: '100%', maxWidth: 460 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#2D3748', marginBottom: 16 }}>Demander un conge</div>
+            <div style={{ display: 'grid', gap: 12, marginBottom: 16 }}>
+              <div>
+                <label style={{ fontSize: 12, color: '#888', display: 'block', marginBottom: 4 }}>Type</label>
+                <select style={inputStyle} value={newConge.type} onChange={e => setNewConge({ ...newConge, type: e.target.value })}>
+                  <option value="conge">Conge paye</option>
+                  <option value="rtt">RTT</option>
+                  <option value="maladie">Maladie</option>
+                  <option value="autre">Autre</option>
+                </select>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div>
+                  <label style={{ fontSize: 12, color: '#888', display: 'block', marginBottom: 4 }}>Date de debut</label>
+                  <input style={inputStyle} type="date" value={newConge.date_debut} onChange={e => setNewConge({ ...newConge, date_debut: e.target.value })} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, color: '#888', display: 'block', marginBottom: 4 }}>Date de fin</label>
+                  <input style={inputStyle} type="date" value={newConge.date_fin} onChange={e => setNewConge({ ...newConge, date_fin: e.target.value })} />
+                </div>
+              </div>
+              {newConge.date_debut && newConge.date_fin && (
+                <div style={{ padding: '8px 12px', background: '#EAF3DE', borderRadius: 8, fontSize: 13, color: '#27500A', fontWeight: 600 }}>
+                  {nbJours(newConge.date_debut, newConge.date_fin)} jour(s) ouvrable(s)
+                </div>
+              )}
+              <div>
+                <label style={{ fontSize: 12, color: '#888', display: 'block', marginBottom: 4 }}>Motif (optionnel)</label>
+                <input style={inputStyle} value={newConge.motif} onChange={e => setNewConge({ ...newConge, motif: e.target.value })} placeholder="Ex : Vacances ete, rendez-vous medical..." />
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setShowForm(false)} style={{ padding: '10px 20px', borderRadius: 8, border: '1px solid #e8e2d9', background: 'white', cursor: 'pointer', fontSize: 14, color: '#2D3748' }}>Annuler</button>
+              <button onClick={submitConge} disabled={saving} style={{ flex: 1, padding: '10px', borderRadius: 8, border: 'none', background: '#E07B2A', color: 'white', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>
+                {saving ? 'Envoi...' : 'Envoyer la demande'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function DemandeConge({ conge, isChef, typeLabels, statutColors, onUpdate, onDelete }: any) {
+  const [showActions, setShowActions] = useState(false)
+  const [commentaire, setCommentaire] = useState('')
+  const sc = statutColors[conge.statut] || statutColors.en_attente
+
+  return (
+    <div style={{ background: 'white', borderRadius: 12, padding: '1.25rem', border: conge.statut === 'en_attente' ? '2px solid #E07B2A' : '1px solid #e8e2d9', marginBottom: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+        <div style={{ flex: 1 }}>
+          {isChef && conge.salaries && (
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#2D3748', marginBottom: 4 }}>{conge.salaries.prenom} {conge.salaries.nom}</div>
+          )}
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 6, flexWrap: 'wrap' as const }}>
+            <span style={{ fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: '#f8f6f3', color: '#2D3748' }}>{typeLabels[conge.type]}</span>
+            <span style={{ fontSize: 13, color: '#2D3748', fontWeight: 600 }}>
+              {new Date(conge.date_debut).toLocaleDateString('fr-FR')} → {new Date(conge.date_fin).toLocaleDateString('fr-FR')}
+            </span>
+            <span style={{ fontSize: 12, color: '#888' }}>{conge.nb_jours} jour{conge.nb_jours > 1 ? 's' : ''}</span>
+          </div>
+          {conge.motif && <div style={{ fontSize: 12, color: '#888', marginBottom: 4 }}>Motif : {conge.motif}</div>}
+          {conge.commentaire_chef && (
+            <div style={{ fontSize: 12, padding: '6px 10px', background: '#f8f6f3', borderRadius: 6, color: '#555', marginTop: 4 }}>
+              Commentaire chef : {conge.commentaire_chef}
+            </div>
+          )}
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'flex-end', gap: 8 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: sc.bg, color: sc.color, whiteSpace: 'nowrap' as const }}>{sc.label}</span>
+          {isChef && conge.statut === 'en_attente' && (
+            <button onClick={() => setShowActions(!showActions)} style={{ fontSize: 12, padding: '5px 10px', borderRadius: 8, border: '1px solid #e8e2d9', background: 'white', cursor: 'pointer', color: '#2D3748' }}>
+              {showActions ? 'Fermer' : 'Traiter'}
+            </button>
+          )}
+          {!isChef && conge.statut === 'en_attente' && (
+            <button onClick={() => onDelete(conge.id)} style={{ fontSize: 12, padding: '4px 8px', borderRadius: 6, border: '1px solid #e8e2d9', background: 'white', cursor: 'pointer', color: '#888' }}>Annuler</button>
+          )}
+        </div>
+      </div>
+
+      {showActions && (
+        <div style={{ marginTop: 12, padding: '12px', background: '#f8f6f3', borderRadius: 8 }}>
+          <input value={commentaire} onChange={e => setCommentaire(e.target.value)} placeholder="Commentaire pour le salarie (optionnel)..." style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e8e2d9', fontSize: 13, color: '#2D3748', marginBottom: 10 }} />
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={() => { onUpdate(conge.id, 'accepte', commentaire); setShowActions(false) }} style={{ flex: 1, padding: '8px', borderRadius: 8, border: 'none', background: '#3B6D11', color: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>✓ Accepter</button>
+            <button onClick={() => { onUpdate(conge.id, 'refuse', commentaire); setShowActions(false) }} style={{ flex: 1, padding: '8px', borderRadius: 8, border: 'none', background: '#A32D2D', color: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>✗ Refuser</button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function PlanningConges({ conges, salaries }: any) {
+  const [moisActuel, setMoisActuel] = useState(new Date())
+  const annee = moisActuel.getFullYear()
+  const mois = moisActuel.getMonth()
+  const nbJours = new Date(annee, mois + 1, 0).getDate()
+  const nomsMois = ['Janvier', 'Fevrier', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Aout', 'Septembre', 'Octobre', 'Novembre', 'Decembre']
+  const today = new Date()
+  const colors = ['#E07B2A', '#185FA5', '#3B6D11', '#854F0B', '#3C3489']
+
+  function getCongeForDay(salarieId: string, jour: number) {
+    const date = new Date(annee, mois, jour)
+    return conges.find((c: any) => {
+      const debut = new Date(c.date_debut)
+      const fin = new Date(c.date_fin)
+      return c.salarie_id === salarieId && date >= debut && date <= fin
+    }) || null
+  }
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+        <button onClick={() => setMoisActuel(new Date(annee, mois - 1, 1))} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #e8e2d9', background: 'white', cursor: 'pointer', fontSize: 14, color: '#2D3748' }}>←</button>
+        <span style={{ fontSize: 14, fontWeight: 600, color: '#2D3748', minWidth: 140, textAlign: 'center' as const }}>{nomsMois[mois]} {annee}</span>
+        <button onClick={() => setMoisActuel(new Date(annee, mois + 1, 1))} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #e8e2d9', background: 'white', cursor: 'pointer', fontSize: 14, color: '#2D3748' }}>→</button>
+      </div>
+
+      <div style={{ overflowX: 'auto' as const }}>
+        <div style={{ minWidth: 700 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '120px repeat(' + nbJours + ', 1fr)', gap: 1, marginBottom: 2 }}>
+            <div style={{ fontSize: 11, color: '#888', padding: '4px' }}>Salarie</div>
+            {Array.from({ length: nbJours }, (_, i) => {
+              const date = new Date(annee, mois, i + 1)
+              const isToday = date.toDateString() === today.toDateString()
+              const isWeekend = date.getDay() === 0 || date.getDay() === 6
+              return (
+                <div key={i} style={{ fontSize: 9, textAlign: 'center' as const, color: isToday ? '#E07B2A' : isWeekend ? '#ccc' : '#888', fontWeight: isToday ? 700 : 400, padding: '4px 0' }}>
+                  {i + 1}
+                </div>
+              )
+            })}
+          </div>
+
+          {salaries.map((sal: any, si: number) => (
+            <div key={sal.id} style={{ display: 'grid', gridTemplateColumns: '120px repeat(' + nbJours + ', 1fr)', gap: 1, marginBottom: 2 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: '#2D3748', padding: '6px 4px', background: 'white', borderRadius: 4 }}>
+                {sal.prenom} {sal.nom}
+              </div>
+              {Array.from({ length: nbJours }, (_, i) => {
+                const conge = getCongeForDay(sal.id, i + 1)
+                const date = new Date(annee, mois, i + 1)
+                const isWeekend = date.getDay() === 0 || date.getDay() === 6
+                const isToday = date.toDateString() === today.toDateString()
+                const isDebut = conge ? new Date(conge.date_debut).toDateString() === date.toDateString() : false
+                const color = colors[si % colors.length]
+                return (
+                  <div key={i} title={conge ? 'En conge' : ''} style={{
+                    height: 28, borderRadius: 3,
+                    background: isWeekend ? '#f5f3f0' : conge ? color + '33' : isToday ? '#FDF0E6' : 'white',
+                    border: isToday ? '1px solid #E07B2A' : '1px solid #f0ede8',
+                    borderLeft: conge && isDebut ? ('3px solid ' + color) : undefined,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }}>
+                    {conge && isDebut && <span style={{ fontSize: 8, color, fontWeight: 700 }}>C</span>}
+                  </div>
+                )
+              })}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: 16, marginTop: 12, flexWrap: 'wrap' as const }}>
+        <span style={{ fontSize: 12, color: '#888', display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ display: 'inline-block', width: 16, height: 12, background: '#E07B2A33', border: '1px solid #E07B2A', borderRadius: 2 }} />En conge</span>
+        <span style={{ fontSize: 12, color: '#888', display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ display: 'inline-block', width: 16, height: 12, background: '#FDF0E6', border: '1px solid #E07B2A', borderRadius: 2 }} />Aujourd hui</span>
+        <span style={{ fontSize: 12, color: '#888', display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ display: 'inline-block', width: 16, height: 12, background: '#f5f3f0', borderRadius: 2 }} />Weekend</span>
+      </div>
+    </div>
+  )
+}
