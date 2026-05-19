@@ -46,10 +46,10 @@ export default function NouveauDossier() {
       const { data: sal } = await supabase.from('salaries').select('*').eq('email', user.email).single()
       if (sal?.role !== 'chef_atelier') { router.push('/'); return }
       setSalarie(sal)
-      const { data: pretsEnCours } = await supabase.from('prets_courtoisie').select('vehicule_id').eq('statut', 'en_cours')
-      const vehiculesPretes = (pretsEnCours || []).map((p: any) => p.vehicule_id)
       const { data: v } = await supabase.from('vehicules_courtoisie').select('*').eq('actif', true)
-      setVehiculesDisponibles((v || []).filter((veh: any) => !vehiculesPretes.includes(veh.id)))
+      setVehiculesDisponibles(v || [])
+      const { data: pretsActifs } = await supabase.from('prets_courtoisie').select('vehicule_id, date_debut, date_fin_prevue').eq('statut', 'en_cours')
+      setPretsActifs(pretsActifs || [])
       const { data: c } = await supabase.from('clients').select('*').order('nom')
       setClients(c || [])
     }

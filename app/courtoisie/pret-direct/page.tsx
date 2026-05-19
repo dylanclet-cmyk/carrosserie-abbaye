@@ -23,6 +23,7 @@ export default function PretDirectPage() {
   const [vehicules, setVehicules] = useState<any[]>([])
   const [clients, setClients] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [prets, setPrets] = useState<any[]>([])
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [etape, setEtape] = useState<'infos' | 'etat_lieux'>('infos')
@@ -53,11 +54,11 @@ export default function PretDirectPage() {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
-      // Véhicules disponibles (pas de prêt en cours)
-      const { data: pretsEnCours } = await supabase.from('prets_courtoisie').select('vehicule_id').eq('statut', 'en_cours')
-      const vehiculesPretes = (pretsEnCours || []).map((p: any) => p.vehicule_id)
+      // Charger tous les véhicules actifs et tous les prêts
       const { data: v } = await supabase.from('vehicules_courtoisie').select('*').eq('actif', true)
-      setVehicules((v || []).filter((veh: any) => !vehiculesPretes.includes(veh.id)))
+      setVehicules(v || [])
+      const { data: tousLesPrets } = await supabase.from('prets_courtoisie').select('vehicule_id, date_debut, date_fin_prevue, statut').eq('statut', 'en_cours')
+      setPrets(tousLesPrets || [])
       const { data: c } = await supabase.from('clients').select('*').order('nom')
       setClients(c || [])
       setLoading(false)
@@ -285,9 +286,16 @@ export default function PretDirectPage() {
                   <label style={labelStyle}>Vehicule disponible *</label>
                   <select style={inputStyle} value={form.vehicule_id} onChange={e => set('vehicule_id', e.target.value)}>
                     <option value="">-- Choisir un vehicule --</option>
-                    {vehicules.map(v => <option key={v.id} value={v.id}>{v.immatriculation} — {v.marque} {v.modele} {v.couleur ? '(' + v.couleur + ')' : ''}</option>)}
+                    {vehicules.map(v => {
+                      const isOccupe = form.date_debut && form.date_fin_prevue && prets.some((p: any) =>
+                        p.vehicule_id === v.id &&
+                        new Date(p.date_debut) <= new Date(form.date_fin_prevue) &&
+                        new Date(p.date_fin_prevue) >= new Date(form.date_debut)
+                      )
+                      return <option key={v.id} value={v.id} disabled={isOccupe}>{isOccupe ? '🔴 ' : '✓ '}{v.immatriculation} — {v.marque} {v.modele} {v.couleur ? '(' + v.couleur + ')' : ''}{isOccupe ? ' — INDISPONIBLE' : ''}</option>
+                    })}
                   </select>
-                  {vehicules.length === 0 && <div style={{ fontSize: 12, color: '#A32D2D', marginTop: 4 }}>Aucun vehicule disponible actuellement</div>}
+                  {!form.date_debut || !form.date_fin_prevue ? <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>Choisissez d abord les dates pour voir la disponibilite</div> : null}
                 </div>
                 <div><label style={labelStyle}>Date de depart *</label><input style={inputStyle} type="date" value={form.date_debut} onChange={e => set('date_debut', e.target.value)} /></div>
                 <div><label style={labelStyle}>Date de retour prevue *</label><input style={inputStyle} type="date" value={form.date_fin_prevue} onChange={e => set('date_fin_prevue', e.target.value)} /></div>
