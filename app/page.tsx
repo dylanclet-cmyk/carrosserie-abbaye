@@ -8,6 +8,7 @@ export default function Dashboard() {
   const [user, setUser] = useState<any>(null)
   const [salarie, setSalarie] = useState<any>(null)
   const [dossiers, setDossiers] = useState<any[]>([])
+  const [congesEnAttente, setCongesEnAttente] = useState(0)
   const [loading, setLoading] = useState(true)
   const [onglet, setOnglet] = useState<'en_cours' | 'a_facturer' | 'archives'>('en_cours')
   const router = useRouter()
@@ -24,6 +25,10 @@ export default function Dashboard() {
       if (sal?.role === 'technicien') { query.eq('salarie_id', sal.id) }
       const { data: dos } = await query
       setDossiers(dos || [])
+      if (sal?.role === 'chef_atelier') {
+        const { count } = await supabase.from('conges').select('*', { count: 'exact', head: true }).eq('statut', 'en_attente')
+        setCongesEnAttente(count || 0)
+      }
       setLoading(false)
     }
     load()
@@ -87,12 +92,26 @@ export default function Dashboard() {
             <button onClick={() => router.push('/nouveau-dossier')} style={{ background: '#E07B2A', color: 'white', border: 'none', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>+ Nouveau dossier</button>
           )}
           {salarie?.role === 'chef_atelier' && (
-            <button onClick={() => router.push('/courtoisie')} style={{ background: 'white', color: '#2D3748', border: '1px solid #e8e2d9', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Vehicules courtoisie</button>
+            <button onClick={() => router.push('/courtoisie')} style={{ background: 'white', color: '#2D3748', border: '1px solid #e8e2d9', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+              Vehicules courtoisie
+            </button>
           )}
-          <button onClick={() => router.push('/conges')} style={{ background: 'white', color: '#2D3748', border: '1px solid #e8e2d9', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+          <button onClick={() => router.push('/conges')} style={{ background: congesEnAttente > 0 ? '#FDF0E6' : 'white', color: '#2D3748', border: congesEnAttente > 0 ? '2px solid #E07B2A' : '1px solid #e8e2d9', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer', position: 'relative' as const, display: 'flex', alignItems: 'center', gap: 8 }}>
             {salarie?.role === 'chef_atelier' ? 'Gestion conges' : 'Mes conges'}
+            {congesEnAttente > 0 && (
+              <span style={{ background: '#E24B4A', color: 'white', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 20, minWidth: 20, textAlign: 'center' as const }}>
+                {congesEnAttente}
+              </span>
+            )}
           </button>
         </div>
+
+        {congesEnAttente > 0 && salarie?.role === 'chef_atelier' && (
+          <div onClick={() => router.push('/conges')} style={{ background: '#FDF0E6', border: '1px solid #E07B2A', borderRadius: 12, padding: '0.75rem 1.25rem', marginBottom: 16, fontSize: 13, color: '#854F0B', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+            <span style={{ fontSize: 16 }}>🗓</span>
+            <strong>{congesEnAttente} demande{congesEnAttente > 1 ? 's' : ''} de conge{congesEnAttente > 1 ? 's' : ''} en attente</strong> — cliquez pour traiter
+          </div>
+        )}
 
         {onglet === 'a_facturer' && aFacturer.length > 0 && (
           <div style={{ background: '#FDF0E6', border: '1px solid #E07B2A', borderRadius: 12, padding: '0.75rem 1.25rem', marginBottom: 16, fontSize: 13, color: '#854F0B', display: 'flex', alignItems: 'center', gap: 8 }}>
