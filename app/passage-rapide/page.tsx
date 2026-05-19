@@ -9,6 +9,11 @@ export default function PassageRapide() {
   const [loading, setLoading] = useState(false)
   const [saved, setSaved] = useState(false)
   const [savedData, setSavedData] = useState<any>(null)
+  const [clients, setClients] = useState<any[]>([])
+  const [searchClient, setSearchClient] = useState('')
+  const [selectedClient, setSelectedClient] = useState<any>(null)
+  const [showDropdown, setShowDropdown] = useState(false)
+  const [clientMode, setClientMode] = useState<'search' | 'new'>('search')
   const [form, setForm] = useState({
     client_nom: '',
     client_prenom: '',
@@ -28,9 +33,23 @@ export default function PassageRapide() {
       if (!user) { router.push('/login'); return }
       const { data: sal } = await supabase.from('salaries').select('*').eq('email', user.email).single()
       setSalarie(sal)
+      const { data: c } = await supabase.from('clients').select('*').order('nom')
+      setClients(c || [])
     }
     load()
   }, [])
+
+  const filteredClients = clients.filter(c => {
+    const q = searchClient.toLowerCase()
+    return c.nom?.toLowerCase().includes(q) || c.prenom?.toLowerCase().includes(q) || c.telephone?.includes(q)
+  }).slice(0, 6)
+
+  function selectClient(client: any) {
+    setSelectedClient(client)
+    setSearchClient(client.prenom + ' ' + client.nom)
+    setShowDropdown(false)
+    setForm(f => ({ ...f, client_nom: client.nom, client_prenom: client.prenom, client_telephone: client.telephone || '' }))
+  }
 
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }))
 
@@ -41,12 +60,17 @@ export default function PassageRapide() {
     }
     setLoading(true)
 
-    // Créer client
-    const { data: client } = await supabase.from('clients').insert({
-      nom: form.client_nom,
-      prenom: form.client_prenom,
-      telephone: form.client_telephone,
-    }).select().single()
+    // Créer ou réutiliser client
+    let clientId = selectedClient?.id
+    if (!clientId) {
+      const { data: client } = await supabase.from('clients').insert({
+        nom: form.client_nom,
+        prenom: form.client_prenom,
+        telephone: form.client_telephone,
+      }).select().single()
+      clientId = client?.id
+    }
+    const client = { id: clientId }
 
     // Créer dossier passage rapide
     const numero = 'PR-' + Date.now().toString().slice(-6)
@@ -59,7 +83,7 @@ export default function PassageRapide() {
       km_entree: 0,
       carburant_entree: '3/4',
       date_entree: new Date().toISOString().split('T')[0],
-      client_id: client?.id,
+      client_id: clientId,
       salarie_id: salarie?.id,
       statut: 'pret_restituer',
       notes: form.description,
