@@ -48,7 +48,7 @@ export default function CourtoisPlanningPage() {
     <div style={{ minHeight: '100vh', background: '#f8f6f3', fontFamily: 'system-ui, sans-serif' }}>
       <div style={{ background: '#2D3748', padding: '0 2rem', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button onClick={() => router.push('/courtoisie')} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: '#e8e2d9' }}>← >← Retour</button>
+          <button onClick={() => router.push('/courtoisie')} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: '#e8e2d9' }}>← Retour</button>
           <img src="/logo.png" alt="Logo" style={{ height: 44, objectFit: 'contain' }} />
           <span style={{ color: 'white', fontSize: 15, fontWeight: 600 }}>Planning vehicules courtoisie</span>
         </div>
@@ -115,7 +115,7 @@ export default function CourtoisPlanningPage() {
                     return (
                       <div key={i} title={pret ? (pret.dossiers?.clients?.prenom + ' ' + pret.dossiers?.clients?.nom) : 'Disponible'}
                         style={{ height: 44, borderRadius: 3, background: isWeekend ? '#f5f3f0' : isOccupe ? (isEnRetard ? '#FCEBEB' : color + '30') : isToday ? '#FDF0E6' : '#EAF3DE', border: isToday ? '1px solid #E07B2A' : '1px solid #f0ede8', borderLeft: isDebut ? ('3px solid ' + color) : undefined, borderRight: isFin ? ('3px solid ' + color) : undefined, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' as const }}>
-                        {isDebut && <span style={{ fontSize: 8, color, fontWeight: 700, background: color + '20', padding: '1px 4px', borderRadius: 3 }}>Départ</span>}
+                        {isDebut && <span style={{ fontSize: 8, color, fontWeight: 700, background: color + '20', padding: '1px 4px', borderRadius: 3 }}>Depart</span>}
                         {isFin && !isDebut && <span style={{ fontSize: 8, color: '#27500A', fontWeight: 700, background: '#EAF3DE', padding: '1px 4px', borderRadius: 3 }}>Retour</span>}
                         {!isOccupe && !isWeekend && <span style={{ fontSize: 8, color: '#3B6D11', fontWeight: 600 }}>✓</span>}
                         {isEnRetard && isOccupe && <span style={{ fontSize: 9, color: '#A32D2D' }}>!</span>}
@@ -128,7 +128,6 @@ export default function CourtoisPlanningPage() {
           </div>
         </div>
 
-        {/* Légende */}
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' as const, marginBottom: 20 }}>
           <span style={{ fontSize: 12, color: '#888', display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ display: 'inline-block', width: 16, height: 12, background: '#EAF3DE', borderRadius: 2 }} />Disponible</span>
           <span style={{ fontSize: 12, color: '#888', display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ display: 'inline-block', width: 16, height: 12, background: '#E07B2A30', borderRadius: 2 }} />En pret</span>
@@ -136,18 +135,11 @@ export default function CourtoisPlanningPage() {
           <span style={{ fontSize: 12, color: '#888', display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ display: 'inline-block', width: 16, height: 12, background: '#FDF0E6', border: '1px solid #E07B2A', borderRadius: 2 }} />Aujourd hui</span>
         </div>
 
-        {/* Liste des prêts du mois */}
         <div style={{ background: 'white', borderRadius: 12, padding: '1.5rem', border: '1px solid #e8e2d9' }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 16 }}>Historique des prets</div>
-          {prets.filter(p => {
-            const d = new Date(p.date_debut)
-            return d.getMonth() === mois && d.getFullYear() === annee
-          }).length === 0 ? (
+          {prets.filter(p => { const d = new Date(p.date_debut); return d.getMonth() === mois && d.getFullYear() === annee }).length === 0 ? (
             <div style={{ textAlign: 'center' as const, color: '#888', fontSize: 13, padding: '1rem' }}>Aucun pret ce mois</div>
-          ) : prets.filter(p => {
-            const d = new Date(p.date_debut)
-            return d.getMonth() === mois && d.getFullYear() === annee
-          }).map(p => {
+          ) : prets.filter(p => { const d = new Date(p.date_debut); return d.getMonth() === mois && d.getFullYear() === annee }).map(p => {
             const enRetard = p.statut === 'en_cours' && new Date(p.date_fin_prevue) < today
             return (
               <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px', background: '#f8f6f3', borderRadius: 8, marginBottom: 8 }}>
