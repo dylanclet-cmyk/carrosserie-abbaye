@@ -9,6 +9,7 @@ export default function Dashboard() {
   const [salarie, setSalarie] = useState<any>(null)
   const [dossiers, setDossiers] = useState<any[]>([])
   const [congesEnAttente, setCongesEnAttente] = useState(0)
+  const [notifCount, setNotifCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [onglet, setOnglet] = useState<'en_cours' | 'a_facturer' | 'archives'>('en_cours')
   const router = useRouter()
@@ -28,6 +29,9 @@ export default function Dashboard() {
       if (sal?.role === 'chef_atelier') {
         const { count } = await supabase.from('conges').select('*', { count: 'exact', head: true }).eq('statut', 'en_attente')
         setCongesEnAttente(count || 0)
+      } else {
+        const { count } = await supabase.from('notifications').select('*', { count: 'exact', head: true }).eq('salarie_id', sal.id).eq('lu', false)
+        setNotifCount(count || 0)
       }
       setLoading(false)
     }
@@ -39,11 +43,7 @@ export default function Dashboard() {
     router.push('/login')
   }
 
-  if (loading) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui', color: '#888' }}>
-      Chargement...
-    </div>
-  )
+  if (loading) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui', color: '#888' }}>Chargement...</div>
 
   const enCours = dossiers.filter(d => !['pret_restituer', 'termine', 'facture'].includes(d.statut))
   const aFacturer = dossiers.filter(d => d.statut === 'pret_restituer')
@@ -70,7 +70,6 @@ export default function Dashboard() {
       </div>
 
       <div style={{ padding: '1.5rem 2rem', maxWidth: 960, margin: '0 auto' }}>
-
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
           <div onClick={() => setOnglet('en_cours')} style={{ background: onglet === 'en_cours' ? '#2D3748' : 'white', borderRadius: 12, padding: '1rem', border: '1px solid #e8e2d9', cursor: 'pointer' }}>
             <div style={{ fontSize: 12, color: onglet === 'en_cours' ? '#e8e2d9' : '#888', marginBottom: 6 }}>Dossiers en cours</div>
@@ -92,17 +91,12 @@ export default function Dashboard() {
             <button onClick={() => router.push('/nouveau-dossier')} style={{ background: '#E07B2A', color: 'white', border: 'none', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>+ Nouveau dossier</button>
           )}
           {salarie?.role === 'chef_atelier' && (
-            <button onClick={() => router.push('/courtoisie')} style={{ background: 'white', color: '#2D3748', border: '1px solid #e8e2d9', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-              Vehicules courtoisie
-            </button>
+            <button onClick={() => router.push('/courtoisie')} style={{ background: 'white', color: '#2D3748', border: '1px solid #e8e2d9', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Vehicules courtoisie</button>
           )}
-          <button onClick={() => router.push('/conges')} style={{ background: congesEnAttente > 0 ? '#FDF0E6' : 'white', color: '#2D3748', border: congesEnAttente > 0 ? '2px solid #E07B2A' : '1px solid #e8e2d9', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer', position: 'relative' as const, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <button onClick={() => router.push('/conges')} style={{ background: (congesEnAttente > 0 || notifCount > 0) ? '#FDF0E6' : 'white', color: '#2D3748', border: (congesEnAttente > 0 || notifCount > 0) ? '2px solid #E07B2A' : '1px solid #e8e2d9', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
             {salarie?.role === 'chef_atelier' ? 'Gestion conges' : 'Mes conges'}
-            {congesEnAttente > 0 && (
-              <span style={{ background: '#E24B4A', color: 'white', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 20, minWidth: 20, textAlign: 'center' as const }}>
-                {congesEnAttente}
-              </span>
-            )}
+            {congesEnAttente > 0 && <span style={{ background: '#E24B4A', color: 'white', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 20 }}>{congesEnAttente}</span>}
+            {notifCount > 0 && <span style={{ background: '#E24B4A', color: 'white', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 20 }}>{notifCount}</span>}
           </button>
         </div>
 
@@ -110,6 +104,13 @@ export default function Dashboard() {
           <div onClick={() => router.push('/conges')} style={{ background: '#FDF0E6', border: '1px solid #E07B2A', borderRadius: 12, padding: '0.75rem 1.25rem', marginBottom: 16, fontSize: 13, color: '#854F0B', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
             <span style={{ fontSize: 16 }}>🗓</span>
             <strong>{congesEnAttente} demande{congesEnAttente > 1 ? 's' : ''} de conge{congesEnAttente > 1 ? 's' : ''} en attente</strong> — cliquez pour traiter
+          </div>
+        )}
+
+        {notifCount > 0 && salarie?.role === 'technicien' && (
+          <div onClick={() => router.push('/conges')} style={{ background: '#EAF3DE', border: '1px solid #97C459', borderRadius: 12, padding: '0.75rem 1.25rem', marginBottom: 16, fontSize: 13, color: '#27500A', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+            <span style={{ fontSize: 16 }}>🔔</span>
+            <strong>{notifCount} notification{notifCount > 1 ? 's' : ''} non lue{notifCount > 1 ? 's' : ''}</strong> — reponse a votre demande de conge
           </div>
         )}
 
@@ -134,18 +135,12 @@ export default function Dashboard() {
                     {d.clients?.nom?.[0]}{d.clients?.prenom?.[0]}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: '#2D3748' }}>
-                      {d.immatriculation} <span style={{ fontWeight: 400, color: '#888', fontSize: 13 }}>-- {d.marque} {d.modele}</span>
-                    </div>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: '#2D3748' }}>{d.immatriculation} <span style={{ fontWeight: 400, color: '#888', fontSize: 13 }}>-- {d.marque} {d.modele}</span></div>
                     <div style={{ fontSize: 13, color: '#888', marginTop: 2 }}>
                       {d.clients?.prenom} {d.clients?.nom} - Entree le {new Date(d.date_entree).toLocaleDateString('fr-FR')}
                       {d.salaries && <span style={{ marginLeft: 8, color: '#E07B2A' }}>· {d.salaries.prenom} {d.salaries.nom}</span>}
                     </div>
-                    {d.notes && (
-                      <div style={{ marginTop: 6, padding: '6px 10px', background: '#FDF0E6', borderRadius: 6, fontSize: 12, color: '#854F0B', border: '1px solid #E07B2A' }}>
-                        Note : {d.notes}
-                      </div>
-                    )}
+                    {d.notes && <div style={{ marginTop: 6, padding: '6px 10px', background: '#FDF0E6', borderRadius: 6, fontSize: 12, color: '#854F0B', border: '1px solid #E07B2A' }}>Note : {d.notes}</div>}
                   </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'flex-end', gap: 8, flexShrink: 0 }}>
