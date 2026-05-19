@@ -15,14 +15,9 @@ export default function PassageRapide() {
   const [showDropdown, setShowDropdown] = useState(false)
   const [clientMode, setClientMode] = useState<'search' | 'new'>('search')
   const [form, setForm] = useState({
-    client_nom: '',
-    client_prenom: '',
-    client_telephone: '',
-    immatriculation: '',
-    marque: '',
-    modele: '',
-    description: '',
-    duree_minutes: '30',
+    client_nom: '', client_prenom: '', client_telephone: '',
+    immatriculation: '', marque: '', modele: '',
+    description: '', duree_minutes: '30',
   })
   const router = useRouter()
   const supabase = createClient()
@@ -60,28 +55,20 @@ export default function PassageRapide() {
     }
     setLoading(true)
 
-    // Créer ou réutiliser client
     let clientId = selectedClient?.id
     if (!clientId) {
       const { data: client } = await supabase.from('clients').insert({
-        nom: form.client_nom,
-        prenom: form.client_prenom,
-        telephone: form.client_telephone,
+        nom: form.client_nom, prenom: form.client_prenom, telephone: form.client_telephone,
       }).select().single()
       clientId = client?.id
     }
-    const client = { id: clientId }
 
-    // Créer dossier passage rapide
     const numero = 'PR-' + Date.now().toString().slice(-6)
     const { data: dossier } = await supabase.from('dossiers').insert({
       numero_dossier: numero,
       immatriculation: form.immatriculation.toUpperCase(),
-      marque: form.marque,
-      modele: form.modele,
-      couleur: '',
-      km_entree: 0,
-      carburant_entree: '3/4',
+      marque: form.marque, modele: form.modele, couleur: '',
+      km_entree: 0, carburant_entree: '3/4',
       date_entree: new Date().toISOString().split('T')[0],
       client_id: clientId,
       salarie_id: salarie?.id,
@@ -90,48 +77,36 @@ export default function PassageRapide() {
       heures_estimees: parseFloat(form.duree_minutes) / 60,
     }).select().single()
 
-    // Enregistrer les heures
     if (dossier) {
       await supabase.from('heures').insert({
-        dossier_id: dossier.id,
-        salarie_id: salarie?.id,
+        dossier_id: dossier.id, salarie_id: salarie?.id,
         date_travail: new Date().toISOString().split('T')[0],
-        type_travail: 'autre',
-        duree_heures: parseFloat(form.duree_minutes) / 60,
+        type_travail: 'autre', duree_heures: parseFloat(form.duree_minutes) / 60,
       })
-
-      // Ajouter le travail dans travaux_details
       await supabase.from('travaux_details').insert({
-        dossier_id: dossier.id,
-        libelle: form.description,
-        fait: true,
-        ordre: 0,
+        dossier_id: dossier.id, libelle: form.description, fait: true, ordre: 0,
       })
     }
 
-    setSavedData({ dossier, client })
+    setSavedData({ dossier })
     setSaved(true)
     setLoading(false)
   }
 
   function reset() {
     setForm({ client_nom: '', client_prenom: '', client_telephone: '', immatriculation: '', marque: '', modele: '', description: '', duree_minutes: '30' })
-    setSaved(false)
-    setSavedData(null)
+    setSelectedClient(null); setSearchClient(''); setClientMode('search')
+    setSaved(false); setSavedData(null)
   }
 
   const inputStyle = { width: '100%', padding: '10px 14px', borderRadius: 10, border: '1.5px solid #e8e2d9', fontSize: 14, color: '#2D3748', background: 'white' }
   const labelStyle = { fontSize: 12, color: '#888', display: 'block' as const, marginBottom: 5, fontWeight: 600 }
 
   const dureeOptions = [
-    { value: '15', label: '15 min' },
-    { value: '30', label: '30 min' },
-    { value: '45', label: '45 min' },
-    { value: '60', label: '1h' },
-    { value: '90', label: '1h30' },
-    { value: '120', label: '2h' },
-    { value: '180', label: '3h' },
-    { value: '240', label: '4h' },
+    { value: '15', label: '15 min' }, { value: '30', label: '30 min' },
+    { value: '45', label: '45 min' }, { value: '60', label: '1h' },
+    { value: '90', label: '1h30' }, { value: '120', label: '2h' },
+    { value: '180', label: '3h' }, { value: '240', label: '4h' },
   ]
 
   return (
@@ -150,26 +125,14 @@ export default function PassageRapide() {
             <div style={{ background: '#EAF3DE', border: '2px solid #3B6D11', borderRadius: 16, padding: '2rem', textAlign: 'center' as const, marginBottom: 24 }}>
               <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
               <div style={{ fontSize: 22, fontWeight: 700, color: '#27500A', marginBottom: 8 }}>Passage enregistre !</div>
-              <div style={{ fontSize: 14, color: '#3B6D11', marginBottom: 4 }}>
-                {form.client_prenom} {form.client_nom} — {form.immatriculation.toUpperCase()}
-              </div>
+              <div style={{ fontSize: 14, color: '#3B6D11', marginBottom: 4 }}>{form.client_prenom} {form.client_nom} — {form.immatriculation.toUpperCase()}</div>
               <div style={{ fontSize: 13, color: '#555', marginBottom: 4 }}>{form.description}</div>
               <div style={{ fontSize: 13, color: '#555' }}>Duree : {form.duree_minutes} min</div>
-              <div style={{ fontSize: 12, color: '#3B6D11', marginTop: 8, fontWeight: 600 }}>
-                Dossier N° {savedData.dossier?.numero_dossier} — Statut : Pret a facturer
-              </div>
+              <div style={{ fontSize: 12, color: '#3B6D11', marginTop: 8, fontWeight: 600 }}>Dossier N° {savedData.dossier?.numero_dossier} — Statut : Pret a facturer</div>
             </div>
-
             <div style={{ display: 'flex', gap: 12 }}>
-              <button onClick={reset} style={{ flex: 1, padding: '14px', borderRadius: 12, border: '2px solid #E07B2A', background: 'white', cursor: 'pointer', fontSize: 15, fontWeight: 700, color: '#E07B2A' }}>
-                + Nouveau passage
-              </button>
-              <button onClick={() => router.push('/dossier/' + savedData.dossier?.id)} style={{ flex: 1, padding: '14px', borderRadius: 12, border: 'none', background: '#2D3748', cursor: 'pointer', fontSize: 15, fontWeight: 700, color: 'white' }}>
-                Voir le dossier
-              </button>
-              <button onClick={() => router.push('/avis?dossier=' + savedData.dossier?.id)} style={{ flex: 1, padding: '14px', borderRadius: 12, border: 'none', background: '#E07B2A', cursor: 'pointer', fontSize: 15, fontWeight: 700, color: 'white' }}>
-                ⭐ Laisser un avis
-              </button>
+              <button onClick={reset} style={{ flex: 1, padding: '14px', borderRadius: 12, border: '2px solid #E07B2A', background: 'white', cursor: 'pointer', fontSize: 15, fontWeight: 700, color: '#E07B2A' }}>+ Nouveau passage</button>
+              <button onClick={() => router.push('/avis?dossier=' + savedData.dossier?.id)} style={{ flex: 1, padding: '14px', borderRadius: 12, border: 'none', background: '#E07B2A', cursor: 'pointer', fontSize: 15, fontWeight: 700, color: 'white' }}>⭐ Laisser un avis</button>
             </div>
           </div>
         ) : (
@@ -179,48 +142,78 @@ export default function PassageRapide() {
               Passage rapide — le dossier sera directement marque <strong>Pret a facturer</strong>
             </div>
 
+            {/* Section client */}
             <div style={{ background: 'white', borderRadius: 14, padding: '1.5rem', border: '1px solid #e8e2d9', marginBottom: 16 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 16 }}>Client</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div>
-                  <label style={labelStyle}>Nom *</label>
-                  <input style={inputStyle} value={form.client_nom} onChange={e => set('client_nom', e.target.value)} placeholder="Bernard" autoFocus />
-                </div>
-                <div>
-                  <label style={labelStyle}>Prenom</label>
-                  <input style={inputStyle} value={form.client_prenom} onChange={e => set('client_prenom', e.target.value)} placeholder="Pierre" />
-                </div>
-                <div style={{ gridColumn: 'span 2' }}>
-                  <label style={labelStyle}>Telephone</label>
-                  <input style={inputStyle} value={form.client_telephone} onChange={e => set('client_telephone', e.target.value)} placeholder="06 12 34 56 78" />
-                </div>
+
+              {/* Toggle */}
+              <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+                <button onClick={() => { setClientMode('search'); setSelectedClient(null); setSearchClient('') }} style={{ flex: 1, padding: '8px', borderRadius: 8, border: '2px solid ' + (clientMode === 'search' ? '#E07B2A' : '#e8e2d9'), background: clientMode === 'search' ? '#E07B2A' : 'white', color: clientMode === 'search' ? 'white' : '#2D3748', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+                  🔍 Client existant
+                </button>
+                <button onClick={() => { setClientMode('new'); setSelectedClient(null); setSearchClient(''); setForm(f => ({ ...f, client_nom: '', client_prenom: '', client_telephone: '' })) }} style={{ flex: 1, padding: '8px', borderRadius: 8, border: '2px solid ' + (clientMode === 'new' ? '#E07B2A' : '#e8e2d9'), background: clientMode === 'new' ? '#E07B2A' : 'white', color: clientMode === 'new' ? 'white' : '#2D3748', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+                  + Nouveau client
+                </button>
               </div>
+
+              {clientMode === 'search' && (
+                <div style={{ position: 'relative' as const, marginBottom: 12 }}>
+                  <input value={searchClient} onChange={e => { setSearchClient(e.target.value); setShowDropdown(true); setSelectedClient(null) }} onFocus={() => setShowDropdown(true)}
+                    placeholder="Rechercher par nom, prenom ou telephone..."
+                    style={{ ...inputStyle, paddingLeft: 36 }} />
+                  <span style={{ position: 'absolute' as const, left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 16, color: '#888' }}>🔍</span>
+                  {showDropdown && searchClient && filteredClients.length > 0 && (
+                    <div style={{ position: 'absolute' as const, top: '100%', left: 0, right: 0, background: 'white', border: '1px solid #e8e2d9', borderRadius: 10, boxShadow: '0 4px 20px rgba(0,0,0,0.1)', zIndex: 100 }}>
+                      {filteredClients.map(c => (
+                        <div key={c.id} onClick={() => selectClient(c)} style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid #f5f5f5', display: 'flex', alignItems: 'center', gap: 10 }}
+                          onMouseEnter={e => (e.currentTarget.style.background = '#FDF0E6')} onMouseLeave={e => (e.currentTarget.style.background = 'white')}>
+                          <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#FDF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#E07B2A' }}>
+                            {c.prenom?.[0]}{c.nom?.[0]}
+                          </div>
+                          <div>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: '#2D3748' }}>{c.prenom} {c.nom}</div>
+                            <div style={{ fontSize: 11, color: '#888' }}>{c.telephone}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {selectedClient && (
+                <div style={{ padding: '10px 14px', background: '#EAF3DE', borderRadius: 8, border: '1px solid #97C459', fontSize: 13, color: '#27500A', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <strong>✓ {selectedClient.prenom} {selectedClient.nom} — {selectedClient.telephone}</strong>
+                  <button onClick={() => { setSelectedClient(null); setSearchClient('') }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888', fontSize: 18 }}>×</button>
+                </div>
+              )}
+
+              {(clientMode === 'new' || (clientMode === 'search' && !selectedClient)) && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div><label style={labelStyle}>Nom *</label><input style={inputStyle} value={form.client_nom} onChange={e => set('client_nom', e.target.value)} placeholder="Bernard" /></div>
+                  <div><label style={labelStyle}>Prenom</label><input style={inputStyle} value={form.client_prenom} onChange={e => set('client_prenom', e.target.value)} placeholder="Pierre" /></div>
+                  <div style={{ gridColumn: 'span 2' }}><label style={labelStyle}>Telephone</label><input style={inputStyle} value={form.client_telephone} onChange={e => set('client_telephone', e.target.value)} placeholder="06 12 34 56 78" /></div>
+                </div>
+              )}
             </div>
 
+            {/* Section vehicule */}
             <div style={{ background: 'white', borderRadius: 14, padding: '1.5rem', border: '1px solid #e8e2d9', marginBottom: 16 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 16 }}>Vehicule</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-                <div>
-                  <label style={labelStyle}>Immatriculation *</label>
-                  <input style={{ ...inputStyle, textTransform: 'uppercase' as const, fontWeight: 700, fontSize: 16 }} value={form.immatriculation} onChange={e => set('immatriculation', e.target.value)} placeholder="AB-123-CD" />
-                </div>
-                <div>
-                  <label style={labelStyle}>Marque</label>
-                  <input style={inputStyle} value={form.marque} onChange={e => set('marque', e.target.value)} placeholder="Renault" />
-                </div>
-                <div>
-                  <label style={labelStyle}>Modele</label>
-                  <input style={inputStyle} value={form.modele} onChange={e => set('modele', e.target.value)} placeholder="Clio" />
-                </div>
+                <div><label style={labelStyle}>Immatriculation *</label><input style={{ ...inputStyle, textTransform: 'uppercase' as const, fontWeight: 700, fontSize: 16 }} value={form.immatriculation} onChange={e => set('immatriculation', e.target.value)} placeholder="AB-123-CD" /></div>
+                <div><label style={labelStyle}>Marque</label><input style={inputStyle} value={form.marque} onChange={e => set('marque', e.target.value)} placeholder="Renault" /></div>
+                <div><label style={labelStyle}>Modele</label><input style={inputStyle} value={form.modele} onChange={e => set('modele', e.target.value)} placeholder="Clio" /></div>
               </div>
             </div>
 
+            {/* Section travaux */}
             <div style={{ background: 'white', borderRadius: 14, padding: '1.5rem', border: '1px solid #e8e2d9', marginBottom: 24 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 16 }}>Travaux effectues</div>
               <div style={{ marginBottom: 16 }}>
                 <label style={labelStyle}>Description des travaux *</label>
                 <textarea value={form.description} onChange={e => set('description', e.target.value)}
-                  placeholder="Ex : Remplacement ampoule feu arriere gauche, gonflage pneus, verification niveau huile..."
+                  placeholder="Ex : Remplacement ampoule feu arriere gauche, gonflage pneus..."
                   style={{ ...inputStyle, minHeight: 90, resize: 'vertical' as const, fontFamily: 'system-ui' }} />
               </div>
               <div>
@@ -236,12 +229,7 @@ export default function PassageRapide() {
             </div>
 
             <button onClick={handleSave} disabled={loading} style={{ width: '100%', padding: '18px', borderRadius: 14, border: 'none', background: loading ? '#ccc' : '#3B6D11', color: 'white', cursor: loading ? 'not-allowed' : 'pointer', fontSize: 17, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-              {loading ? 'Enregistrement...' : (
-                <>
-                  <span style={{ fontSize: 22 }}>✓</span>
-                  Valider le passage — {dureeOptions.find(d => d.value === form.duree_minutes)?.label}
-                </>
-              )}
+              {loading ? 'Enregistrement...' : (<>✓ Valider le passage — {dureeOptions.find(d => d.value === form.duree_minutes)?.label}</>)}
             </button>
           </>
         )}
