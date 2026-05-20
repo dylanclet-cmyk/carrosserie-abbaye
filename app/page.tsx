@@ -99,14 +99,14 @@ export default function Dashboard() {
       `}</style>
 
       {/* Header */}
-      <div style={{ background: '#FFFFFF', borderBottom: '1px solid #F0EBE3', padding: '0 24px', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky' as const, top: 0, zIndex: 50 }}>
+      <div style={{ background: '#C8723A', padding: '0 24px', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky' as const, top: 0, zIndex: 50 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <img src="/logo.png" alt="Logo" style={{ height: 36, objectFit: 'contain' }} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 13, color: '#888' }}>{salarie?.prenom} {salarie?.nom}</span>
-          {salarie?.role === 'chef_atelier' && <span style={{ fontSize: 11, background: '#FFF0E6', color: '#8A5A2A', padding: '3px 10px', borderRadius: 20, fontWeight: 500 }}>Chef atelier</span>}
-          <button className="nav-btn" onClick={handleLogout}>Déconnexion</button>
+          <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)' }}>{salarie?.prenom} {salarie?.nom}</span>
+          {salarie?.role === 'chef_atelier' && <span style={{ fontSize: 11, background: 'rgba(255,255,255,0.2)', color: '#FAF7F2', padding: '3px 10px', borderRadius: 20, fontWeight: 500 }}>Chef atelier</span>}
+          <button onClick={handleLogout} style={{ background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 6, padding: "5px 12px", fontSize: 12, color: "#FAF7F2", cursor: "pointer" }}>Déconnexion</button>
         </div>
       </div>
 
@@ -164,41 +164,41 @@ export default function Dashboard() {
         <div className="actions-wrap" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' as const, marginBottom: 20 }}>
           {salarie?.role === 'chef_atelier' && onglet === 'en_cours' && (
             <button className="action-btn action-btn-primary" onClick={() => router.push('/nouveau-dossier')}>
-              <span style={{ fontSize: 18, color: '#FFF' }}>+</span>
+              <span style={{ fontSize: 20, color: '#FFF' }}>+</span>
               <span style={{ fontSize: 11, color: '#FFF', fontWeight: 500 }}>Nouveau</span>
             </button>
           )}
-          <button className="action-btn action-btn-green" onClick={() => router.push('/passage-rapide')}>
-            <span style={{ fontSize: 16, color: '#A8D8B8' }}>⚡</span>
-            <span style={{ fontSize: 11, color: '#A8D8B8', fontWeight: 500 }}>Rapide</span>
+          <button onClick={() => router.push('/passage-rapide')} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, padding: "12px 8px", borderRadius: 10, border: "1px solid #E8C8A0", background: "#F5DEC8", cursor: "pointer", minWidth: 72 }}>
+            <span style={{ fontSize: 18, color: '#8A4A1A' }}>⚡</span>
+            <span style={{ fontSize: 11, color: '#8A4A1A', fontWeight: 500 }}>Rapide</span>
           </button>
           <button className="action-btn" onClick={() => router.push('/clients')}>
-            <span style={{ fontSize: 16, color: '#D4722A' }}>👤</span>
-            <span style={{ fontSize: 11, color: '#555' }}>Clients</span>
+            <span style={{ fontSize: 20, color: '#C8723A' }}>👥</span>
+            <span style={{ fontSize: 11, color: '#3A3028' }}>Clients</span>
           </button>
           {salarie?.role === 'chef_atelier' && (
             <button className="action-btn" onClick={() => router.push('/courtoisie')}>
-              <span style={{ fontSize: 16, color: '#D4722A' }}>🚗</span>
-              <span style={{ fontSize: 11, color: '#555' }}>Courtoisie</span>
+              <span style={{ fontSize: 20, color: '#C8723A' }}>🚗</span>
+              <span style={{ fontSize: 11, color: '#3A3028' }}>Courtoisie</span>
             </button>
           )}
           <button className="action-btn" onClick={() => router.push('/salaries')}>
-            <span style={{ fontSize: 16, color: '#D4722A' }}>👥</span>
-            <span style={{ fontSize: 11, color: '#555' }}>Équipe</span>
+            <span style={{ fontSize: 20, color: '#C8723A' }}>👥</span>
+            <span style={{ fontSize: 11, color: '#3A3028' }}>Équipe</span>
           </button>
           <button className="action-btn" onClick={() => router.push('/conges')} style={{ position: 'relative' as const }}>
-            <span style={{ fontSize: 16, color: '#D4722A' }}>📅</span>
-            <span style={{ fontSize: 11, color: '#555' }}>Absences</span>
+            <span style={{ fontSize: 20, color: '#C8723A' }}>📅</span>
+            <span style={{ fontSize: 11, color: '#3A3028' }}>Absences</span>
             {(congesEnAttente > 0 || notifCount > 0) && <span style={{ position: 'absolute' as const, top: -4, right: -4, background: '#D4722A', color: 'white', fontSize: 9, fontWeight: 700, padding: '2px 5px', borderRadius: 20 }}>{congesEnAttente || notifCount}</span>}
           </button>
           <button className="action-btn" onClick={() => router.push('/avis?mode=salarie')}>
-            <span style={{ fontSize: 16, color: '#D4722A' }}>⭐</span>
-            <span style={{ fontSize: 11, color: '#555' }}>Avis</span>
+            <span style={{ fontSize: 20, color: '#C8723A' }}>⭐</span>
+            <span style={{ fontSize: 11, color: '#3A3028' }}>Avis</span>
           </button>
           {salarie?.role === 'chef_atelier' && (
             <button className="action-btn" onClick={() => router.push('/admin')} style={{ background: '#F4F0EA' }}>
-              <span style={{ fontSize: 16, color: '#555' }}>⚙</span>
-              <span style={{ fontSize: 11, color: '#555' }}>Admin</span>
+              <span style={{ fontSize: 20, color: '#888' }}>⚙</span>
+              <span style={{ fontSize: 11, color: '#888' }}>Admin</span>
             </button>
           )}
         </div>
