@@ -77,8 +77,8 @@ export default function PlanningPage() {
           <span style={{ color: '#FAF7F2', fontSize: 14, fontWeight: 500 }}>Planning atelier</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button onClick={() => setOnglet('vehicules')} style={{ padding: '7px 16px', borderRadius: 8, border: 'none', background: onglet === 'vehicules' ? '#C8723A' : 'transparent', color: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>🚗 Vehicules</button>
-          <button onClick={() => setOnglet('equipe')} style={{ padding: '7px 16px', borderRadius: 8, border: 'none', background: onglet === 'equipe' ? '#C8723A' : 'transparent', color: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>👥 Equipe</button>
+          <button onClick={() => setOnglet('vehicules')} style={{ padding: '7px 16px', borderRadius: 8, border: 'none', background: onglet === 'vehicules' ? '#C8723A' : 'transparent', color: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Véhicules</button>
+          <button onClick={() => setOnglet('equipe')} style={{ padding: '7px 16px', borderRadius: 8, border: 'none', background: onglet === 'equipe' ? '#C8723A' : 'transparent', color: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Équipe</button>
           <button onClick={() => setMoisActuel(new Date(annee, mois - 1, 1))} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: 'white', fontSize: 14 }}>←</button>
           <span style={{ color: 'white', fontSize: 14, fontWeight: 600, minWidth: 150, textAlign: 'center' as const }}>{nomsMois[mois]} {annee}</span>
           <button onClick={() => setMoisActuel(new Date(annee, mois + 1, 1))} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: 'white', fontSize: 14 }}>→</button>
