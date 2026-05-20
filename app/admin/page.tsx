@@ -69,6 +69,13 @@ export default function AdminPage() {
     setSaving(false)
   }
 
+  async function deleteSalarie(id: string) {
+    if (!confirm('Supprimer définitivement ce salarié ? Cette action est irréversible.')) return
+    await supabase.from('salaries').delete().eq('id', id)
+    setSalaries(salaries.filter(s => s.id !== id))
+    setMessage({ type: 'success', text: 'Salarié supprimé' })
+  }
+
   async function toggleActif(sal: any) {
     await supabase.from('salaries').update({ actif: !sal.actif }).eq('id', sal.id)
     setSalaries(salaries.map(s => s.id === sal.id ? { ...s, actif: !s.actif } : s))
@@ -156,9 +163,14 @@ export default function AdminPage() {
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 {s.id !== salarie?.id && (
-                  <button onClick={() => toggleActif(s)} style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid #EDE5D8', background: s.actif ? '#FCEBEB' : '#EBF5EE', cursor: 'pointer', fontSize: 12, color: s.actif ? '#791F1F' : '#2A6B3A', fontWeight: 600 }}>
-                    {s.actif ? 'Desactiver' : 'Reactiver'}
-                  </button>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button onClick={() => toggleActif(s)} style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid #EDE5D8', background: s.actif ? '#FFF0F0' : '#EBF5EE', cursor: 'pointer', fontSize: 12, color: s.actif ? '#A32D2D' : '#2A6B3A', fontWeight: 600 }}>
+                      {s.actif ? 'Désactiver' : 'Réactiver'}
+                    </button>
+                    <button onClick={() => deleteSalarie(s.id)} style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid #F09595', background: '#FFF0F0', cursor: 'pointer', fontSize: 12, color: '#A32D2D', fontWeight: 600 }}>
+                      Supprimer
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
