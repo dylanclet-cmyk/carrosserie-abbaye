@@ -48,7 +48,15 @@ export default function Dashboard() {
     router.push('/login')
   }
 
-  if (loading) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui', color: '#888' }}>Chargement...</div>
+  if (loading) return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FFFFFF', fontFamily: 'system-ui' }}>
+      <div style={{ textAlign: 'center' as const }}>
+        <div style={{ width: 40, height: 40, borderRadius: '50%', border: '3px solid #F0EBE3', borderTop: '3px solid #D4722A', margin: '0 auto 12px', animation: 'spin 1s linear infinite' }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        <p style={{ color: '#999', fontSize: 13 }}>Chargement...</p>
+      </div>
+    </div>
+  )
 
   const enCours = dossiers.filter(d => !['pret_restituer', 'termine', 'facture'].includes(d.statut))
   const aFacturer = dossiers.filter(d => d.statut === 'pret_restituer')
@@ -57,160 +65,196 @@ export default function Dashboard() {
   const annee = new Date().getFullYear()
 
   const statusLabel: any = {
-    en_attente_signature: { label: 'En attente signature', color: '#854F0B', bg: '#FAEEDA' },
-    en_cours: { label: 'En cours', color: '#0C447C', bg: '#E6F1FB' },
-    pret_restituer: { label: 'Pret a restituer', color: '#27500A', bg: '#EAF3DE' },
-    termine: { label: 'Termine', color: '#444441', bg: '#F1EFE8' },
-    facture: { label: 'Facture', color: '#3C3489', bg: '#EEEDFE' },
+    en_attente_signature: { label: 'En attente', color: '#8A5A2A', bg: '#FFF0E6' },
+    en_cours: { label: 'En cours', color: '#185FA5', bg: '#EBF3FC' },
+    pret_restituer: { label: 'Prêt restituer', color: '#2A6B3A', bg: '#EBF5EE' },
+    termine: { label: 'Terminé', color: '#555', bg: '#F4F0EA' },
+    facture: { label: 'Facturé', color: '#533AB7', bg: '#EEEDFE' },
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8f6f3', fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#FFFFFF', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       <style>{`
-        .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-        .action-btn { padding: 12px 16px; border-radius: 10px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 48px; }
-        @media (max-width: 640px) { .action-btn { font-size: 13px; padding: 10px 12px; } }
+        .nav-btn { background: transparent; border: 1px solid #E0D8CE; border-radius: 6px; padding: 5px 12px; font-size: 12px; color: #8A7E72; cursor: pointer; }
+        .nav-btn:hover { background: rgba(255,255,255,0.08); }
+        .tab { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all 0.15s; }
+        .tab-active { background: #1C2B30; color: #FFFFFF; }
+        .tab-inactive { background: transparent; color: #888; }
+        .tab-inactive:hover { background: #F9F6F2; color: #333; }
+        .action-btn { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 12px 8px; border-radius: 10px; border: 1px solid #F0EBE3; background: #FFFFFF; cursor: pointer; transition: all 0.15s; min-width: 72px; }
+        .action-btn:hover { border-color: #D4722A; background: #FFF8F3; }
+        .action-btn-primary { background: #D4722A; border-color: #D4722A; }
+        .action-btn-primary:hover { background: #BF6225; }
+        .action-btn-green { background: #2A5C3A; border-color: #2A5C3A; }
+        .action-btn-green:hover { background: #234D31; }
+        .dossier-card { background: #FFFFFF; border-radius: 10px; border: 1px solid #F0EBE3; padding: 14px 16px; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; transition: border-color 0.15s; }
+        .dossier-card:hover { border-color: #D4C0A8; }
+        .voir-btn { font-size: 12px; padding: 6px 14px; border-radius: 6px; border: 1px solid #D4722A; background: transparent; cursor: pointer; color: #D4722A; font-weight: 500; transition: all 0.15s; }
+        .voir-btn:hover { background: #D4722A; color: #FFF; }
+        @media (max-width: 640px) {
+          .actions-wrap { gap: 6px !important; }
+          .action-btn { min-width: 60px; padding: 10px 6px; }
+          .action-btn span { font-size: 10px !important; }
+        }
       `}</style>
 
-      <div style={{ background: '#2D3748', padding: '0 2rem', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <img src="/logo.png" alt="Logo" style={{ height: 44, objectFit: 'contain' }} />
+      {/* Header */}
+      <div style={{ background: '#FFFFFF', borderBottom: '1px solid #F0EBE3', padding: '0 24px', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky' as const, top: 0, zIndex: 50 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ fontSize: 13, color: '#e8e2d9' }}>{salarie ? salarie.prenom + ' ' + salarie.nom : user?.email}</span>
-          {salarie?.role === 'chef_atelier' && <span style={{ fontSize: 11, background: '#E07B2A', color: 'white', padding: '3px 10px', borderRadius: 20, fontWeight: 600 }}>Chef atelier</span>}
-          <button onClick={handleLogout} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: '#e8e2d9' }}>Deconnexion</button>
+          <img src="/logo.png" alt="Logo" style={{ height: 36, objectFit: 'contain' }} />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 13, color: '#888' }}>{salarie?.prenom} {salarie?.nom}</span>
+          {salarie?.role === 'chef_atelier' && <span style={{ fontSize: 11, background: '#FFF0E6', color: '#8A5A2A', padding: '3px 10px', borderRadius: 20, fontWeight: 500 }}>Chef atelier</span>}
+          <button className="nav-btn" onClick={handleLogout}>Déconnexion</button>
         </div>
       </div>
 
-      <div style={{ padding: '1.5rem 2rem', maxWidth: 960, margin: '0 auto' }}>
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 20px' }}>
 
         {/* Compteur maladie technicien */}
         {salarie?.role === 'technicien' && (
-          <div style={{ background: joursMaladie >= 10 ? '#FCEBEB' : joursMaladie >= 5 ? '#FDF0E6' : 'white', borderRadius: 12, padding: '1rem 1.5rem', border: joursMaladie >= 10 ? '2px solid #E24B4A' : joursMaladie >= 5 ? '2px solid #E07B2A' : '1px solid #e8e2d9', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ background: joursMaladie >= 10 ? '#FFF0F0' : joursMaladie >= 5 ? '#FFF8F3' : '#F9F6F2', borderRadius: 12, padding: '16px 20px', border: joursMaladie >= 10 ? '1px solid #F09595' : joursMaladie >= 5 ? '1px solid #F0C09A' : '1px solid #F0EBE3', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <div style={{ fontSize: 12, color: '#888', marginBottom: 4 }}>Jours d arret maladie en {annee}</div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                <span style={{ fontSize: 36, fontWeight: 700, color: joursMaladie >= 10 ? '#A32D2D' : joursMaladie >= 5 ? '#854F0B' : '#2D3748' }}>{joursMaladie}</span>
-                <span style={{ fontSize: 16, color: '#888' }}>jour{joursMaladie > 1 ? 's' : ''}</span>
+              <p style={{ fontSize: 12, color: '#888', margin: '0 0 4px' }}>Jours d'arrêt maladie en {annee}</p>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                <span style={{ fontSize: 32, fontWeight: 500, color: joursMaladie >= 10 ? '#A32D2D' : joursMaladie >= 5 ? '#8A5A2A' : '#1A1A1A' }}>{joursMaladie}</span>
+                <span style={{ fontSize: 14, color: '#888' }}>jour{joursMaladie > 1 ? 's' : ''}</span>
               </div>
             </div>
-            <div>
-              {joursMaladie === 0 && <span style={{ fontSize: 28 }}>🏆</span>}
-              {joursMaladie > 0 && joursMaladie < 5 && <span style={{ fontSize: 28 }}>👍</span>}
-              {joursMaladie >= 5 && joursMaladie < 10 && <span style={{ fontSize: 24 }}>⚠️</span>}
-              {joursMaladie >= 10 && <span style={{ fontSize: 24 }}>🔴</span>}
-            </div>
+            <span style={{ fontSize: 24 }}>
+              {joursMaladie === 0 ? '🏆' : joursMaladie < 5 ? '👍' : joursMaladie < 10 ? '⚠️' : '🔴'}
+            </span>
           </div>
         )}
 
-        {/* Gros bouton planning chef */}
+        {/* Planning banner */}
         {salarie?.role === 'chef_atelier' && (
-          <div onClick={() => router.push('/planning')} style={{ background: '#2D3748', borderRadius: 12, padding: '1.25rem 1.5rem', marginBottom: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '2px solid #3a4a5c' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-              <div style={{ width: 48, height: 48, borderRadius: 10, background: '#E07B2A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>📅</div>
+          <div onClick={() => router.push('/planning')} style={{ background: '#F9F6F2', borderRadius: 12, padding: '14px 18px', marginBottom: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid #F0EBE3', transition: 'border-color 0.15s' }}
+            onMouseEnter={e => (e.currentTarget.style.borderColor = '#D4C0A8')}
+            onMouseLeave={e => (e.currentTarget.style.borderColor = '#F0EBE3')}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: '#FFFFFF', border: '1px solid #F0EBE3', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>📅</div>
               <div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: 'white' }}>Planning de l atelier</div>
-                <div style={{ fontSize: 12, color: '#a0aec0', marginTop: 2 }}>Calendrier des vehicules et dates de sortie</div>
+                <p style={{ fontSize: 14, fontWeight: 500, color: '#1A1A1A', margin: 0 }}>Planning de l'atelier</p>
+                <p style={{ fontSize: 12, color: '#888', margin: 0 }}>Calendrier des véhicules et dates de sortie</p>
               </div>
             </div>
-            <div style={{ fontSize: 13, color: '#E07B2A', fontWeight: 600 }}>
-              {enCours.length + aFacturer.length} vehicule{(enCours.length + aFacturer.length) > 1 ? 's' : ''} en atelier →
-            </div>
+            <span style={{ fontSize: 13, color: '#D4722A', fontWeight: 500 }}>{enCours.length + aFacturer.length} véhicules →</span>
           </div>
         )}
 
-        {/* Compteurs */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
-          <div onClick={() => setOnglet('en_cours')} style={{ background: onglet === 'en_cours' ? '#2D3748' : 'white', borderRadius: 12, padding: '1rem', border: '1px solid #e8e2d9', cursor: 'pointer' }}>
-            <div style={{ fontSize: 12, color: onglet === 'en_cours' ? '#e8e2d9' : '#888', marginBottom: 6 }}>Dossiers en cours</div>
-            <div style={{ fontSize: 28, fontWeight: 700, color: '#E07B2A' }}>{enCours.length}</div>
-          </div>
-          <div onClick={() => setOnglet('a_facturer')} style={{ background: onglet === 'a_facturer' ? '#2D3748' : 'white', borderRadius: 12, padding: '1rem', border: aFacturer.length > 0 ? '2px solid #E07B2A' : '1px solid #e8e2d9', cursor: 'pointer', position: 'relative' as const }}>
-            <div style={{ fontSize: 12, color: onglet === 'a_facturer' ? '#e8e2d9' : '#888', marginBottom: 6 }}>A facturer</div>
-            <div style={{ fontSize: 28, fontWeight: 700, color: aFacturer.length > 0 ? '#E07B2A' : '#888' }}>{aFacturer.length}</div>
-            {aFacturer.length > 0 && <div style={{ position: 'absolute' as const, top: 8, right: 8, width: 10, height: 10, borderRadius: '50%', background: '#E07B2A' }} />}
-          </div>
-          <div onClick={() => setOnglet('archives')} style={{ background: onglet === 'archives' ? '#2D3748' : 'white', borderRadius: 12, padding: '1rem', border: '1px solid #e8e2d9', cursor: 'pointer' }}>
-            <div style={{ fontSize: 12, color: onglet === 'archives' ? '#e8e2d9' : '#888', marginBottom: 6 }}>Archives</div>
-            <div style={{ fontSize: 28, fontWeight: 700, color: onglet === 'archives' ? 'white' : '#2D3748' }}>{archives.length}</div>
-          </div>
+        {/* Onglets stats */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 20 }}>
+          {[
+            { key: 'en_cours', label: 'En cours', count: enCours.length },
+            { key: 'a_facturer', label: 'À facturer', count: aFacturer.length },
+            { key: 'archives', label: 'Archives', count: archives.length },
+          ].map(item => (
+            <div key={item.key} onClick={() => setOnglet(item.key as any)}
+              style={{ background: onglet === item.key ? '#1C2B30' : '#F9F6F2', borderRadius: 10, padding: '14px 16px', border: item.key === 'a_facturer' && aFacturer.length > 0 && onglet !== item.key ? '1.5px solid #D4722A' : '1px solid #F0EBE3', cursor: 'pointer', position: 'relative' as const }}>
+              <p style={{ fontSize: 12, color: onglet === item.key ? '#A0B0B5' : '#888', margin: '0 0 4px' }}>{item.label}</p>
+              <p style={{ fontSize: 26, fontWeight: 500, color: item.key === 'a_facturer' && aFacturer.length > 0 ? '#D4722A' : onglet === item.key ? '#FFFFFF' : '#1A1A1A', margin: 0 }}>{item.count}</p>
+              {item.key === 'a_facturer' && aFacturer.length > 0 && <div style={{ position: 'absolute' as const, top: 8, right: 8, width: 8, height: 8, borderRadius: '50%', background: '#D4722A' }} />}
+            </div>
+          ))}
         </div>
 
         {/* Boutons actions */}
-        <div className="actions-grid">
+        <div className="actions-wrap" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' as const, marginBottom: 20 }}>
           {salarie?.role === 'chef_atelier' && onglet === 'en_cours' && (
-            <button className="action-btn" onClick={() => router.push('/nouveau-dossier')} style={{ background: '#E07B2A', color: 'white' }}>+ Nouveau dossier</button>
+            <button className="action-btn action-btn-primary" onClick={() => router.push('/nouveau-dossier')}>
+              <span style={{ fontSize: 18, color: '#FFF' }}>+</span>
+              <span style={{ fontSize: 11, color: '#FFF', fontWeight: 500 }}>Nouveau</span>
+            </button>
           )}
-          <button className="action-btn" onClick={() => router.push('/passage-rapide')} style={{ background: '#3B6D11', color: 'white' }}>⚡ Passage rapide</button>
-          <button className="action-btn" onClick={() => router.push('/clients')} style={{ background: '#E07B2A', color: 'white' }}>👤 Clients</button>
-          {salarie?.role === 'chef_atelier' && (
-            <button className="action-btn" onClick={() => router.push('/courtoisie')} style={{ background: '#E07B2A', color: 'white' }}>🚗 Courtoisie</button>
-          )}
-          {salarie?.role === 'chef_atelier' && (
-            <button className="action-btn" onClick={() => router.push('/salaries')} style={{ background: '#E07B2A', color: 'white' }}>👥 Equipe</button>
-          )}
-          {salarie?.role === 'technicien' && (
-            <button className="action-btn" onClick={() => router.push('/salaries')} style={{ background: '#E07B2A', color: 'white' }}>👥 Equipe</button>
-          )}
-          <button className="action-btn" onClick={() => router.push('/conges')} style={{ background: '#E07B2A', color: 'white' }}>
-            📅 Absences
-            {congesEnAttente > 0 && <span style={{ background: 'white', color: '#E07B2A', fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 20 }}>{congesEnAttente}</span>}
-            {notifCount > 0 && <span style={{ background: 'white', color: '#E07B2A', fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 20 }}>{notifCount}</span>}
+          <button className="action-btn action-btn-green" onClick={() => router.push('/passage-rapide')}>
+            <span style={{ fontSize: 16, color: '#A8D8B8' }}>⚡</span>
+            <span style={{ fontSize: 11, color: '#A8D8B8', fontWeight: 500 }}>Rapide</span>
           </button>
-          <button className="action-btn" onClick={() => router.push('/avis?mode=salarie')} style={{ background: '#E07B2A', color: 'white' }}>⭐ Mes avis</button>
+          <button className="action-btn" onClick={() => router.push('/clients')}>
+            <span style={{ fontSize: 16, color: '#D4722A' }}>👤</span>
+            <span style={{ fontSize: 11, color: '#555' }}>Clients</span>
+          </button>
           {salarie?.role === 'chef_atelier' && (
-            <button className="action-btn" onClick={() => router.push('/admin')} style={{ background: '#2D3748', color: 'white' }}>⚙ Admin</button>
+            <button className="action-btn" onClick={() => router.push('/courtoisie')}>
+              <span style={{ fontSize: 16, color: '#D4722A' }}>🚗</span>
+              <span style={{ fontSize: 11, color: '#555' }}>Courtoisie</span>
+            </button>
+          )}
+          <button className="action-btn" onClick={() => router.push('/salaries')}>
+            <span style={{ fontSize: 16, color: '#D4722A' }}>👥</span>
+            <span style={{ fontSize: 11, color: '#555' }}>Équipe</span>
+          </button>
+          <button className="action-btn" onClick={() => router.push('/conges')} style={{ position: 'relative' as const }}>
+            <span style={{ fontSize: 16, color: '#D4722A' }}>📅</span>
+            <span style={{ fontSize: 11, color: '#555' }}>Absences</span>
+            {(congesEnAttente > 0 || notifCount > 0) && <span style={{ position: 'absolute' as const, top: -4, right: -4, background: '#D4722A', color: 'white', fontSize: 9, fontWeight: 700, padding: '2px 5px', borderRadius: 20 }}>{congesEnAttente || notifCount}</span>}
+          </button>
+          <button className="action-btn" onClick={() => router.push('/avis?mode=salarie')}>
+            <span style={{ fontSize: 16, color: '#D4722A' }}>⭐</span>
+            <span style={{ fontSize: 11, color: '#555' }}>Avis</span>
+          </button>
+          {salarie?.role === 'chef_atelier' && (
+            <button className="action-btn" onClick={() => router.push('/admin')} style={{ background: '#F4F0EA' }}>
+              <span style={{ fontSize: 16, color: '#555' }}>⚙</span>
+              <span style={{ fontSize: 11, color: '#555' }}>Admin</span>
+            </button>
           )}
         </div>
 
         {/* Alertes */}
         {congesEnAttente > 0 && salarie?.role === 'chef_atelier' && (
-          <div onClick={() => router.push('/conges')} style={{ background: '#FDF0E6', border: '1px solid #E07B2A', borderRadius: 12, padding: '0.75rem 1.25rem', marginBottom: 16, fontSize: 13, color: '#854F0B', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-            <span>🗓</span> <strong>{congesEnAttente} demande{congesEnAttente > 1 ? 's' : ''} de conge en attente</strong> — cliquez pour traiter
+          <div onClick={() => router.push('/conges')} style={{ background: '#FFF8F3', border: '1px solid #F0C09A', borderRadius: 10, padding: '10px 16px', marginBottom: 12, fontSize: 13, color: '#8A5A2A', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+            🗓 <strong>{congesEnAttente} demande{congesEnAttente > 1 ? 's' : ''} de congé en attente</strong> — cliquez pour traiter
           </div>
         )}
         {notifCount > 0 && salarie?.role === 'technicien' && (
-          <div onClick={() => router.push('/conges')} style={{ background: '#EAF3DE', border: '1px solid #97C459', borderRadius: 12, padding: '0.75rem 1.25rem', marginBottom: 16, fontSize: 13, color: '#27500A', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-            <span>🔔</span> <strong>{notifCount} notification{notifCount > 1 ? 's' : ''} non lue{notifCount > 1 ? 's' : ''}</strong>
+          <div onClick={() => router.push('/conges')} style={{ background: '#EBF5EE', border: '1px solid #A8D8B8', borderRadius: 10, padding: '10px 16px', marginBottom: 12, fontSize: 13, color: '#2A6B3A', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+            🔔 <strong>{notifCount} notification{notifCount > 1 ? 's' : ''} non lue{notifCount > 1 ? 's' : ''}</strong>
           </div>
         )}
         {onglet === 'a_facturer' && aFacturer.length > 0 && (
-          <div style={{ background: '#FDF0E6', border: '1px solid #E07B2A', borderRadius: 12, padding: '0.75rem 1.25rem', marginBottom: 16, fontSize: 13, color: '#854F0B', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span>⚠</span> {aFacturer.length} vehicule{aFacturer.length > 1 ? 's' : ''} pret{aFacturer.length > 1 ? 's' : ''} a restituer
+          <div style={{ background: '#FFF8F3', border: '1px solid #F0C09A', borderRadius: 10, padding: '10px 16px', marginBottom: 12, fontSize: 13, color: '#8A5A2A', display: 'flex', alignItems: 'center', gap: 8 }}>
+            ⚠ {aFacturer.length} véhicule{aFacturer.length > 1 ? 's' : ''} prêt{aFacturer.length > 1 ? 's' : ''} à restituer
           </div>
         )}
 
         {/* Liste dossiers */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {dossiersAffiches.length === 0 ? (
-            <div style={{ background: 'white', borderRadius: 12, padding: '2rem', textAlign: 'center', color: '#888', border: '1px solid #e8e2d9' }}>
-              {onglet === 'en_cours' ? 'Aucun dossier en cours' : onglet === 'a_facturer' ? 'Aucun dossier a facturer' : 'Aucun dossier archive'}
+            <div style={{ background: '#F9F6F2', borderRadius: 10, padding: '2rem', textAlign: 'center' as const, color: '#888', border: '1px solid #F0EBE3', fontSize: 13 }}>
+              {onglet === 'en_cours' ? 'Aucun dossier en cours' : onglet === 'a_facturer' ? 'Aucun dossier à facturer' : 'Aucun dossier archivé'}
             </div>
           ) : dossiersAffiches.map(d => {
             const s = statusLabel[d.statut] || statusLabel.en_cours
+            const isUrgent = d.statut === 'pret_restituer'
             return (
-              <div key={d.id} style={{ background: 'white', borderRadius: 12, padding: '1rem 1.25rem', border: d.statut === 'pret_restituer' ? '2px solid #E07B2A' : '1px solid #e8e2d9', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, flex: 1 }}>
-                  <div style={{ width: 42, height: 42, borderRadius: '50%', background: '#FDF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color: '#E07B2A', flexShrink: 0 }}>
+              <div key={d.id} className="dossier-card" style={{ borderColor: isUrgent ? '#F0C09A' : '#F0EBE3' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, flex: 1 }}>
+                  <div style={{ width: 38, height: 38, borderRadius: '50%', background: '#FFF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 500, color: '#D4722A', flexShrink: 0 }}>
                     {d.clients?.nom?.[0]}{d.clients?.prenom?.[0]}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: '#2D3748' }}>{d.immatriculation} <span style={{ fontWeight: 400, color: '#888', fontSize: 13 }}>-- {d.marque} {d.modele}</span></div>
-                    <div style={{ fontSize: 13, color: '#888', marginTop: 2 }}>
-                      {d.clients?.prenom} {d.clients?.nom} — Entree le {new Date(d.date_entree).toLocaleDateString('fr-FR')}
-                      {d.salaries && <span style={{ marginLeft: 8, color: '#E07B2A' }}>· {d.salaries.prenom} {d.salaries.nom}</span>}
-                    </div>
+                    <p style={{ fontSize: 14, fontWeight: 500, color: '#1A1A1A', margin: '0 0 2px' }}>
+                      {d.immatriculation} <span style={{ fontWeight: 400, color: '#888', fontSize: 13 }}>— {d.marque} {d.modele}</span>
+                    </p>
+                    <p style={{ fontSize: 12, color: '#888', margin: '0 0 2px' }}>
+                      {d.clients?.prenom} {d.clients?.nom} · Entrée le {new Date(d.date_entree).toLocaleDateString('fr-FR')}
+                      {d.salaries && <span style={{ color: '#D4722A' }}> · {d.salaries.prenom} {d.salaries.nom}</span>}
+                    </p>
                     {d.date_sortie_prevue && (
-                      <div style={{ fontSize: 12, color: new Date(d.date_sortie_prevue) < new Date() ? '#A32D2D' : '#3B6D11', marginTop: 2 }}>
-                        Sortie prevue : {new Date(d.date_sortie_prevue).toLocaleDateString('fr-FR')}
+                      <p style={{ fontSize: 12, color: new Date(d.date_sortie_prevue) < new Date() ? '#A32D2D' : '#2A6B3A', margin: 0 }}>
+                        Sortie prévue : {new Date(d.date_sortie_prevue).toLocaleDateString('fr-FR')}
                         {new Date(d.date_sortie_prevue) < new Date() && ' — EN RETARD'}
-                      </div>
+                      </p>
                     )}
-                    {d.notes && <div style={{ marginTop: 6, padding: '6px 10px', background: '#FDF0E6', borderRadius: 6, fontSize: 12, color: '#854F0B', border: '1px solid #E07B2A' }}>Note : {d.notes}</div>}
+                    {d.notes && <div style={{ marginTop: 6, padding: '5px 10px', background: '#FFF8F3', borderRadius: 6, fontSize: 12, color: '#8A5A2A', border: '1px solid #F0C09A' }}>Note : {d.notes}</div>}
                   </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'flex-end', gap: 8, flexShrink: 0 }}>
-                  <span style={{ fontSize: 11, fontWeight: 500, padding: '4px 12px', borderRadius: 20, background: s.bg, color: s.color, whiteSpace: 'nowrap' as const }}>{s.label}</span>
-                  <button onClick={() => router.push('/dossier/' + d.id)} style={{ fontSize: 13, padding: '7px 16px', borderRadius: 8, border: '2px solid #E07B2A', background: 'white', cursor: 'pointer', color: '#E07B2A', fontWeight: 600 }}>Voir</button>
+                  <span style={{ fontSize: 11, fontWeight: 500, padding: '3px 10px', borderRadius: 20, background: s.bg, color: s.color, whiteSpace: 'nowrap' as const }}>{s.label}</span>
+                  <button className="voir-btn" onClick={() => router.push('/dossier/' + d.id)}>Voir</button>
                 </div>
               </div>
             )
