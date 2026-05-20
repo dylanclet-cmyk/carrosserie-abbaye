@@ -133,7 +133,7 @@ export default function AdminPage() {
           <div key={s.id} style={{ background: '#FFFFFF', borderRadius: 10, padding: '1rem 1.25rem', border: '1px solid #EDE5D8', marginBottom: 10, opacity: s.actif ? 1 : 0.6 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                <div style={{ width: 46, height: 46, borderRadius: '50%', background: s.role === 'chef_atelier' ? '#C8723A' : '#F5DEC8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: '#C8723A', flexShrink: 0 }}>
+                <div style={{ width: 46, height: 46, borderRadius: '50%', background: s.role === 'chef_atelier' ? '#C8723A' : '#F5DEC8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 500, color: '#7A3E10', flexShrink: 0 }}>
                   {s.prenom?.[0]}{s.nom?.[0]}
                 </div>
                 <div>
