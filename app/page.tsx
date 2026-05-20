@@ -147,8 +147,8 @@ export default function Dashboard() {
             { key: 'archives', label: 'Archives', count: archives.length },
           ].map(item => (
             <div key={item.key} onClick={() => setOnglet(item.key as any)}
-              style={{ background: onglet === item.key ? '#1C2A2F' : '#FFFFFF', borderRadius: 10, padding: '12px 14px', border: item.key === 'a_facturer' && aFacturer.length > 0 && onglet !== item.key ? '1.5px solid #C8723A' : '1px solid #EDE5D8', cursor: 'pointer', position: 'relative' as const }}>
-              <p style={{ fontSize: 11, color: onglet === item.key ? '#9AABB0' : '#999', margin: '0 0 4px' }}>{item.label}</p>
+              style={{ background: onglet === item.key ? '#C8723A' : '#FFFFFF', borderRadius: 10, padding: '12px 14px', border: item.key === 'a_facturer' && aFacturer.length > 0 && onglet !== item.key ? '1.5px solid #C8723A' : '1px solid #EDE5D8', cursor: 'pointer', position: 'relative' as const }}>
+              <p style={{ fontSize: 11, color: onglet === item.key ? 'rgba(255,255,255,0.7)' : '#999', margin: '0 0 4px' }}>{item.label}</p>
               <p style={{ fontSize: 24, fontWeight: 500, color: item.key === 'a_facturer' && aFacturer.length > 0 ? '#C8723A' : onglet === item.key ? '#FFFFFF' : '#1A1A1A', margin: 0 }}>{item.count}</p>
               {item.key === 'a_facturer' && aFacturer.length > 0 && <div style={{ position: 'absolute' as const, top: 8, right: 8, width: 7, height: 7, borderRadius: '50%', background: '#C8723A' }} />}
             </div>
