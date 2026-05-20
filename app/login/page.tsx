@@ -52,7 +52,7 @@ export default function LoginPage() {
       <div className="login-wrap">
         {/* Gauche orange */}
         <div className="login-left">
-          <img src="/logo.png" alt="Logo" style={{ height: 110, objectFit: 'contain', marginBottom: 28 }} />
+          <img src="/logo.png" alt="Logo" style={{ height: 160, objectFit: 'contain', marginBottom: 28 }} />
           <div style={{ width: 40, height: 2, background: 'rgba(255,255,255,0.4)', borderRadius: 2, marginBottom: 20 }} />
           <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', textAlign: 'center', lineHeight: 1.9 }}>
             Gestion de l'atelier<br />
