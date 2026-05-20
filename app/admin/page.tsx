@@ -83,14 +83,14 @@ export default function AdminPage() {
 
   if (loading) return <div style={{ padding: '2rem', fontFamily: 'system-ui', color: '#888' }}>Chargement...</div>
 
-  const inputStyle = { width: '100%', padding: '9px 12px', borderRadius: 8, border: '1.5px solid #EDE5D8', fontSize: 14, color: '#1C2A2F', background: '#FFFFFF' }
+  const inputStyle = { width: '100%', padding: '9px 12px', borderRadius: 8, border: '1.5px solid #EDE5D8', fontSize: 14, color: '#C8723A', background: '#FFFFFF' }
   const labelStyle = { fontSize: 12, color: '#888', display: 'block' as const, marginBottom: 4, fontWeight: 600 }
 
   return (
     <div style={{ minHeight: '100vh', background: '#FAF7F2', fontFamily: 'system-ui, sans-serif' }}>
       <div style={{ background: '#C8723A', padding: '0 1.5rem', height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button onClick={() => router.push('/')} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: '#EDE5D8' }}>← Retour</button>
+          <button onClick={() => router.push('/')} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1px solid #C8723A', background: 'transparent', cursor: 'pointer', color: '#EDE5D8' }}>← Retour</button>
           <img src="/logo.png" alt="Logo" style={{ height: 34, objectFit: 'contain' }} />
           <span style={{ color: '#FAF7F2', fontSize: 14, fontWeight: 500 }}>Administration — Gestion des salaries</span>
         </div>
@@ -110,7 +110,7 @@ export default function AdminPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
           <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '1rem', border: '1px solid #EDE5D8' }}>
             <div style={{ fontSize: 12, color: '#888', marginBottom: 4 }}>Total salaries</div>
-            <div style={{ fontSize: 28, fontWeight: 700, color: '#1C2A2F' }}>{salaries.length}</div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: '#C8723A' }}>{salaries.length}</div>
           </div>
           <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '1rem', border: '1px solid #EDE5D8' }}>
             <div style={{ fontSize: 12, color: '#888', marginBottom: 4 }}>Actifs</div>
@@ -126,7 +126,7 @@ export default function AdminPage() {
           <div key={s.id} style={{ background: '#FFFFFF', borderRadius: 10, padding: '1rem 1.25rem', border: '1px solid #EDE5D8', marginBottom: 10, opacity: s.actif ? 1 : 0.6 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                <div style={{ width: 46, height: 46, borderRadius: '50%', background: s.role === 'chef_atelier' ? '#1C2A2F' : '#FFF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: '#C8723A', flexShrink: 0 }}>
+                <div style={{ width: 46, height: 46, borderRadius: '50%', background: s.role === 'chef_atelier' ? '#C8723A' : '#FFF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: '#C8723A', flexShrink: 0 }}>
                   {s.prenom?.[0]}{s.nom?.[0]}
                 </div>
                 <div>
@@ -186,7 +186,7 @@ export default function AdminPage() {
               <div><label style={labelStyle}>Taux horaire (€/h)</label><input style={inputStyle} type="number" value={newSalarie.taux_horaire} onChange={e => setNewSalarie({ ...newSalarie, taux_horaire: e.target.value })} placeholder="38" /></div>
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => { setShowForm(false); setMessage(null) }} style={{ padding: '10px 20px', borderRadius: 8, border: '1px solid #EDE5D8', background: '#FFFFFF', cursor: 'pointer', fontSize: 14, color: '#1C2A2F' }}>Annuler</button>
+              <button onClick={() => { setShowForm(false); setMessage(null) }} style={{ padding: '10px 20px', borderRadius: 8, border: '1px solid #EDE5D8', background: '#FFFFFF', cursor: 'pointer', fontSize: 14, color: '#C8723A' }}>Annuler</button>
               <button onClick={createSalarie} disabled={saving} style={{ flex: 1, padding: '10px', borderRadius: 8, border: 'none', background: '#C8723A', color: 'white', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>
                 {saving ? 'Creation en cours...' : 'Creer le compte'}
               </button>
