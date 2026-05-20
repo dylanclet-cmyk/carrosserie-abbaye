@@ -74,33 +74,33 @@ export default function ClientsPage() {
     setSaving(false)
   }
 
-  const inputStyle = { width: '100%', padding: '8px 12px', borderRadius: 8, border: '1.5px solid #e8e2d9', fontSize: 14, color: '#2D3748', background: 'white' }
+  const inputStyle = { width: '100%', padding: '8px 12px', borderRadius: 8, border: '1.5px solid #EDE5D8', fontSize: 14, color: '#1C2A2F', background: '#FFFFFF' }
   const labelStyle = { fontSize: 12, color: '#888', display: 'block' as const, marginBottom: 4, fontWeight: 600 }
 
   if (loading) return <div style={{ padding: '2rem', fontFamily: 'system-ui', color: '#888' }}>Chargement...</div>
 
   const statusColors: any = {
-    en_attente_signature: { label: 'En attente', color: '#854F0B', bg: '#FAEEDA' },
+    en_attente_signature: { label: 'En attente', color: '#7A3E10', bg: '#FFF0E6' },
     en_cours: { label: 'En cours', color: '#0C447C', bg: '#E6F1FB' },
-    pret_restituer: { label: 'Pret restituer', color: '#27500A', bg: '#EAF3DE' },
+    pret_restituer: { label: 'Pret restituer', color: '#2A6B3A', bg: '#EBF5EE' },
     termine: { label: 'Termine', color: '#444', bg: '#F1EFE8' },
     facture: { label: 'Facture', color: '#3C3489', bg: '#EEEDFE' },
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8f6f3', fontFamily: 'system-ui, sans-serif' }}>
-      <div style={{ background: '#2D3748', padding: '0 2rem', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <div style={{ minHeight: '100vh', background: '#FAF7F2', fontFamily: 'system-ui, sans-serif' }}>
+      <div style={{ background: '#C8723A', padding: '0 1.5rem', height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button onClick={() => router.push('/')} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: '#e8e2d9' }}>← Retour</button>
-          <img src="/logo.png" alt="Logo" style={{ height: 44, objectFit: 'contain' }} />
-          <span style={{ color: 'white', fontSize: 15, fontWeight: 600 }}>Base clients ({clients.length})</span>
+          <button onClick={() => router.push('/')} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: '#EDE5D8' }}>← Retour</button>
+          <img src="/logo.png" alt="Logo" style={{ height: 34, objectFit: 'contain' }} />
+          <span style={{ color: '#FAF7F2', fontSize: 14, fontWeight: 500 }}>Base clients ({clients.length})</span>
         </div>
-        <button onClick={() => { setEditForm({ nom: '', prenom: '', telephone: '', email: '', assurance: '', num_police: '' }); setShowForm(true) }} style={{ background: '#E07B2A', color: 'white', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+        <button onClick={() => { setEditForm({ nom: '', prenom: '', telephone: '', email: '', assurance: '', num_police: '' }); setShowForm(true) }} style={{ background: '#C8723A', color: 'white', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
           + Nouveau client
         </button>
       </div>
 
-      <div style={{ padding: '1.5rem 2rem', maxWidth: 1100, margin: '0 auto' }}>
+      <div style={{ padding: '20px 16px', maxWidth: 1100, margin: '0 auto' }}>
 
         {/* Barre de recherche */}
         <div style={{ position: 'relative' as const, marginBottom: 20 }}>
@@ -109,9 +109,9 @@ export default function ClientsPage() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Rechercher par nom, prenom, telephone, email ou immatriculation..."
-            style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: 12, border: '2px solid #e8e2d9', fontSize: 14, color: '#2D3748', background: 'white', outline: 'none', boxSizing: 'border-box' as const }}
-            onFocus={e => e.target.style.borderColor = '#E07B2A'}
-            onBlur={e => e.target.style.borderColor = '#e8e2d9'}
+            style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: 12, border: '2px solid #EDE5D8', fontSize: 14, color: '#1C2A2F', background: '#FFFFFF', outline: 'none', boxSizing: 'border-box' as const }}
+            onFocus={e => e.target.style.borderColor = '#C8723A'}
+            onBlur={e => e.target.style.borderColor = '#EDE5D8'}
             autoFocus
           />
           {search && (
@@ -130,7 +130,7 @@ export default function ClientsPage() {
           {/* Liste clients */}
           <div>
             {filtered.length === 0 ? (
-              <div style={{ background: 'white', borderRadius: 12, padding: '2rem', textAlign: 'center' as const, color: '#888', border: '1px solid #e8e2d9' }}>
+              <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '2rem', textAlign: 'center' as const, color: '#888', border: '1px solid #EDE5D8' }}>
                 {search ? 'Aucun client trouvé' : 'Aucun client dans la base'}
               </div>
             ) : filtered.map(c => {
@@ -138,17 +138,17 @@ export default function ClientsPage() {
               const nbDossiers = getDossiersByClient(c.id).length
               return (
                 <div key={c.id} onClick={() => setSelectedClient(selectedClient?.id === c.id ? null : c)}
-                  style={{ background: 'white', borderRadius: 12, padding: '1rem 1.25rem', border: selectedClient?.id === c.id ? '2px solid #E07B2A' : '1px solid #e8e2d9', marginBottom: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ width: 42, height: 42, borderRadius: '50%', background: '#FDF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 700, color: '#E07B2A', flexShrink: 0 }}>
+                  style={{ background: '#FFFFFF', borderRadius: 12, padding: '1rem 1.25rem', border: selectedClient?.id === c.id ? '2px solid #C8723A' : '1px solid #EDE5D8', marginBottom: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ width: 42, height: 42, borderRadius: '50%', background: '#FFF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 700, color: '#C8723A', flexShrink: 0 }}>
                     {c.prenom?.[0]}{c.nom?.[0]}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#2D3748' }}>{c.prenom} {c.nom}</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: '#1C2A2F' }}>{c.prenom} {c.nom}</div>
                     <div style={{ fontSize: 12, color: '#888' }}>{c.telephone}{c.email ? ' · ' + c.email : ''}</div>
-                    {lastImat && <div style={{ fontSize: 11, color: '#E07B2A', marginTop: 2, fontWeight: 600 }}>{lastImat}</div>}
+                    {lastImat && <div style={{ fontSize: 11, color: '#C8723A', marginTop: 2, fontWeight: 600 }}>{lastImat}</div>}
                   </div>
                   <div style={{ textAlign: 'right' as const, flexShrink: 0 }}>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: '#2D3748' }}>{nbDossiers}</div>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: '#1C2A2F' }}>{nbDossiers}</div>
                     <div style={{ fontSize: 10, color: '#888' }}>dossier{nbDossiers > 1 ? 's' : ''}</div>
                   </div>
                 </div>
@@ -159,20 +159,20 @@ export default function ClientsPage() {
           {/* Fiche client */}
           {selectedClient && (
             <div>
-              <div style={{ background: 'white', borderRadius: 12, padding: '1.5rem', border: '1px solid #e8e2d9', marginBottom: 16 }}>
+              <div style={{ background: '#FFFFFF', borderRadius: 10, padding: '1.25rem', border: '1px solid #EDE5D8', marginBottom: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                    <div style={{ width: 52, height: 52, borderRadius: '50%', background: '#FDF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 700, color: '#E07B2A' }}>
+                    <div style={{ width: 52, height: 52, borderRadius: '50%', background: '#FFF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 700, color: '#C8723A' }}>
                       {selectedClient.prenom?.[0]}{selectedClient.nom?.[0]}
                     </div>
                     <div>
-                      <div style={{ fontSize: 18, fontWeight: 700, color: '#2D3748' }}>{selectedClient.prenom} {selectedClient.nom}</div>
+                      <div style={{ fontSize: 18, fontWeight: 700, color: '#1C2A2F' }}>{selectedClient.prenom} {selectedClient.nom}</div>
                       <div style={{ fontSize: 13, color: '#888' }}>{selectedClient.telephone}</div>
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: 8 }}>
-                    <button onClick={() => { setEditForm({ ...selectedClient }); setShowForm(true) }} style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid #E07B2A', background: 'white', cursor: 'pointer', fontSize: 12, color: '#E07B2A', fontWeight: 600 }}>Modifier</button>
-                    <button onClick={() => router.push('/nouveau-dossier?client=' + selectedClient.id)} style={{ padding: '7px 14px', borderRadius: 8, border: 'none', background: '#E07B2A', cursor: 'pointer', fontSize: 12, color: 'white', fontWeight: 600 }}>+ Nouveau dossier</button>
+                    <button onClick={() => { setEditForm({ ...selectedClient }); setShowForm(true) }} style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid #C8723A', background: '#FFFFFF', cursor: 'pointer', fontSize: 12, color: '#C8723A', fontWeight: 600 }}>Modifier</button>
+                    <button onClick={() => router.push('/nouveau-dossier?client=' + selectedClient.id)} style={{ padding: '7px 14px', borderRadius: 8, border: 'none', background: '#C8723A', cursor: 'pointer', fontSize: 12, color: 'white', fontWeight: 600 }}>+ Nouveau dossier</button>
                   </div>
                 </div>
 
@@ -183,14 +183,14 @@ export default function ClientsPage() {
                     { label: 'Assurance', value: selectedClient.assurance },
                     { label: 'N° police', value: selectedClient.num_police },
                   ].map(({ label, value }) => value ? (
-                    <div key={label} style={{ background: '#f8f6f3', borderRadius: 8, padding: '0.6rem 0.8rem' }}>
+                    <div key={label} style={{ background: '#FAF7F2', borderRadius: 8, padding: '0.6rem 0.8rem' }}>
                       <div style={{ fontSize: 10, color: '#888', marginBottom: 2 }}>{label}</div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: '#2D3748' }}>{value}</div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: '#1C2A2F' }}>{value}</div>
                     </div>
                   ) : null)}
                 </div>
 
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 10 }}>
+                <div style={{ fontSize: 12, fontWeight: 500, color: '#C8723A', textTransform: 'uppercase' as const, letterSpacing: '0.06em', marginBottom: 10 }}>
                   Historique dossiers ({getDossiersByClient(selectedClient.id).length})
                 </div>
                 {getDossiersByClient(selectedClient.id).length === 0 ? (
@@ -198,13 +198,13 @@ export default function ClientsPage() {
                 ) : getDossiersByClient(selectedClient.id).map(d => {
                   const sc = statusColors[d.statut] || statusColors.en_cours
                   return (
-                    <div key={d.id} onClick={() => router.push('/dossier/' + d.id)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', background: '#f8f6f3', borderRadius: 8, marginBottom: 6, cursor: 'pointer' }}>
+                    <div key={d.id} onClick={() => router.push('/dossier/' + d.id)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', background: '#FAF7F2', borderRadius: 8, marginBottom: 6, cursor: 'pointer' }}>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: '#2D3748' }}>{d.immatriculation} — {d.marque} {d.modele}</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: '#1C2A2F' }}>{d.immatriculation} — {d.marque} {d.modele}</div>
                         <div style={{ fontSize: 11, color: '#888' }}>Entree le {new Date(d.date_entree).toLocaleDateString('fr-FR')}</div>
                       </div>
                       <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 20, background: sc.bg, color: sc.color, fontWeight: 600, whiteSpace: 'nowrap' as const }}>{sc.label}</span>
-                      <span style={{ fontSize: 12, color: '#E07B2A' }}>→</span>
+                      <span style={{ fontSize: 12, color: '#C8723A' }}>→</span>
                     </div>
                   )
                 })}
@@ -217,8 +217,8 @@ export default function ClientsPage() {
       {/* Modal formulaire */}
       {showForm && editForm && (
         <div style={{ position: 'fixed' as const, inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div style={{ background: 'white', borderRadius: 16, padding: '1.5rem', width: '100%', maxWidth: 500 }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: '#2D3748', marginBottom: 20 }}>
+          <div style={{ background: '#FFFFFF', borderRadius: 16, padding: '1.5rem', width: '100%', maxWidth: 500 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#1C2A2F', marginBottom: 20 }}>
               {editForm.id ? 'Modifier le client' : 'Nouveau client'}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
@@ -230,8 +230,8 @@ export default function ClientsPage() {
               <div><label style={labelStyle}>N° police</label><input style={inputStyle} value={editForm.num_police || ''} onChange={e => setEditForm({ ...editForm, num_police: e.target.value })} placeholder="88421" /></div>
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => { setShowForm(false); setEditForm(null) }} style={{ padding: '10px 20px', borderRadius: 8, border: '1px solid #e8e2d9', background: 'white', cursor: 'pointer', fontSize: 14, color: '#2D3748' }}>Annuler</button>
-              <button onClick={saveClient} disabled={saving} style={{ flex: 1, padding: '10px', borderRadius: 8, border: 'none', background: '#E07B2A', color: 'white', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>
+              <button onClick={() => { setShowForm(false); setEditForm(null) }} style={{ padding: '10px 20px', borderRadius: 8, border: '1px solid #EDE5D8', background: '#FFFFFF', cursor: 'pointer', fontSize: 14, color: '#1C2A2F' }}>Annuler</button>
+              <button onClick={saveClient} disabled={saving} style={{ flex: 1, padding: '10px', borderRadius: 8, border: 'none', background: '#C8723A', color: 'white', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>
                 {saving ? 'Sauvegarde...' : editForm.id ? 'Modifier' : 'Creer'}
               </button>
             </div>

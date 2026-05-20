@@ -116,40 +116,40 @@ export default function CongesPage() {
 
   const typeLabels: any = { conge: 'Conge paye', rtt: 'RTT', maladie: 'Arret maladie', autre: 'Autre' }
   const statutColors: any = {
-    en_attente: { label: 'En attente', color: '#854F0B', bg: '#FAEEDA' },
-    accepte: { label: 'Accepte', color: '#27500A', bg: '#EAF3DE' },
+    en_attente: { label: 'En attente', color: '#7A3E10', bg: '#FFF0E6' },
+    accepte: { label: 'Accepte', color: '#2A6B3A', bg: '#EBF5EE' },
     refuse: { label: 'Refuse', color: '#791F1F', bg: '#FCEBEB' },
     modifie: { label: 'Modifie', color: '#3C3489', bg: '#EEEDFE' },
   }
 
-  const inputStyle = { width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e8e2d9', fontSize: 13, color: '#2D3748', background: 'white' }
+  const inputStyle = { width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #EDE5D8', fontSize: 13, color: '#1C2A2F', background: '#FFFFFF' }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8f6f3', fontFamily: 'system-ui, sans-serif' }}>
-      <div style={{ background: '#2D3748', padding: '0 2rem', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <div style={{ minHeight: '100vh', background: '#FAF7F2', fontFamily: 'system-ui, sans-serif' }}>
+      <div style={{ background: '#C8723A', padding: '0 1.5rem', height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button onClick={() => router.push('/')} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: '#e8e2d9' }}>← Retour</button>
-          <img src="/logo.png" alt="Logo" style={{ height: 44, objectFit: 'contain' }} />
-          <span style={{ color: 'white', fontSize: 15, fontWeight: 600 }}>{salarie?.role === 'chef_atelier' ? 'Gestion des conges' : 'Mes conges'}</span>
+          <button onClick={() => router.push('/')} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: '#EDE5D8' }}>← Retour</button>
+          <img src="/logo.png" alt="Logo" style={{ height: 34, objectFit: 'contain' }} />
+          <span style={{ color: '#FAF7F2', fontSize: 14, fontWeight: 500 }}>{salarie?.role === 'chef_atelier' ? 'Gestion des conges' : 'Mes conges'}</span>
         </div>
-        <button onClick={() => setShowForm(true)} style={{ background: '#E07B2A', color: 'white', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+        <button onClick={() => setShowForm(true)} style={{ background: '#C8723A', color: 'white', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
           {salarie?.role === 'chef_atelier' ? '+ Poser un conge' : '+ Demander un conge'}
         </button>
       </div>
 
-      <div style={{ padding: '1.5rem 2rem', maxWidth: 960, margin: '0 auto' }}>
+      <div style={{ padding: '20px 16px', maxWidth: 920, margin: '0 auto' }}>
         {salarie?.role === 'chef_atelier' && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
-            <div style={{ background: 'white', borderRadius: 12, padding: '1rem', border: enAttente.length > 0 ? '2px solid #E07B2A' : '1px solid #e8e2d9', position: 'relative' as const }}>
+            <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '1rem', border: enAttente.length > 0 ? '2px solid #C8723A' : '1px solid #EDE5D8', position: 'relative' as const }}>
               <div style={{ fontSize: 12, color: '#888', marginBottom: 6 }}>En attente</div>
-              <div style={{ fontSize: 28, fontWeight: 700, color: enAttente.length > 0 ? '#E07B2A' : '#888' }}>{enAttente.length}</div>
-              {enAttente.length > 0 && <div style={{ position: 'absolute' as const, top: 8, right: 8, width: 10, height: 10, borderRadius: '50%', background: '#E07B2A' }} />}
+              <div style={{ fontSize: 28, fontWeight: 700, color: enAttente.length > 0 ? '#C8723A' : '#888' }}>{enAttente.length}</div>
+              {enAttente.length > 0 && <div style={{ position: 'absolute' as const, top: 8, right: 8, width: 10, height: 10, borderRadius: '50%', background: '#C8723A' }} />}
             </div>
-            <div style={{ background: 'white', borderRadius: 12, padding: '1rem', border: '1px solid #e8e2d9' }}>
+            <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '1rem', border: '1px solid #EDE5D8' }}>
               <div style={{ fontSize: 12, color: '#888', marginBottom: 6 }}>Acceptes</div>
-              <div style={{ fontSize: 28, fontWeight: 700, color: '#3B6D11' }}>{acceptes.length}</div>
+              <div style={{ fontSize: 28, fontWeight: 700, color: '#2A6B3A' }}>{acceptes.length}</div>
             </div>
-            <div style={{ background: 'white', borderRadius: 12, padding: '1rem', border: '1px solid #e8e2d9' }}>
+            <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '1rem', border: '1px solid #EDE5D8' }}>
               <div style={{ fontSize: 12, color: '#888', marginBottom: 6 }}>Refuses</div>
               <div style={{ fontSize: 28, fontWeight: 700, color: '#888' }}>{refuses.length}</div>
             </div>
@@ -158,23 +158,23 @@ export default function CongesPage() {
 
         {enAttente.length > 0 && salarie?.role === 'chef_atelier' && (
           <div style={{ marginBottom: 24 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#2D3748', marginBottom: 12 }}>⚠ Demandes en attente</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#1C2A2F', marginBottom: 12 }}>⚠ Demandes en attente</div>
             {enAttente.map(c => <DemandeConge key={c.id} conge={c} isChef={true} typeLabels={typeLabels} statutColors={statutColors} onUpdate={updateStatut} onDelete={deleteConge} />)}
           </div>
         )}
 
         <div style={{ marginBottom: 24 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: '#2D3748', marginBottom: 12 }}>{salarie?.role === 'chef_atelier' ? 'Tous les conges' : 'Mes demandes'}</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#1C2A2F', marginBottom: 12 }}>{salarie?.role === 'chef_atelier' ? 'Tous les conges' : 'Mes demandes'}</div>
           {conges.filter(c => salarie?.role === 'chef_atelier' ? c.statut !== 'en_attente' : true).length === 0 ? (
-            <div style={{ background: 'white', borderRadius: 12, padding: '2rem', textAlign: 'center' as const, color: '#888', border: '1px solid #e8e2d9' }}>Aucune demande de conge</div>
+            <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '2rem', textAlign: 'center' as const, color: '#888', border: '1px solid #EDE5D8' }}>Aucune demande de conge</div>
           ) : conges.filter(c => salarie?.role === 'chef_atelier' ? c.statut !== 'en_attente' : true).map(c => (
             <DemandeConge key={c.id} conge={c} isChef={salarie?.role === 'chef_atelier'} typeLabels={typeLabels} statutColors={statutColors} onUpdate={updateStatut} onDelete={deleteConge} />
           ))}
         </div>
 
         {salarie?.role === 'chef_atelier' && (
-          <div style={{ background: 'white', borderRadius: 12, padding: '1.5rem', border: '1px solid #e8e2d9' }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 16 }}>Planning des conges acceptes</div>
+          <div style={{ background: '#FFFFFF', borderRadius: 10, padding: '1.25rem', border: '1px solid #EDE5D8' }}>
+            <div style={{ fontSize: 13, fontWeight: 500, color: '#C8723A', textTransform: 'uppercase' as const, letterSpacing: '0.06em', marginBottom: 16 }}>Planning des conges acceptes</div>
             <PlanningConges conges={acceptes} salaries={salaries} />
           </div>
         )}
@@ -182,8 +182,8 @@ export default function CongesPage() {
 
       {showForm && (
         <div style={{ position: 'fixed' as const, inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div style={{ background: 'white', borderRadius: 16, padding: '1.5rem', width: '100%', maxWidth: 480 }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: '#2D3748', marginBottom: 16 }}>{salarie?.role === 'chef_atelier' ? 'Poser un conge / arret' : 'Demander un conge'}</div>
+          <div style={{ background: '#FFFFFF', borderRadius: 16, padding: '1.5rem', width: '100%', maxWidth: 480 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#1C2A2F', marginBottom: 16 }}>{salarie?.role === 'chef_atelier' ? 'Poser un conge / arret' : 'Demander un conge'}</div>
             <div style={{ display: 'grid', gap: 12, marginBottom: 16 }}>
               {salarie?.role === 'chef_atelier' && (
                 <div>
@@ -207,16 +207,16 @@ export default function CongesPage() {
                 <div><label style={{ fontSize: 12, color: '#888', display: 'block', marginBottom: 4 }}>Date de fin</label><input style={inputStyle} type="date" value={newConge.date_fin} onChange={e => setNewConge({ ...newConge, date_fin: e.target.value })} /></div>
               </div>
               {newConge.date_debut && newConge.date_fin && (
-                <div style={{ padding: '8px 12px', background: '#EAF3DE', borderRadius: 8, fontSize: 13, color: '#27500A', fontWeight: 600 }}>
+                <div style={{ padding: '8px 12px', background: '#EBF5EE', borderRadius: 8, fontSize: 13, color: '#2A6B3A', fontWeight: 600 }}>
                   {nbJours(newConge.date_debut, newConge.date_fin)} jour(s) ouvrable(s)
                 </div>
               )}
-              {salarie?.role === 'chef_atelier' && <div style={{ padding: '8px 12px', background: '#EAF3DE', borderRadius: 8, fontSize: 12, color: '#27500A' }}>En tant que chef, le conge sera automatiquement accepte.</div>}
+              {salarie?.role === 'chef_atelier' && <div style={{ padding: '8px 12px', background: '#EBF5EE', borderRadius: 8, fontSize: 12, color: '#2A6B3A' }}>En tant que chef, le conge sera automatiquement accepte.</div>}
               <div><label style={{ fontSize: 12, color: '#888', display: 'block', marginBottom: 4 }}>Motif (optionnel)</label><input style={inputStyle} value={newConge.motif} onChange={e => setNewConge({ ...newConge, motif: e.target.value })} placeholder="Ex : Vacances, arret medical..." /></div>
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => setShowForm(false)} style={{ padding: '10px 20px', borderRadius: 8, border: '1px solid #e8e2d9', background: 'white', cursor: 'pointer', fontSize: 14, color: '#2D3748' }}>Annuler</button>
-              <button onClick={submitConge} disabled={saving} style={{ flex: 1, padding: '10px', borderRadius: 8, border: 'none', background: '#E07B2A', color: 'white', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>
+              <button onClick={() => setShowForm(false)} style={{ padding: '10px 20px', borderRadius: 8, border: '1px solid #EDE5D8', background: '#FFFFFF', cursor: 'pointer', fontSize: 14, color: '#1C2A2F' }}>Annuler</button>
+              <button onClick={submitConge} disabled={saving} style={{ flex: 1, padding: '10px', borderRadius: 8, border: 'none', background: '#C8723A', color: 'white', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>
                 {saving ? 'Enregistrement...' : salarie?.role === 'chef_atelier' ? 'Valider' : 'Envoyer la demande'}
               </button>
             </div>
@@ -232,30 +232,30 @@ function DemandeConge({ conge, isChef, typeLabels, statutColors, onUpdate, onDel
   const [commentaire, setCommentaire] = useState('')
   const sc = statutColors[conge.statut] || statutColors.en_attente
   return (
-    <div style={{ background: 'white', borderRadius: 12, padding: '1.25rem', border: conge.statut === 'en_attente' ? '2px solid #E07B2A' : '1px solid #e8e2d9', marginBottom: 10 }}>
+    <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '1.25rem', border: conge.statut === 'en_attente' ? '2px solid #C8723A' : '1px solid #EDE5D8', marginBottom: 10 }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ flex: 1 }}>
-          {isChef && conge.salaries && <div style={{ fontSize: 13, fontWeight: 700, color: '#2D3748', marginBottom: 4 }}>{conge.salaries.prenom} {conge.salaries.nom}</div>}
+          {isChef && conge.salaries && <div style={{ fontSize: 13, fontWeight: 700, color: '#1C2A2F', marginBottom: 4 }}>{conge.salaries.prenom} {conge.salaries.nom}</div>}
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 6, flexWrap: 'wrap' as const }}>
-            <span style={{ fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: '#f8f6f3', color: '#2D3748' }}>{typeLabels[conge.type]}</span>
-            <span style={{ fontSize: 13, color: '#2D3748', fontWeight: 600 }}>{new Date(conge.date_debut).toLocaleDateString('fr-FR')} → {new Date(conge.date_fin).toLocaleDateString('fr-FR')}</span>
+            <span style={{ fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: '#FAF7F2', color: '#1C2A2F' }}>{typeLabels[conge.type]}</span>
+            <span style={{ fontSize: 13, color: '#1C2A2F', fontWeight: 600 }}>{new Date(conge.date_debut).toLocaleDateString('fr-FR')} → {new Date(conge.date_fin).toLocaleDateString('fr-FR')}</span>
             <span style={{ fontSize: 12, color: '#888' }}>{conge.nb_jours} jour{conge.nb_jours > 1 ? 's' : ''}</span>
           </div>
           {conge.motif && <div style={{ fontSize: 12, color: '#888', marginBottom: 4 }}>Motif : {conge.motif}</div>}
-          {conge.commentaire_chef && <div style={{ fontSize: 12, padding: '6px 10px', background: '#f8f6f3', borderRadius: 6, color: '#555', marginTop: 4 }}>Note : {conge.commentaire_chef}</div>}
+          {conge.commentaire_chef && <div style={{ fontSize: 12, padding: '6px 10px', background: '#FAF7F2', borderRadius: 6, color: '#555', marginTop: 4 }}>Note : {conge.commentaire_chef}</div>}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'flex-end', gap: 8 }}>
           <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: sc.bg, color: sc.color, whiteSpace: 'nowrap' as const }}>{sc.label}</span>
-          {isChef && conge.statut === 'en_attente' && <button onClick={() => setShowActions(!showActions)} style={{ fontSize: 12, padding: '5px 10px', borderRadius: 8, border: '1px solid #e8e2d9', background: 'white', cursor: 'pointer', color: '#2D3748' }}>{showActions ? 'Fermer' : 'Traiter'}</button>}
-          {isChef && <button onClick={() => onDelete(conge.id)} style={{ fontSize: 11, padding: '4px 8px', borderRadius: 6, border: '1px solid #e8e2d9', background: 'white', cursor: 'pointer', color: '#888' }}>Supprimer</button>}
-          {!isChef && conge.statut === 'en_attente' && <button onClick={() => onDelete(conge.id)} style={{ fontSize: 12, padding: '4px 8px', borderRadius: 6, border: '1px solid #e8e2d9', background: 'white', cursor: 'pointer', color: '#888' }}>Annuler</button>}
+          {isChef && conge.statut === 'en_attente' && <button onClick={() => setShowActions(!showActions)} style={{ fontSize: 12, padding: '5px 10px', borderRadius: 8, border: '1px solid #EDE5D8', background: '#FFFFFF', cursor: 'pointer', color: '#1C2A2F' }}>{showActions ? 'Fermer' : 'Traiter'}</button>}
+          {isChef && <button onClick={() => onDelete(conge.id)} style={{ fontSize: 11, padding: '4px 8px', borderRadius: 6, border: '1px solid #EDE5D8', background: '#FFFFFF', cursor: 'pointer', color: '#888' }}>Supprimer</button>}
+          {!isChef && conge.statut === 'en_attente' && <button onClick={() => onDelete(conge.id)} style={{ fontSize: 12, padding: '4px 8px', borderRadius: 6, border: '1px solid #EDE5D8', background: '#FFFFFF', cursor: 'pointer', color: '#888' }}>Annuler</button>}
         </div>
       </div>
       {showActions && (
-        <div style={{ marginTop: 12, padding: '12px', background: '#f8f6f3', borderRadius: 8 }}>
-          <input value={commentaire} onChange={e => setCommentaire(e.target.value)} placeholder="Commentaire pour le salarie (optionnel)..." style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e8e2d9', fontSize: 13, color: '#2D3748', marginBottom: 10 }} />
+        <div style={{ marginTop: 12, padding: '12px', background: '#FAF7F2', borderRadius: 8 }}>
+          <input value={commentaire} onChange={e => setCommentaire(e.target.value)} placeholder="Commentaire pour le salarie (optionnel)..." style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #EDE5D8', fontSize: 13, color: '#1C2A2F', marginBottom: 10 }} />
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={() => { onUpdate(conge.id, 'accepte', commentaire); setShowActions(false) }} style={{ flex: 1, padding: '8px', borderRadius: 8, border: 'none', background: '#3B6D11', color: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>✓ Accepter</button>
+            <button onClick={() => { onUpdate(conge.id, 'accepte', commentaire); setShowActions(false) }} style={{ flex: 1, padding: '8px', borderRadius: 8, border: 'none', background: '#2A6B3A', color: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>✓ Accepter</button>
             <button onClick={() => { onUpdate(conge.id, 'refuse', commentaire); setShowActions(false) }} style={{ flex: 1, padding: '8px', borderRadius: 8, border: 'none', background: '#A32D2D', color: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>✗ Refuser</button>
           </div>
         </div>
@@ -271,7 +271,7 @@ function PlanningConges({ conges, salaries }: any) {
   const nbJours = new Date(annee, mois + 1, 0).getDate()
   const nomsMois = ['Janvier', 'Fevrier', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Aout', 'Septembre', 'Octobre', 'Novembre', 'Decembre']
   const today = new Date()
-  const colors = ['#E07B2A', '#185FA5', '#3B6D11', '#854F0B', '#3C3489']
+  const colors = ['#C8723A', '#185FA5', '#2A6B3A', '#7A3E10', '#3C3489']
   function getCongeForDay(salarieId: string, jour: number) {
     const date = new Date(annee, mois, jour)
     return conges.find((c: any) => { const d = new Date(c.date_debut); const f = new Date(c.date_fin); return c.salarie_id === salarieId && date >= d && date <= f }) || null
@@ -279,9 +279,9 @@ function PlanningConges({ conges, salaries }: any) {
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-        <button onClick={() => setMoisActuel(new Date(annee, mois - 1, 1))} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #e8e2d9', background: 'white', cursor: 'pointer', fontSize: 14 }}>←</button>
-        <span style={{ fontSize: 14, fontWeight: 600, color: '#2D3748', minWidth: 140, textAlign: 'center' as const }}>{nomsMois[mois]} {annee}</span>
-        <button onClick={() => setMoisActuel(new Date(annee, mois + 1, 1))} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #e8e2d9', background: 'white', cursor: 'pointer', fontSize: 14 }}>→</button>
+        <button onClick={() => setMoisActuel(new Date(annee, mois - 1, 1))} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #EDE5D8', background: '#FFFFFF', cursor: 'pointer', fontSize: 14 }}>←</button>
+        <span style={{ fontSize: 14, fontWeight: 600, color: '#1C2A2F', minWidth: 140, textAlign: 'center' as const }}>{nomsMois[mois]} {annee}</span>
+        <button onClick={() => setMoisActuel(new Date(annee, mois + 1, 1))} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #EDE5D8', background: '#FFFFFF', cursor: 'pointer', fontSize: 14 }}>→</button>
       </div>
       <div style={{ overflowX: 'auto' as const }}>
         <div style={{ minWidth: 700 }}>
@@ -291,12 +291,12 @@ function PlanningConges({ conges, salaries }: any) {
               const date = new Date(annee, mois, i + 1)
               const isToday = date.toDateString() === today.toDateString()
               const isWeekend = date.getDay() === 0 || date.getDay() === 6
-              return <div key={i} style={{ fontSize: 9, textAlign: 'center' as const, color: isToday ? '#E07B2A' : isWeekend ? '#ccc' : '#888', fontWeight: isToday ? 700 : 400, padding: '4px 0' }}>{i + 1}</div>
+              return <div key={i} style={{ fontSize: 9, textAlign: 'center' as const, color: isToday ? '#C8723A' : isWeekend ? '#ccc' : '#888', fontWeight: isToday ? 700 : 400, padding: '4px 0' }}>{i + 1}</div>
             })}
           </div>
           {salaries.map((sal: any, si: number) => (
             <div key={sal.id} style={{ display: 'grid', gridTemplateColumns: '120px repeat(' + nbJours + ', 1fr)', gap: 1, marginBottom: 2 }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: '#2D3748', padding: '6px 4px', background: 'white', borderRadius: 4 }}>{sal.prenom} {sal.nom}</div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: '#1C2A2F', padding: '6px 4px', background: '#FFFFFF', borderRadius: 4 }}>{sal.prenom} {sal.nom}</div>
               {Array.from({ length: nbJours }, (_, i) => {
                 const conge = getCongeForDay(sal.id, i + 1)
                 const date = new Date(annee, mois, i + 1)
@@ -305,7 +305,7 @@ function PlanningConges({ conges, salaries }: any) {
                 const isDebut = conge ? new Date(conge.date_debut).toDateString() === date.toDateString() : false
                 const color = colors[si % colors.length]
                 return (
-                  <div key={i} style={{ height: 28, borderRadius: 3, background: isWeekend ? '#f5f3f0' : conge ? color + '33' : isToday ? '#FDF0E6' : 'white', border: isToday ? '1px solid #E07B2A' : '1px solid #f0ede8', borderLeft: conge && isDebut ? ('3px solid ' + color) : undefined, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div key={i} style={{ height: 28, borderRadius: 3, background: isWeekend ? '#f5f3f0' : conge ? color + '33' : isToday ? '#FFF0E6' : 'white', border: isToday ? '1px solid #C8723A' : '1px solid #f0ede8', borderLeft: conge && isDebut ? ('3px solid ' + color) : undefined, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {conge && isDebut && <span style={{ fontSize: 8, color, fontWeight: 700 }}>C</span>}
                   </div>
                 )

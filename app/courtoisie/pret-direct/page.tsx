@@ -119,7 +119,7 @@ export default function PretDirectPage() {
     const canvas = sigCanvas.current!
     const ctx = canvas.getContext('2d')!
     const rect = canvas.getBoundingClientRect()
-    ctx.lineWidth = 2; ctx.strokeStyle = '#2D3748'; ctx.lineCap = 'round'
+    ctx.lineWidth = 2; ctx.strokeStyle = '#1C2A2F'; ctx.lineCap = 'round'
     ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top); ctx.stroke()
     setHasSig(true)
   }
@@ -138,7 +138,7 @@ export default function PretDirectPage() {
     const ctx = canvas.getContext('2d')!
     const rect = canvas.getBoundingClientRect()
     const touch = e.touches[0]
-    ctx.lineWidth = 2; ctx.strokeStyle = '#2D3748'; ctx.lineCap = 'round'
+    ctx.lineWidth = 2; ctx.strokeStyle = '#1C2A2F'; ctx.lineCap = 'round'
     ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top); ctx.stroke()
     setHasSig(true)
   }
@@ -195,21 +195,21 @@ export default function PretDirectPage() {
     setSaved(true)
   }
 
-  const inputStyle = { width: '100%', padding: '8px 12px', borderRadius: 8, border: '1.5px solid #e8e2d9', fontSize: 14, color: '#2D3748', background: 'white' }
+  const inputStyle = { width: '100%', padding: '8px 12px', borderRadius: 8, border: '1.5px solid #EDE5D8', fontSize: 14, color: '#1C2A2F', background: '#FFFFFF' }
   const labelStyle = { fontSize: 12, color: '#888', display: 'block' as const, marginBottom: 4, fontWeight: 600 }
 
   if (loading) return <div style={{ padding: '2rem', fontFamily: 'system-ui', color: '#888' }}>Chargement...</div>
 
   if (saved) {
     return (
-      <div style={{ minHeight: '100vh', background: '#f8f6f3', fontFamily: 'system-ui', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ background: 'white', borderRadius: 16, padding: '2rem', maxWidth: 480, width: '90%', textAlign: 'center' as const }}>
+      <div style={{ minHeight: '100vh', background: '#FAF7F2', fontFamily: 'system-ui', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ background: '#FFFFFF', borderRadius: 16, padding: '2rem', maxWidth: 480, width: '90%', textAlign: 'center' as const }}>
           <div style={{ fontSize: 56, marginBottom: 16 }}>✅</div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: '#27500A', marginBottom: 8 }}>Pret enregistre !</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#2A6B3A', marginBottom: 8 }}>Pret enregistre !</div>
           <div style={{ fontSize: 14, color: '#888', marginBottom: 24 }}>L etat des lieux de depart a ete sauvegarde.</div>
           <div style={{ display: 'flex', gap: 10 }}>
-            <button onClick={() => router.push('/courtoisie')} style={{ flex: 1, padding: '12px', borderRadius: 10, border: '2px solid #E07B2A', background: 'white', cursor: 'pointer', fontSize: 14, fontWeight: 700, color: '#E07B2A' }}>Retour courtoisie</button>
-            <button onClick={() => router.push('/')} style={{ flex: 1, padding: '12px', borderRadius: 10, border: 'none', background: '#E07B2A', cursor: 'pointer', fontSize: 14, fontWeight: 700, color: 'white' }}>Tableau de bord</button>
+            <button onClick={() => router.push('/courtoisie')} style={{ flex: 1, padding: '12px', borderRadius: 10, border: '2px solid #C8723A', background: '#FFFFFF', cursor: 'pointer', fontSize: 14, fontWeight: 700, color: '#C8723A' }}>Retour courtoisie</button>
+            <button onClick={() => router.push('/')} style={{ flex: 1, padding: '12px', borderRadius: 10, border: 'none', background: '#C8723A', cursor: 'pointer', fontSize: 14, fontWeight: 700, color: 'white' }}>Tableau de bord</button>
           </div>
         </div>
       </div>
@@ -217,47 +217,47 @@ export default function PretDirectPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8f6f3', fontFamily: 'system-ui, sans-serif' }}>
-      <div style={{ background: '#2D3748', padding: '0 2rem', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <div style={{ minHeight: '100vh', background: '#FAF7F2', fontFamily: 'system-ui, sans-serif' }}>
+      <div style={{ background: '#C8723A', padding: '0 1.5rem', height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button onClick={() => router.back()} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: '#e8e2d9' }}>← Retour</button>
-          <img src="/logo.png" alt="Logo" style={{ height: 44, objectFit: 'contain' }} />
+          <button onClick={() => router.back()} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: '#EDE5D8' }}>← Retour</button>
+          <img src="/logo.png" alt="Logo" style={{ height: 34, objectFit: 'contain' }} />
           <span style={{ color: 'white', fontSize: 15, fontWeight: 600 }}>Nouveau pret direct</span>
         </div>
         {/* Etapes */}
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, background: etape === 'infos' ? '#E07B2A' : '#3B6D11', color: 'white', fontSize: 12, fontWeight: 600 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, background: etape === 'infos' ? '#C8723A' : '#2A6B3A', color: 'white', fontSize: 12, fontWeight: 600 }}>
             {etape === 'etat_lieux' ? '✓' : '1'} Infos pret
           </div>
           <div style={{ color: '#888', fontSize: 14 }}>→</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, background: etape === 'etat_lieux' ? '#E07B2A' : '#4a5568', color: 'white', fontSize: 12, fontWeight: 600 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, background: etape === 'etat_lieux' ? '#C8723A' : '#4a5568', color: 'white', fontSize: 12, fontWeight: 600 }}>
             2 Etat des lieux
           </div>
         </div>
       </div>
 
-      <div style={{ padding: '1.5rem 2rem', maxWidth: 800, margin: '0 auto' }}>
+      <div style={{ padding: '20px 16px', maxWidth: 800, margin: '0 auto' }}>
 
         {etape === 'infos' && (
           <>
             {/* Client */}
-            <div style={{ background: 'white', borderRadius: 14, padding: '1.5rem', border: '1px solid #e8e2d9', marginBottom: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 16 }}>Client</div>
+            <div style={{ background: '#FFFFFF', borderRadius: 14, padding: '1.5rem', border: '1px solid #EDE5D8', marginBottom: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#C8723A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 16 }}>Client</div>
               <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-                <button onClick={() => { setClientMode('search'); setSelectedClient(null); setSearchClient('') }} style={{ flex: 1, padding: '8px', borderRadius: 8, border: '2px solid ' + (clientMode === 'search' ? '#E07B2A' : '#e8e2d9'), background: clientMode === 'search' ? '#E07B2A' : 'white', color: clientMode === 'search' ? 'white' : '#2D3748', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>🔍 Client existant</button>
-                <button onClick={() => { setClientMode('new'); setSelectedClient(null); setSearchClient('') }} style={{ flex: 1, padding: '8px', borderRadius: 8, border: '2px solid ' + (clientMode === 'new' ? '#E07B2A' : '#e8e2d9'), background: clientMode === 'new' ? '#E07B2A' : 'white', color: clientMode === 'new' ? 'white' : '#2D3748', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>+ Nouveau client</button>
+                <button onClick={() => { setClientMode('search'); setSelectedClient(null); setSearchClient('') }} style={{ flex: 1, padding: '8px', borderRadius: 8, border: '2px solid ' + (clientMode === 'search' ? '#C8723A' : '#EDE5D8'), background: clientMode === 'search' ? '#C8723A' : 'white', color: clientMode === 'search' ? 'white' : '#1C2A2F', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>🔍 Client existant</button>
+                <button onClick={() => { setClientMode('new'); setSelectedClient(null); setSearchClient('') }} style={{ flex: 1, padding: '8px', borderRadius: 8, border: '2px solid ' + (clientMode === 'new' ? '#C8723A' : '#EDE5D8'), background: clientMode === 'new' ? '#C8723A' : 'white', color: clientMode === 'new' ? 'white' : '#1C2A2F', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>+ Nouveau client</button>
               </div>
               {clientMode === 'search' && (
                 <div style={{ position: 'relative' as const, marginBottom: 12 }}>
                   <input value={searchClient} onChange={e => { setSearchClient(e.target.value); setShowDropdown(true); setSelectedClient(null) }} onFocus={() => setShowDropdown(true)} placeholder="Rechercher par nom, prenom ou telephone..." style={{ ...inputStyle, paddingLeft: 36 }} />
                   <span style={{ position: 'absolute' as const, left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 16, color: '#888' }}>🔍</span>
                   {showDropdown && searchClient && filteredClients.length > 0 && (
-                    <div style={{ position: 'absolute' as const, top: '100%', left: 0, right: 0, background: 'white', border: '1px solid #e8e2d9', borderRadius: 10, boxShadow: '0 4px 20px rgba(0,0,0,0.1)', zIndex: 100 }}>
+                    <div style={{ position: 'absolute' as const, top: '100%', left: 0, right: 0, background: '#FFFFFF', border: '1px solid #EDE5D8', borderRadius: 10, boxShadow: '0 4px 20px rgba(0,0,0,0.1)', zIndex: 100 }}>
                       {filteredClients.map(c => (
                         <div key={c.id} onClick={() => selectClient(c)} style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid #f5f5f5', display: 'flex', alignItems: 'center', gap: 10 }}
-                          onMouseEnter={e => (e.currentTarget.style.background = '#FDF0E6')} onMouseLeave={e => (e.currentTarget.style.background = 'white')}>
-                          <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#FDF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#E07B2A' }}>{c.prenom?.[0]}{c.nom?.[0]}</div>
-                          <div><div style={{ fontSize: 13, fontWeight: 600, color: '#2D3748' }}>{c.prenom} {c.nom}</div><div style={{ fontSize: 11, color: '#888' }}>{c.telephone}</div></div>
+                          onMouseEnter={e => (e.currentTarget.style.background = '#FFF0E6')} onMouseLeave={e => (e.currentTarget.style.background = 'white')}>
+                          <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#FFF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#C8723A' }}>{c.prenom?.[0]}{c.nom?.[0]}</div>
+                          <div><div style={{ fontSize: 13, fontWeight: 600, color: '#1C2A2F' }}>{c.prenom} {c.nom}</div><div style={{ fontSize: 11, color: '#888' }}>{c.telephone}</div></div>
                         </div>
                       ))}
                     </div>
@@ -265,7 +265,7 @@ export default function PretDirectPage() {
                 </div>
               )}
               {selectedClient && (
-                <div style={{ padding: '10px 14px', background: '#EAF3DE', borderRadius: 8, border: '1px solid #97C459', fontSize: 13, color: '#27500A', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ padding: '10px 14px', background: '#EBF5EE', borderRadius: 8, border: '1px solid #97C459', fontSize: 13, color: '#2A6B3A', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <strong>✓ {selectedClient.prenom} {selectedClient.nom} — {selectedClient.telephone}</strong>
                   <button onClick={() => { setSelectedClient(null); setSearchClient('') }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888', fontSize: 18 }}>×</button>
                 </div>
@@ -280,8 +280,8 @@ export default function PretDirectPage() {
             </div>
 
             {/* Véhicule */}
-            <div style={{ background: 'white', borderRadius: 14, padding: '1.5rem', border: '1px solid #e8e2d9', marginBottom: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 16 }}>Vehicule de courtoisie</div>
+            <div style={{ background: '#FFFFFF', borderRadius: 14, padding: '1.5rem', border: '1px solid #EDE5D8', marginBottom: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#C8723A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 16 }}>Vehicule de courtoisie</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div style={{ gridColumn: 'span 2' }}>
                   <label style={labelStyle}>Vehicule disponible *</label>
@@ -312,7 +312,7 @@ export default function PretDirectPage() {
               </div>
             </div>
 
-            <button onClick={() => setEtape('etat_lieux')} disabled={!form.vehicule_id || !form.date_fin_prevue} style={{ width: '100%', padding: '14px', borderRadius: 12, border: 'none', background: !form.vehicule_id || !form.date_fin_prevue ? '#ccc' : '#E07B2A', color: 'white', cursor: !form.vehicule_id || !form.date_fin_prevue ? 'not-allowed' : 'pointer', fontSize: 15, fontWeight: 700 }}>
+            <button onClick={() => setEtape('etat_lieux')} disabled={!form.vehicule_id || !form.date_fin_prevue} style={{ width: '100%', padding: '14px', borderRadius: 12, border: 'none', background: !form.vehicule_id || !form.date_fin_prevue ? '#ccc' : '#C8723A', color: 'white', cursor: !form.vehicule_id || !form.date_fin_prevue ? 'not-allowed' : 'pointer', fontSize: 15, fontWeight: 700 }}>
               Suivant — Etat des lieux →
             </button>
           </>
@@ -321,9 +321,9 @@ export default function PretDirectPage() {
         {etape === 'etat_lieux' && (
           <>
             {/* Schema véhicule */}
-            <div style={{ background: 'white', borderRadius: 12, padding: '1.5rem', border: '1px solid #e8e2d9', marginBottom: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 16 }}>Etat des lieux depart — cliquez sur une zone</div>
-              <svg viewBox="0 0 600 280" style={{ width: '100%', display: 'block', background: '#f8f6f3', borderRadius: 8, marginBottom: 12 }}>
+            <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '1.5rem', border: '1px solid #EDE5D8', marginBottom: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#C8723A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 16 }}>Etat des lieux depart — cliquez sur une zone</div>
+              <svg viewBox="0 0 600 280" style={{ width: '100%', display: 'block', background: '#FAF7F2', borderRadius: 8, marginBottom: 12 }}>
                 <rect x="60" y="100" width="480" height="80" rx="10" fill="#D3D1C7" />
                 <rect x="120" y="70" width="280" height="80" rx="8" fill="#B4B2A9" />
                 <rect x="60" y="170" width="480" height="18" rx="4" fill="#B4B2A9" />
@@ -335,7 +335,7 @@ export default function PretDirectPage() {
                 <text x="570" y="145" textAnchor="middle" fontSize="11" fill="#888">D</text>
                 {ZONES.map(z => {
                   const dmg = dommages[z.id]
-                  const color = dmg ? (dmg.gravite === 'grave' ? '#E24B4A' : '#EF9F27') : '#E07B2A'
+                  const color = dmg ? (dmg.gravite === 'grave' ? '#E24B4A' : '#EF9F27') : '#C8723A'
                   const isSelected = selectedZone === z.id
                   return (
                     <g key={z.id} onClick={() => setSelectedZone(selectedZone === z.id ? null : z.id)} style={{ cursor: 'pointer' }}>
@@ -347,31 +347,31 @@ export default function PretDirectPage() {
               </svg>
 
               {selectedZone && (
-                <div style={{ background: '#FDF0E6', borderRadius: 10, padding: '1rem', border: '1px solid #E07B2A', marginBottom: 12 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: '#2D3748', marginBottom: 10 }}>{ZONES.find(z => z.id === selectedZone)?.label}</div>
+                <div style={{ background: '#FFF0E6', borderRadius: 10, padding: '1rem', border: '1px solid #C8723A', marginBottom: 12 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: '#1C2A2F', marginBottom: 10 }}>{ZONES.find(z => z.id === selectedZone)?.label}</div>
                   <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' as const }}>
-                    <button onClick={() => toggleDommage(selectedZone, 'leger')} style={{ padding: '6px 14px', borderRadius: 8, border: '2px solid ' + (dommages[selectedZone]?.gravite === 'leger' ? '#EF9F27' : '#e8e2d9'), background: dommages[selectedZone]?.gravite === 'leger' ? '#FAEEDA' : 'white', color: '#854F0B', fontWeight: 600, cursor: 'pointer', fontSize: 13 }}>Leger</button>
-                    <button onClick={() => toggleDommage(selectedZone, 'grave')} style={{ padding: '6px 14px', borderRadius: 8, border: '2px solid ' + (dommages[selectedZone]?.gravite === 'grave' ? '#E24B4A' : '#e8e2d9'), background: dommages[selectedZone]?.gravite === 'grave' ? '#FCEBEB' : 'white', color: '#791F1F', fontWeight: 600, cursor: 'pointer', fontSize: 13 }}>Grave</button>
-                    {dommages[selectedZone] && <button onClick={() => { const n = { ...dommages }; delete n[selectedZone]; setDommages(n) }} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e8e2d9', background: 'white', color: '#888', cursor: 'pointer', fontSize: 13 }}>Effacer</button>}
-                    <label style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e8e2d9', background: 'white', color: '#2D3748', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <button onClick={() => toggleDommage(selectedZone, 'leger')} style={{ padding: '6px 14px', borderRadius: 8, border: '2px solid ' + (dommages[selectedZone]?.gravite === 'leger' ? '#EF9F27' : '#EDE5D8'), background: dommages[selectedZone]?.gravite === 'leger' ? '#FFF0E6' : 'white', color: '#7A3E10', fontWeight: 600, cursor: 'pointer', fontSize: 13 }}>Leger</button>
+                    <button onClick={() => toggleDommage(selectedZone, 'grave')} style={{ padding: '6px 14px', borderRadius: 8, border: '2px solid ' + (dommages[selectedZone]?.gravite === 'grave' ? '#E24B4A' : '#EDE5D8'), background: dommages[selectedZone]?.gravite === 'grave' ? '#FCEBEB' : 'white', color: '#791F1F', fontWeight: 600, cursor: 'pointer', fontSize: 13 }}>Grave</button>
+                    {dommages[selectedZone] && <button onClick={() => { const n = { ...dommages }; delete n[selectedZone]; setDommages(n) }} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #EDE5D8', background: '#FFFFFF', color: '#888', cursor: 'pointer', fontSize: 13 }}>Effacer</button>}
+                    <label style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #EDE5D8', background: '#FFFFFF', color: '#1C2A2F', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 4 }}>
                       📷 Photo
                       <input type="file" accept="image/*" capture="environment" onChange={e => handlePhotoUpload(e, selectedZone)} style={{ display: 'none' }} multiple />
                     </label>
                   </div>
-                  {dommages[selectedZone] && <input style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e8e2d9', fontSize: 13, color: '#2D3748' }} placeholder="Description..." value={dommages[selectedZone]?.description || ''} onChange={e => setDommages((p: any) => ({ ...p, [selectedZone]: { ...p[selectedZone], description: e.target.value } }))} />}
+                  {dommages[selectedZone] && <input style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #EDE5D8', fontSize: 13, color: '#1C2A2F' }} placeholder="Description..." value={dommages[selectedZone]?.description || ''} onChange={e => setDommages((p: any) => ({ ...p, [selectedZone]: { ...p[selectedZone], description: e.target.value } }))} />}
                 </div>
               )}
             </div>
 
             {/* Photos */}
-            <div style={{ background: 'white', borderRadius: 12, padding: '1.25rem', border: '1px solid #e8e2d9', marginBottom: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 12 }}>Photos du vehicule</div>
+            <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '1.25rem', border: '1px solid #EDE5D8', marginBottom: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#C8723A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 12 }}>Photos du vehicule</div>
               <div style={{ display: 'flex', gap: 10, marginBottom: 12, flexWrap: 'wrap' as const }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 10, border: '2px solid #E07B2A', background: '#FDF0E6', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#E07B2A' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 10, border: '2px solid #C8723A', background: '#FFF0E6', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#C8723A' }}>
                   📷 Prendre une photo
                   <input type="file" accept="image/*" capture="environment" onChange={e => handlePhotoUpload(e)} style={{ display: 'none' }} multiple />
                 </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 10, border: '1px solid #e8e2d9', background: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#2D3748' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 10, border: '1px solid #EDE5D8', background: '#FFFFFF', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#1C2A2F' }}>
                   🖼 Importer
                   <input type="file" accept="image/*" onChange={e => handlePhotoUpload(e)} style={{ display: 'none' }} multiple />
                 </label>
@@ -390,19 +390,19 @@ export default function PretDirectPage() {
             </div>
 
             {/* Signature */}
-            <div style={{ background: 'white', borderRadius: 12, padding: '1.25rem', border: '1px solid #e8e2d9', marginBottom: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 8 }}>Signature client</div>
+            <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '1.25rem', border: '1px solid #EDE5D8', marginBottom: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#C8723A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 8 }}>Signature client</div>
               <canvas ref={sigCanvas} width={800} height={150}
-                style={{ border: '1.5px dashed #e8e2d9', borderRadius: 8, width: '100%', cursor: 'crosshair', background: '#fafafa', display: 'block', touchAction: 'none' }}
+                style={{ border: '1.5px dashed #EDE5D8', borderRadius: 8, width: '100%', cursor: 'crosshair', background: '#fafafa', display: 'block', touchAction: 'none' }}
                 onMouseDown={startDraw} onMouseMove={draw} onMouseUp={() => setDrawing(false)} onMouseLeave={() => setDrawing(false)}
                 onTouchStart={startDrawTouch} onTouchMove={drawTouch} onTouchEnd={() => setDrawing(false)}
               />
-              <button onClick={() => { sigCanvas.current!.getContext('2d')!.clearRect(0, 0, 800, 150); setHasSig(false) }} style={{ marginTop: 8, fontSize: 12, padding: '4px 12px', borderRadius: 6, border: '1px solid #e8e2d9', background: 'white', cursor: 'pointer', color: '#888' }}>Effacer</button>
+              <button onClick={() => { sigCanvas.current!.getContext('2d')!.clearRect(0, 0, 800, 150); setHasSig(false) }} style={{ marginTop: 8, fontSize: 12, padding: '4px 12px', borderRadius: 6, border: '1px solid #EDE5D8', background: '#FFFFFF', cursor: 'pointer', color: '#888' }}>Effacer</button>
             </div>
 
             <div style={{ display: 'flex', gap: 12 }}>
-              <button onClick={() => setEtape('infos')} style={{ padding: '12px 20px', borderRadius: 10, border: '1px solid #e8e2d9', background: 'white', cursor: 'pointer', fontSize: 14, color: '#2D3748' }}>← Retour</button>
-              <button onClick={handleSave} disabled={saving} style={{ flex: 1, padding: '14px', borderRadius: 12, border: 'none', background: saving ? '#ccc' : '#3B6D11', color: 'white', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 15, fontWeight: 700 }}>
+              <button onClick={() => setEtape('infos')} style={{ padding: '12px 20px', borderRadius: 10, border: '1px solid #EDE5D8', background: '#FFFFFF', cursor: 'pointer', fontSize: 14, color: '#1C2A2F' }}>← Retour</button>
+              <button onClick={handleSave} disabled={saving} style={{ flex: 1, padding: '14px', borderRadius: 12, border: 'none', background: saving ? '#ccc' : '#2A6B3A', color: 'white', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 15, fontWeight: 700 }}>
                 {saving ? 'Enregistrement...' : '✓ Valider le pret et l etat des lieux'}
               </button>
             </div>

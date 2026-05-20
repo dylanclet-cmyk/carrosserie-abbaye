@@ -4,13 +4,11 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 
-export default function PlanningPage() {
-  const [dossiers, setDossiers] = useState<any[]>([])
-  const [salaries, setSalaries] = useState<any[]>([])
+export default function CourtoisPlanningPage() {
+  const [vehicules, setVehicules] = useState<any[]>([])
+  const [prets, setPrets] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [moisActuel, setMoisActuel] = useState(new Date())
-  const [onglet, setOnglet] = useState<'vehicules' | 'equipe'>('vehicules')
-  const [filtreStatut, setFiltreStatut] = useState('tous')
   const router = useRouter()
   const supabase = createClient()
 
@@ -18,10 +16,10 @@ export default function PlanningPage() {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
-      const { data: dos } = await supabase.from('dossiers').select('*, clients(*), salaries(*)').not('statut', 'eq', 'facture').order('date_entree')
-      setDossiers(dos || [])
-      const { data: sals } = await supabase.from('salaries').select('*').eq('actif', true).eq('role', 'technicien')
-      setSalaries(sals || [])
+      const { data: v } = await supabase.from('vehicules_courtoisie').select('*').eq('actif', true).order('immatriculation')
+      setVehicules(v || [])
+      const { data: p } = await supabase.from('prets_courtoisie').select('*, vehicules_courtoisie(*), dossiers(*, clients(*))').order('date_debut')
+      setPrets(p || [])
       setLoading(false)
     }
     load()
@@ -32,36 +30,14 @@ export default function PlanningPage() {
   const nbJours = new Date(annee, mois + 1, 0).getDate()
   const nomsMois = ['Janvier', 'Fevrier', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Aout', 'Septembre', 'Octobre', 'Novembre', 'Decembre']
   const today = new Date()
-  const colors = ['#E07B2A', '#185FA5', '#3B6D11', '#854F0B', '#3C3489', '#A32D2D', '#0C7C7C']
+  const colors = ['#C8723A', '#185FA5', '#2A6B3A', '#7A3E10', '#3C3489', '#A32D2D']
 
-  const statusColors: any = {
-    en_attente_signature: { label: 'En attente', color: '#854F0B', bg: '#FAEEDA' },
-    en_cours: { label: 'En cours', color: '#0C447C', bg: '#E6F1FB' },
-    pret_restituer: { label: 'Pret restituer', color: '#27500A', bg: '#EAF3DE' },
-    termine: { label: 'Termine', color: '#444', bg: '#F1EFE8' },
-  }
-
-  const dossiersFiltres = dossiers.filter(d => {
-    if (filtreStatut !== 'tous' && d.statut !== filtreStatut) return false
-    const debut = new Date(d.date_entree)
-    const fin = d.date_sortie_prevue ? new Date(d.date_sortie_prevue) : new Date(annee, mois + 1, 0)
-    const debutMois = new Date(annee, mois, 1)
-    const finMois = new Date(annee, mois + 1, 0)
-    return debut <= finMois && fin >= debutMois
-  })
-
-  async function updateDateSortie(dossierId: string, date: string) {
-    await supabase.from('dossiers').update({ date_sortie_prevue: date || null }).eq('id', dossierId)
-    setDossiers(dossiers.map(d => d.id === dossierId ? { ...d, date_sortie_prevue: date || null } : d))
-  }
-
-  function getDossiersDuJour(salarieId: string, jour: number) {
+  function getPretsForDay(vehiculeId: string, jour: number) {
     const date = new Date(annee, mois, jour)
-    return dossiers.filter(d => {
-      if (d.salarie_id !== salarieId) return false
-      const debut = new Date(d.date_entree)
-      const fin = d.date_sortie_prevue ? new Date(d.date_sortie_prevue) : null
-      if (!fin) return date >= debut
+    return prets.filter(p => {
+      if (p.vehicule_id !== vehiculeId) return false
+      const debut = new Date(p.date_debut)
+      const fin = p.date_retour ? new Date(p.date_retour) : new Date(p.date_fin_prevue)
       return date >= debut && date <= fin
     })
   }
@@ -69,276 +45,114 @@ export default function PlanningPage() {
   if (loading) return <div style={{ padding: '2rem', fontFamily: 'system-ui', color: '#888' }}>Chargement...</div>
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8f6f3', fontFamily: 'system-ui, sans-serif' }}>
-      <div style={{ background: '#2D3748', padding: '0 2rem', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <div style={{ minHeight: '100vh', background: '#FAF7F2', fontFamily: 'system-ui, sans-serif' }}>
+      <div style={{ background: '#C8723A', padding: '0 1.5rem', height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button onClick={() => router.push('/')} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: '#e8e2d9' }}>← Retour</button>
-          <img src="/logo.png" alt="Logo" style={{ height: 44, objectFit: 'contain' }} />
-          <span style={{ color: 'white', fontSize: 15, fontWeight: 600 }}>Planning atelier</span>
+          <button onClick={() => router.push('/courtoisie')} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: '#EDE5D8' }}>← Retour</button>
+          <img src="/logo.png" alt="Logo" style={{ height: 34, objectFit: 'contain' }} />
+          <span style={{ color: '#FAF7F2', fontSize: 14, fontWeight: 500 }}>Planning vehicules courtoisie</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button onClick={() => setOnglet('vehicules')} style={{ padding: '7px 16px', borderRadius: 8, border: 'none', background: onglet === 'vehicules' ? '#E07B2A' : 'transparent', color: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>🚗 Vehicules</button>
-          <button onClick={() => setOnglet('equipe')} style={{ padding: '7px 16px', borderRadius: 8, border: 'none', background: onglet === 'equipe' ? '#E07B2A' : 'transparent', color: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>👥 Equipe</button>
           <button onClick={() => setMoisActuel(new Date(annee, mois - 1, 1))} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: 'white', fontSize: 14 }}>←</button>
           <span style={{ color: 'white', fontSize: 14, fontWeight: 600, minWidth: 150, textAlign: 'center' as const }}>{nomsMois[mois]} {annee}</span>
           <button onClick={() => setMoisActuel(new Date(annee, mois + 1, 1))} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: 'white', fontSize: 14 }}>→</button>
         </div>
       </div>
 
-      <div style={{ padding: '1.5rem 2rem' }}>
-
-        {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
-          {['en_attente_signature', 'en_cours', 'pret_restituer', 'termine'].map(s => {
-            const count = dossiers.filter(d => d.statut === s).length
-            const sc = statusColors[s]
-            return (
-              <div key={s} onClick={() => setFiltreStatut(filtreStatut === s ? 'tous' : s)} style={{ background: 'white', borderRadius: 10, padding: '0.75rem 1rem', border: filtreStatut === s ? '2px solid #E07B2A' : '1px solid #e8e2d9', cursor: 'pointer' }}>
-                <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>{sc?.label}</div>
-                <div style={{ fontSize: 22, fontWeight: 700, color: '#2D3748' }}>{count}</div>
-              </div>
-            )
-          })}
+      <div style={{ padding: '20px 16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
+          <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '1rem', border: '1px solid #EDE5D8' }}>
+            <div style={{ fontSize: 12, color: '#888', marginBottom: 4 }}>Vehicules dans la flotte</div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: '#1C2A2F' }}>{vehicules.length}</div>
+          </div>
+          <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '1rem', border: '1px solid #EDE5D8' }}>
+            <div style={{ fontSize: 12, color: '#888', marginBottom: 4 }}>Prets ce mois</div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: '#C8723A' }}>{prets.filter(p => { const d = new Date(p.date_debut); return d.getMonth() === mois && d.getFullYear() === annee }).length}</div>
+          </div>
+          <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '1rem', border: '1px solid #EDE5D8' }}>
+            <div style={{ fontSize: 12, color: '#888', marginBottom: 4 }}>En cours aujourd hui</div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: '#2A6B3A' }}>{prets.filter(p => p.statut === 'en_cours').length}</div>
+          </div>
         </div>
 
-        {/* ONGLET VEHICULES */}
-        {onglet === 'vehicules' && (
-          <>
-            <div style={{ background: 'white', borderRadius: 12, padding: '1.5rem', border: '1px solid #e8e2d9', marginBottom: 20, overflowX: 'auto' as const }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 16 }}>Calendrier des vehicules</div>
-              <div style={{ minWidth: 900 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '200px repeat(' + nbJours + ', 1fr)', gap: 1, marginBottom: 4 }}>
-                  <div style={{ fontSize: 12, color: '#888', padding: '4px 8px', fontWeight: 600 }}>Dossier</div>
-                  {Array.from({ length: nbJours }, (_, i) => {
-                    const date = new Date(annee, mois, i + 1)
-                    const isToday = date.toDateString() === today.toDateString()
-                    const isWeekend = date.getDay() === 0 || date.getDay() === 6
-                    return (
-                      <div key={i} style={{ fontSize: 10, textAlign: 'center' as const, padding: '4px 2px', color: isToday ? '#E07B2A' : isWeekend ? '#ccc' : '#888', fontWeight: isToday ? 700 : 400, background: isToday ? '#FDF0E6' : isWeekend ? '#f8f6f3' : 'white', borderRadius: 3 }}>
-                        <div>{i + 1}</div>
-                        <div style={{ fontSize: 8 }}>{'LMMJVSD'[date.getDay()]}</div>
-                      </div>
-                    )
-                  })}
-                </div>
-                {dossiersFiltres.length === 0 ? (
-                  <div style={{ textAlign: 'center' as const, padding: '2rem', color: '#888', fontSize: 13 }}>Aucun dossier ce mois</div>
-                ) : dossiersFiltres.map((d, di) => {
-                  const color = colors[di % colors.length]
-                  const sc = statusColors[d.statut]
-                  return (
-                    <div key={d.id} style={{ display: 'grid', gridTemplateColumns: '200px repeat(' + nbJours + ', 1fr)', gap: 1, marginBottom: 3 }}>
-                      <div onClick={() => router.push('/dossier/' + d.id)} style={{ padding: '6px 8px', background: 'white', borderRadius: 6, cursor: 'pointer', borderLeft: '3px solid ' + color }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: '#2D3748', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{d.immatriculation}</div>
-                        <div style={{ fontSize: 10, color: '#888', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{d.clients?.prenom} {d.clients?.nom}</div>
-                        {d.salaries && <div style={{ fontSize: 9, color: '#E07B2A' }}>{d.salaries.prenom}</div>}
-                        <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 10, background: sc?.bg, color: sc?.color }}>{sc?.label}</span>
-                      </div>
-                      {Array.from({ length: nbJours }, (_, i) => {
-                        const date = new Date(annee, mois, i + 1)
-                        const debut = new Date(d.date_entree)
-                        const fin = d.date_sortie_prevue ? new Date(d.date_sortie_prevue) : null
-                        const isWeekend = date.getDay() === 0 || date.getDay() === 6
-                        const isToday = date.toDateString() === today.toDateString()
-                        const isInRange = date >= debut && (fin ? date <= fin : true)
-                        const isDebut = debut.toDateString() === date.toDateString()
-                        const isFin = fin && fin.toDateString() === date.toDateString()
-                        const isDepassee = fin && date > fin && !['facture', 'termine'].includes(d.statut)
-                        return (
-                          <div key={i} style={{ height: 36, borderRadius: 3, background: isInRange ? (isDepassee ? '#FCEBEB' : color + '25') : isWeekend ? '#f8f6f3' : isToday ? '#FDF0E6' : 'white', border: isToday && !isInRange ? '1px solid #E07B2A' : '1px solid #f0ede8', borderLeft: isDebut ? ('3px solid ' + color) : undefined, borderRight: isFin ? ('3px solid ' + color) : undefined, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' as const }}>
-                            {isDebut && <span style={{ fontSize: 8, color, fontWeight: 700, position: 'absolute' as const, left: 3 }}>E</span>}
-                            {isFin && <span style={{ fontSize: 8, color, fontWeight: 700, position: 'absolute' as const, right: 3 }}>S</span>}
-                            {isDepassee && isInRange && <span style={{ fontSize: 8, color: '#A32D2D' }}>!</span>}
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Gestion dates de sortie */}
-            <div style={{ background: 'white', borderRadius: 12, padding: '1.5rem', border: '1px solid #e8e2d9' }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 16 }}>Gestion des dates de sortie prevues</div>
-              {dossiers.filter(d => !['facture', 'termine'].includes(d.statut)).map(d => (
-                <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px', background: '#f8f6f3', borderRadius: 8, marginBottom: 8, flexWrap: 'wrap' as const }}>
-                  <div style={{ flex: 1, minWidth: 200 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: '#2D3748' }}>{d.immatriculation} — {d.marque} {d.modele}</div>
-                    <div style={{ fontSize: 12, color: '#888' }}>{d.clients?.prenom} {d.clients?.nom} · Entree le {new Date(d.date_entree).toLocaleDateString('fr-FR')}</div>
-                    {d.salaries && <div style={{ fontSize: 11, color: '#E07B2A' }}>{d.salaries.prenom} {d.salaries.nom}</div>}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: 12, color: '#888' }}>Sortie prevue :</span>
-                    <input type="date" value={d.date_sortie_prevue || ''} onChange={e => updateDateSortie(d.id, e.target.value)} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e8e2d9', fontSize: 13, color: '#2D3748', background: 'white' }} />
-                    {d.date_sortie_prevue && new Date(d.date_sortie_prevue) < today && d.statut !== 'pret_restituer' && (
-                      <span style={{ fontSize: 11, padding: '3px 8px', borderRadius: 20, background: '#FCEBEB', color: '#A32D2D', fontWeight: 600 }}>En retard</span>
-                    )}
-                    {d.date_sortie_prevue && new Date(d.date_sortie_prevue) >= today && (
-                      <span style={{ fontSize: 11, padding: '3px 8px', borderRadius: 20, background: '#EAF3DE', color: '#27500A' }}>
-                        Dans {Math.ceil((new Date(d.date_sortie_prevue).getTime() - today.getTime()) / (1000 * 60 * 60 * 24))} j
-                      </span>
-                    )}
-                  </div>
-                  <button onClick={() => router.push('/dossier/' + d.id)} style={{ padding: '6px 14px', borderRadius: 8, border: '2px solid #E07B2A', background: 'white', cursor: 'pointer', fontSize: 12, color: '#E07B2A', fontWeight: 600 }}>Voir</button>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-
-        {/* ONGLET EQUIPE */}
-        {onglet === 'equipe' && (
-          <>
-            <div style={{ background: 'white', borderRadius: 12, padding: '1.5rem', border: '1px solid #e8e2d9', marginBottom: 20, overflowX: 'auto' as const }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 16 }}>Planning de l equipe</div>
-              <div style={{ minWidth: 900 }}>
-                {/* Header jours */}
-                <div style={{ display: 'grid', gridTemplateColumns: '160px repeat(' + nbJours + ', 1fr)', gap: 1, marginBottom: 4 }}>
-                  <div style={{ fontSize: 12, color: '#888', padding: '4px 8px', fontWeight: 600 }}>Technicien</div>
-                  {Array.from({ length: nbJours }, (_, i) => {
-                    const date = new Date(annee, mois, i + 1)
-                    const isToday = date.toDateString() === today.toDateString()
-                    const isWeekend = date.getDay() === 0 || date.getDay() === 6
-                    return (
-                      <div key={i} style={{ fontSize: 10, textAlign: 'center' as const, padding: '4px 2px', color: isToday ? '#E07B2A' : isWeekend ? '#ccc' : '#888', fontWeight: isToday ? 700 : 400, background: isToday ? '#FDF0E6' : isWeekend ? '#f8f6f3' : 'white', borderRadius: 3 }}>
-                        <div>{i + 1}</div>
-                        <div style={{ fontSize: 8 }}>{'LMMJVSD'[date.getDay()]}</div>
-                      </div>
-                    )
-                  })}
-                </div>
-
-                {salaries.length === 0 ? (
-                  <div style={{ textAlign: 'center' as const, padding: '2rem', color: '#888', fontSize: 13 }}>Aucun technicien</div>
-                ) : salaries.map((sal, si) => {
-                  const color = colors[si % colors.length]
-                  const dossierssal = dossiers.filter(d => d.salarie_id === sal.id && !['facture', 'termine'].includes(d.statut))
-                  return (
-                    <div key={sal.id} style={{ marginBottom: 16 }}>
-                      {/* Header technicien */}
-                      <div style={{ display: 'grid', gridTemplateColumns: '180px repeat(' + nbJours + ', 1fr)', gap: 1, marginBottom: 3 }}>
-                        <div style={{ padding: '10px 12px', background: color + '20', borderRadius: 8, borderLeft: '4px solid ' + color, display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <div style={{ width: 32, height: 32, borderRadius: '50%', background: color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'white', flexShrink: 0 }}>
-                            {sal.prenom?.[0]}{sal.nom?.[0]}
-                          </div>
-                          <div>
-                            <div style={{ fontSize: 13, fontWeight: 700, color: '#2D3748' }}>{sal.prenom} {sal.nom}</div>
-                            <div style={{ fontSize: 11, color: '#888' }}>{dossierssal.length} dossier{dossierssal.length > 1 ? 's' : ''}</div>
-                          </div>
-                        </div>
-                        {Array.from({ length: nbJours }, (_, i) => {
-                          const date = new Date(annee, mois, i + 1)
-                          const isWeekend = date.getDay() === 0 || date.getDay() === 6
-                          const isToday = date.toDateString() === today.toDateString()
-                          const dossiersJour = getDossiersDuJour(sal.id, i + 1)
-                          const nbDoss = dossiersJour.length
-                          return (
-                            <div key={i} title={dossiersJour.map(d => d.immatriculation).join(', ')}
-                              style={{ height: 50, borderRadius: 4, background: isWeekend ? '#f0ede8' : nbDoss > 0 ? color + '35' : isToday ? '#FDF0E6' : 'white', border: isToday ? '2px solid #E07B2A' : '1px solid #e8e2d9', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', gap: 2 }}>
-                              {nbDoss > 0 && (
-                                <>
-                                  <span style={{ fontSize: 14, fontWeight: 700, color }}>{nbDoss}</span>
-                                  <span style={{ fontSize: 8, color: '#888' }}>véh.</span>
-                                </>
-                              )}
-                            </div>
-                          )
-                        })}
-                      </div>
-
-                      {/* Lignes par dossier */}
-                      {dossierssal.map((d, di) => {
-                        const dcolor = color
-                        const sc = statusColors[d.statut]
-                        return (
-                          <div key={d.id} style={{ display: 'grid', gridTemplateColumns: '180px repeat(' + nbJours + ', 1fr)', gap: 1, marginBottom: 2 }}>
-                            <div onClick={() => router.push('/dossier/' + d.id)} style={{ padding: '6px 10px', background: 'white', borderRadius: 6, cursor: 'pointer', borderLeft: '3px solid ' + dcolor, display: 'flex', flexDirection: 'column' as const, justifyContent: 'center', gap: 2 }}>
-                              <div style={{ fontSize: 12, fontWeight: 700, color: '#2D3748', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{d.immatriculation} <span style={{ fontSize: 10, color: '#888', fontWeight: 400 }}>{d.marque}</span></div>
-                              <div style={{ fontSize: 11, color: '#888', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{d.clients?.prenom} {d.clients?.nom}</div>
-                              {sc && <span style={{ fontSize: 9, padding: '1px 6px', borderRadius: 10, background: sc.bg, color: sc.color, fontWeight: 600, alignSelf: 'flex-start' as const }}>{sc.label}</span>}
-                            </div>
-                            {Array.from({ length: nbJours }, (_, i) => {
-                              const date = new Date(annee, mois, i + 1)
-                              const debut = new Date(d.date_entree)
-                              const fin = d.date_sortie_prevue ? new Date(d.date_sortie_prevue) : null
-                              const isWeekend = date.getDay() === 0 || date.getDay() === 6
-                              const isToday = date.toDateString() === today.toDateString()
-                              const isInRange = date >= debut && (fin ? date <= fin : true)
-                              const isDebut = debut.toDateString() === date.toDateString()
-                              const isFin = fin && fin.toDateString() === date.toDateString()
-                              const isDepassee = fin && date > fin
-                              return (
-                                <div key={i} style={{
-                                  height: 38, borderRadius: 3,
-                                  background: isWeekend ? '#f5f3f0' : isInRange ? (isDepassee ? '#FCEBEB' : dcolor + '25') : isToday ? '#FDF0E6' : 'white',
-                                  border: isToday ? '1px solid #E07B2A' : '1px solid #f0ede8',
-                                  borderLeft: isDebut ? ('3px solid ' + dcolor) : undefined,
-                                  borderRight: isFin ? ('3px solid ' + dcolor) : undefined,
-                                  display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' as const
-                                }}>
-                                  {isDebut && <div style={{ position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: 9, color: dcolor, fontWeight: 700, background: dcolor + '30', padding: '1px 4px', borderRadius: 4 }}>Entrée</span></div>}
-                                  {isFin && !isDebut && <div style={{ position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: 9, color: '#27500A', fontWeight: 700, background: '#EAF3DE', padding: '1px 4px', borderRadius: 4 }}>Sortie</span></div>}
-                                  {isDepassee && isInRange && !isFin && <span style={{ fontSize: 9, color: '#A32D2D' }}>!</span>}
-                                </div>
-                              )
-                            })}
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Résumé par technicien */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
-              {salaries.map((sal, si) => {
-                const color = colors[si % colors.length]
-                const dossierssal = dossiers.filter(d => d.salarie_id === sal.id && !['facture', 'termine'].includes(d.statut))
-                const enRetard = dossierssal.filter(d => d.date_sortie_prevue && new Date(d.date_sortie_prevue) < today)
+        <div style={{ background: '#FFFFFF', borderRadius: 10, padding: '1.25rem', border: '1px solid #EDE5D8', overflowX: 'auto' as const, marginBottom: 20 }}>
+          <div style={{ fontSize: 13, fontWeight: 500, color: '#C8723A', textTransform: 'uppercase' as const, letterSpacing: '0.06em', marginBottom: 16 }}>Disponibilite des vehicules</div>
+          <div style={{ minWidth: 900 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '180px repeat(' + nbJours + ', 1fr)', gap: 1, marginBottom: 6 }}>
+              <div style={{ fontSize: 12, color: '#888', padding: '4px 8px', fontWeight: 600 }}>Vehicule</div>
+              {Array.from({ length: nbJours }, (_, i) => {
+                const date = new Date(annee, mois, i + 1)
+                const isToday = date.toDateString() === today.toDateString()
+                const isWeekend = date.getDay() === 0 || date.getDay() === 6
                 return (
-                  <div key={sal.id} style={{ background: 'white', borderRadius: 12, padding: '1.25rem', border: enRetard.length > 0 ? '2px solid #E24B4A' : '1px solid #e8e2d9' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                      <div style={{ width: 40, height: 40, borderRadius: '50%', background: color + '20', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color, flexShrink: 0 }}>
-                        {sal.prenom?.[0]}{sal.nom?.[0]}
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 14, fontWeight: 700, color: '#2D3748' }}>{sal.prenom} {sal.nom}</div>
-                        <div style={{ fontSize: 12, color: '#888' }}>{dossierssal.length} dossier{dossierssal.length > 1 ? 's' : ''} en cours</div>
-                      </div>
-                      {enRetard.length > 0 && <span style={{ marginLeft: 'auto', fontSize: 11, padding: '3px 8px', borderRadius: 20, background: '#FCEBEB', color: '#A32D2D', fontWeight: 600 }}>{enRetard.length} en retard</span>}
-                    </div>
-                    {dossierssal.length === 0 ? (
-                      <div style={{ fontSize: 12, color: '#888', textAlign: 'center' as const, padding: '0.5rem' }}>Aucun dossier assigne</div>
-                    ) : dossierssal.map(d => (
-                      <div key={d.id} onClick={() => router.push('/dossier/' + d.id)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', background: '#f8f6f3', borderRadius: 6, marginBottom: 4, cursor: 'pointer' }}>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: 12, fontWeight: 600, color: '#2D3748' }}>{d.immatriculation} — {d.marque} {d.modele}</div>
-                          <div style={{ fontSize: 11, color: '#888' }}>{d.clients?.prenom} {d.clients?.nom}</div>
-                          {d.date_sortie_prevue && (
-                            <div style={{ fontSize: 10, color: new Date(d.date_sortie_prevue) < today ? '#A32D2D' : '#3B6D11', fontWeight: 600 }}>
-                              Sortie : {new Date(d.date_sortie_prevue).toLocaleDateString('fr-FR')}
-                              {new Date(d.date_sortie_prevue) < today ? ' ⚠ EN RETARD' : ''}
-                            </div>
-                          )}
-                        </div>
-                        <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 10, background: statusColors[d.statut]?.bg, color: statusColors[d.statut]?.color }}>{statusColors[d.statut]?.label}</span>
-                      </div>
-                    ))}
+                  <div key={i} style={{ fontSize: 10, textAlign: 'center' as const, padding: '4px 2px', color: isToday ? '#C8723A' : isWeekend ? '#ccc' : '#888', fontWeight: isToday ? 700 : 400, background: isToday ? '#FFF0E6' : isWeekend ? '#FAF7F2' : 'white', borderRadius: 3 }}>
+                    <div>{i + 1}</div>
+                    <div style={{ fontSize: 8 }}>{'LMMJVSD'[date.getDay()]}</div>
                   </div>
                 )
               })}
             </div>
-          </>
-        )}
 
-        {/* Legende */}
-        <div style={{ marginTop: 16, display: 'flex', gap: 20, flexWrap: 'wrap' as const }}>
-          <span style={{ fontSize: 12, color: '#888', display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ display: 'inline-block', width: 16, height: 12, background: '#E07B2A25', borderLeft: '3px solid #E07B2A', borderRadius: 2 }} />En atelier (E=entree S=sortie)</span>
-          <span style={{ fontSize: 12, color: '#888', display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ display: 'inline-block', width: 16, height: 12, background: '#FCEBEB', borderRadius: 2 }} />Date depassee</span>
-          <span style={{ fontSize: 12, color: '#888', display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ display: 'inline-block', width: 16, height: 12, background: '#FDF0E6', border: '1px solid #E07B2A', borderRadius: 2 }} />Aujourd hui</span>
+            {vehicules.map((v, vi) => {
+              const color = colors[vi % colors.length]
+              return (
+                <div key={v.id} style={{ display: 'grid', gridTemplateColumns: '180px repeat(' + nbJours + ', 1fr)', gap: 1, marginBottom: 4 }}>
+                  <div style={{ padding: '8px 10px', background: '#FFFFFF', borderRadius: 6, borderLeft: '3px solid ' + color }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#1C2A2F' }}>{v.immatriculation}</div>
+                    <div style={{ fontSize: 10, color: '#888' }}>{v.marque} {v.modele} {v.couleur ? '· ' + v.couleur : ''}</div>
+                  </div>
+                  {Array.from({ length: nbJours }, (_, i) => {
+                    const date = new Date(annee, mois, i + 1)
+                    const isWeekend = date.getDay() === 0 || date.getDay() === 6
+                    const isToday = date.toDateString() === today.toDateString()
+                    const pretsJour = getPretsForDay(v.id, i + 1)
+                    const isOccupe = pretsJour.length > 0
+                    const pret = pretsJour[0]
+                    const isDebut = pret && new Date(pret.date_debut).toDateString() === date.toDateString()
+                    const finDate = pret ? (pret.date_retour ? new Date(pret.date_retour) : new Date(pret.date_fin_prevue)) : null
+                    const isFin = pret && finDate && finDate.toDateString() === date.toDateString()
+                    const isEnRetard = pret && pret.statut === 'en_cours' && new Date(pret.date_fin_prevue) < today
+                    return (
+                      <div key={i} title={pret ? (pret.dossiers?.clients?.prenom + ' ' + pret.dossiers?.clients?.nom) : 'Disponible'}
+                        style={{ height: 44, borderRadius: 3, background: isWeekend ? '#f5f3f0' : isOccupe ? (isEnRetard ? '#FCEBEB' : color + '30') : isToday ? '#FFF0E6' : '#EBF5EE', border: isToday ? '1px solid #C8723A' : '1px solid #f0ede8', borderLeft: isDebut ? ('3px solid ' + color) : undefined, borderRight: isFin ? ('3px solid ' + color) : undefined, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' as const }}>
+                        {isDebut && <span style={{ fontSize: 8, color, fontWeight: 700, background: color + '20', padding: '1px 4px', borderRadius: 3 }}>Depart</span>}
+                        {isFin && !isDebut && <span style={{ fontSize: 8, color: '#2A6B3A', fontWeight: 700, background: '#EBF5EE', padding: '1px 4px', borderRadius: 3 }}>Retour</span>}
+                        {!isOccupe && !isWeekend && <span style={{ fontSize: 8, color: '#2A6B3A', fontWeight: 600 }}>✓</span>}
+                        {isEnRetard && isOccupe && <span style={{ fontSize: 9, color: '#A32D2D' }}>!</span>}
+                      </div>
+                    )
+                  })}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' as const, marginBottom: 20 }}>
+          <span style={{ fontSize: 12, color: '#888', display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ display: 'inline-block', width: 16, height: 12, background: '#EBF5EE', borderRadius: 2 }} />Disponible</span>
+          <span style={{ fontSize: 12, color: '#888', display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ display: 'inline-block', width: 16, height: 12, background: '#C8723A30', borderRadius: 2 }} />En pret</span>
+          <span style={{ fontSize: 12, color: '#888', display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ display: 'inline-block', width: 16, height: 12, background: '#FCEBEB', borderRadius: 2 }} />En retard</span>
+          <span style={{ fontSize: 12, color: '#888', display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ display: 'inline-block', width: 16, height: 12, background: '#FFF0E6', border: '1px solid #C8723A', borderRadius: 2 }} />Aujourd hui</span>
+        </div>
+
+        <div style={{ background: '#FFFFFF', borderRadius: 10, padding: '1.25rem', border: '1px solid #EDE5D8' }}>
+          <div style={{ fontSize: 13, fontWeight: 500, color: '#C8723A', textTransform: 'uppercase' as const, letterSpacing: '0.06em', marginBottom: 16 }}>Historique des prets</div>
+          {prets.filter(p => { const d = new Date(p.date_debut); return d.getMonth() === mois && d.getFullYear() === annee }).length === 0 ? (
+            <div style={{ textAlign: 'center' as const, color: '#888', fontSize: 13, padding: '1rem' }}>Aucun pret ce mois</div>
+          ) : prets.filter(p => { const d = new Date(p.date_debut); return d.getMonth() === mois && d.getFullYear() === annee }).map(p => {
+            const enRetard = p.statut === 'en_cours' && new Date(p.date_fin_prevue) < today
+            return (
+              <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px', background: '#FAF7F2', borderRadius: 8, marginBottom: 8 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#1C2A2F' }}>{p.vehicules_courtoisie?.immatriculation} — {p.vehicules_courtoisie?.marque} {p.vehicules_courtoisie?.modele}</div>
+                  <div style={{ fontSize: 12, color: '#888' }}>{p.dossiers?.clients?.prenom} {p.dossiers?.clients?.nom} · Du {new Date(p.date_debut).toLocaleDateString('fr-FR')} au {new Date(p.date_fin_prevue).toLocaleDateString('fr-FR')}</div>
+                </div>
+                <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, background: p.statut === 'rendu' ? '#EBF5EE' : enRetard ? '#FCEBEB' : '#FFF0E6', color: p.statut === 'rendu' ? '#2A6B3A' : enRetard ? '#791F1F' : '#7A3E10', fontWeight: 600 }}>
+                  {p.statut === 'rendu' ? 'Rendu' : enRetard ? 'En retard' : 'En pret'}
+                </span>
+              </div>
+            )
+          })}
         </div>
       </div>
     </div>

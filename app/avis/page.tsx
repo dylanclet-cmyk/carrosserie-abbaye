@@ -95,26 +95,26 @@ export default function AvisPage() {
 
     if (saved) {
       return (
-        <div style={{ minHeight: '100vh', background: '#f8f6f3', fontFamily: 'system-ui', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: 'white', borderRadius: 20, padding: '3rem', maxWidth: 480, width: '90%', textAlign: 'center' as const, boxShadow: '0 4px 30px rgba(0,0,0,0.08)' }}>
+        <div style={{ minHeight: '100vh', background: '#FAF7F2', fontFamily: 'system-ui', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#FFFFFF', borderRadius: 20, padding: '3rem', maxWidth: 480, width: '90%', textAlign: 'center' as const, boxShadow: '0 4px 30px rgba(0,0,0,0.08)' }}>
             <div style={{ fontSize: 64, marginBottom: 16 }}>🙏</div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: '#2D3748', marginBottom: 8 }}>Merci pour votre avis !</div>
+            <div style={{ fontSize: 22, fontWeight: 700, color: '#1C2A2F', marginBottom: 8 }}>Merci pour votre avis !</div>
             <div style={{ fontSize: 14, color: '#888', marginBottom: 24 }}>Votre retour nous aide a nous ameliorer.</div>
             {renderStars(note, 36)}
-            <div style={{ marginTop: 24, fontSize: 14, color: '#2D3748', fontWeight: 600 }}>Carrosserie de l Abbaye</div>
+            <div style={{ marginTop: 24, fontSize: 14, color: '#1C2A2F', fontWeight: 600 }}>Carrosserie de l Abbaye</div>
           </div>
         </div>
       )
     }
 
     return (
-      <div style={{ minHeight: '100vh', background: '#f8f6f3', fontFamily: 'system-ui', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-        <div style={{ background: 'white', borderRadius: 20, padding: '2rem', maxWidth: 500, width: '100%', boxShadow: '0 4px 30px rgba(0,0,0,0.08)' }}>
+      <div style={{ minHeight: '100vh', background: '#FAF7F2', fontFamily: 'system-ui', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+        <div style={{ background: '#FFFFFF', borderRadius: 20, padding: '2rem', maxWidth: 500, width: '100%', boxShadow: '0 4px 30px rgba(0,0,0,0.08)' }}>
           <div style={{ textAlign: 'center' as const, marginBottom: 24 }}>
             <img src="/logo.png" alt="Logo" style={{ height: 60, objectFit: 'contain', marginBottom: 12 }} />
-            <div style={{ fontSize: 20, fontWeight: 700, color: '#2D3748', marginBottom: 4 }}>Comment s est passee votre reparation ?</div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#1C2A2F', marginBottom: 4 }}>Comment s est passee votre reparation ?</div>
             <div style={{ fontSize: 13, color: '#888' }}>{dossier.immatriculation} — {dossier.marque} {dossier.modele}</div>
-            {dossier.salaries && <div style={{ fontSize: 13, color: '#E07B2A', marginTop: 4 }}>Technicien : {dossier.salaries.prenom} {dossier.salaries.nom}</div>}
+            {dossier.salaries && <div style={{ fontSize: 13, color: '#C8723A', marginTop: 4 }}>Technicien : {dossier.salaries.prenom} {dossier.salaries.nom}</div>}
           </div>
 
           <div style={{ textAlign: 'center' as const, marginBottom: 24 }}>
@@ -123,7 +123,7 @@ export default function AvisPage() {
               {renderStars(note, 44, true, setHoverNote, setNote)}
             </div>
             {note > 0 && (
-              <div style={{ marginTop: 8, fontSize: 14, fontWeight: 600, color: note >= 4 ? '#3B6D11' : note >= 3 ? '#854F0B' : '#A32D2D' }}>
+              <div style={{ marginTop: 8, fontSize: 14, fontWeight: 600, color: note >= 4 ? '#2A6B3A' : note >= 3 ? '#7A3E10' : '#A32D2D' }}>
                 {note === 5 ? 'Excellent !' : note === 4 ? 'Tres bien !' : note === 3 ? 'Bien' : note === 2 ? 'Peut mieux faire' : 'Decevant'}
               </div>
             )}
@@ -133,10 +133,10 @@ export default function AvisPage() {
             <label style={{ fontSize: 13, color: '#888', display: 'block', marginBottom: 6 }}>Un commentaire ? (optionnel)</label>
             <textarea value={commentaire} onChange={e => setCommentaire(e.target.value)}
               placeholder="Dites-nous ce que vous avez pense de notre service..."
-              style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e8e2d9', fontSize: 14, color: '#2D3748', minHeight: 90, resize: 'none' as const, fontFamily: 'system-ui', boxSizing: 'border-box' as const }} />
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #EDE5D8', fontSize: 14, color: '#1C2A2F', minHeight: 90, resize: 'none' as const, fontFamily: 'system-ui', boxSizing: 'border-box' as const }} />
           </div>
 
-          <button onClick={submitAvis} disabled={saving || note === 0} style={{ width: '100%', padding: '14px', borderRadius: 12, border: 'none', background: note === 0 ? '#ccc' : '#E07B2A', color: 'white', cursor: note === 0 ? 'not-allowed' : 'pointer', fontSize: 15, fontWeight: 700 }}>
+          <button onClick={submitAvis} disabled={saving || note === 0} style={{ width: '100%', padding: '14px', borderRadius: 12, border: 'none', background: note === 0 ? '#ccc' : '#C8723A', color: 'white', cursor: note === 0 ? 'not-allowed' : 'pointer', fontSize: 15, fontWeight: 700 }}>
             {saving ? 'Envoi...' : 'Envoyer mon avis'}
           </button>
         </div>
@@ -148,49 +148,49 @@ export default function AvisPage() {
   const encourage = getEncouragement(moyenneNote)
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8f6f3', fontFamily: 'system-ui, sans-serif' }}>
-      <div style={{ background: '#2D3748', padding: '0 2rem', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <div style={{ minHeight: '100vh', background: '#FAF7F2', fontFamily: 'system-ui, sans-serif' }}>
+      <div style={{ background: '#C8723A', padding: '0 1.5rem', height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button onClick={() => router.push('/')} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: '#e8e2d9' }}>← Retour</button>
-          <img src="/logo.png" alt="Logo" style={{ height: 44, objectFit: 'contain' }} />
-          <span style={{ color: 'white', fontSize: 15, fontWeight: 600 }}>Mes avis clients</span>
+          <button onClick={() => router.push('/')} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: '#EDE5D8' }}>← Retour</button>
+          <img src="/logo.png" alt="Logo" style={{ height: 34, objectFit: 'contain' }} />
+          <span style={{ color: '#FAF7F2', fontSize: 14, fontWeight: 500 }}>Mes avis clients</span>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={() => setOnglet('laisser')} style={{ padding: '7px 16px', borderRadius: 8, border: 'none', background: onglet === 'laisser' ? '#E07B2A' : 'transparent', color: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Ma note</button>
-          <button onClick={() => setOnglet('lire')} style={{ padding: '7px 16px', borderRadius: 8, border: 'none', background: onglet === 'lire' ? '#E07B2A' : 'transparent', color: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Tous les avis ({avis.length})</button>
+          <button onClick={() => setOnglet('laisser')} style={{ padding: '7px 16px', borderRadius: 8, border: 'none', background: onglet === 'laisser' ? '#C8723A' : 'transparent', color: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Ma note</button>
+          <button onClick={() => setOnglet('lire')} style={{ padding: '7px 16px', borderRadius: 8, border: 'none', background: onglet === 'lire' ? '#C8723A' : 'transparent', color: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Tous les avis ({avis.length})</button>
         </div>
       </div>
 
-      <div style={{ padding: '1.5rem 2rem', maxWidth: 800, margin: '0 auto' }}>
+      <div style={{ padding: '20px 16px', maxWidth: 820, margin: '0 auto' }}>
 
         {onglet === 'laisser' && (
           <>
             {/* Carte note globale */}
-            <div style={{ background: moyenneNote >= 4 ? '#EAF3DE' : moyenneNote >= 3 ? '#FDF0E6' : 'white', borderRadius: 16, padding: '2rem', border: '1px solid #e8e2d9', marginBottom: 20, textAlign: 'center' as const }}>
+            <div style={{ background: moyenneNote >= 4 ? '#EBF5EE' : moyenneNote >= 3 ? '#FFF0E6' : 'white', borderRadius: 16, padding: '2rem', border: '1px solid #EDE5D8', marginBottom: 20, textAlign: 'center' as const }}>
               <div style={{ fontSize: 48, marginBottom: 8 }}>{encourage.emoji}</div>
               <div style={{ fontSize: 13, color: '#888', marginBottom: 8 }}>Votre note moyenne</div>
-              <div style={{ fontSize: 56, fontWeight: 700, color: moyenneNote >= 4 ? '#3B6D11' : moyenneNote >= 3 ? '#854F0B' : '#A32D2D', marginBottom: 8 }}>
+              <div style={{ fontSize: 56, fontWeight: 700, color: moyenneNote >= 4 ? '#2A6B3A' : moyenneNote >= 3 ? '#7A3E10' : '#A32D2D', marginBottom: 8 }}>
                 {moyenneNote > 0 ? moyenneNote.toFixed(1) : '—'}
               </div>
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
                 {moyenneNote > 0 ? renderStars(Math.round(moyenneNote), 28) : <span style={{ fontSize: 13, color: '#888' }}>Aucun avis pour le moment</span>}
               </div>
-              <div style={{ fontSize: 15, fontWeight: 600, color: '#2D3748' }}>{encourage.texte}</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: '#1C2A2F' }}>{encourage.texte}</div>
               <div style={{ fontSize: 12, color: '#888', marginTop: 8 }}>{avis.length} avis au total</div>
             </div>
 
             {/* Stats par note */}
             {avis.length > 0 && (
-              <div style={{ background: 'white', borderRadius: 12, padding: '1.25rem', border: '1px solid #e8e2d9', marginBottom: 20 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 12 }}>Repartition des notes</div>
+              <div style={{ background: '#FFFFFF', borderRadius: 10, padding: '1rem 1.25rem', border: '1px solid #EDE5D8', marginBottom: 20 }}>
+                <div style={{ fontSize: 13, fontWeight: 500, color: '#C8723A', textTransform: 'uppercase' as const, letterSpacing: '0.06em', marginBottom: 12 }}>Repartition des notes</div>
                 {[5, 4, 3, 2, 1].map(n => {
                   const count = avis.filter(a => a.note === n).length
                   const pct = avis.length > 0 ? (count / avis.length) * 100 : 0
                   return (
                     <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                      <span style={{ fontSize: 13, color: '#2D3748', minWidth: 20 }}>{n}⭐</span>
+                      <span style={{ fontSize: 13, color: '#1C2A2F', minWidth: 20 }}>{n}⭐</span>
                       <div style={{ flex: 1, height: 10, background: '#f0ede8', borderRadius: 5, overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: pct + '%', background: n >= 4 ? '#3B6D11' : n === 3 ? '#EF9F27' : '#E24B4A', borderRadius: 5 }} />
+                        <div style={{ height: '100%', width: pct + '%', background: n >= 4 ? '#2A6B3A' : n === 3 ? '#EF9F27' : '#E24B4A', borderRadius: 5 }} />
                       </div>
                       <span style={{ fontSize: 12, color: '#888', minWidth: 30 }}>{count}</span>
                     </div>
@@ -204,14 +204,14 @@ export default function AvisPage() {
         {onglet === 'lire' && (
           <div>
             {avis.length === 0 ? (
-              <div style={{ background: 'white', borderRadius: 12, padding: '2rem', textAlign: 'center' as const, color: '#888', border: '1px solid #e8e2d9' }}>
+              <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '2rem', textAlign: 'center' as const, color: '#888', border: '1px solid #EDE5D8' }}>
                 Aucun avis pour le moment
               </div>
             ) : avis.map(a => (
-              <div key={a.id} style={{ background: 'white', borderRadius: 12, padding: '1.25rem', border: '1px solid #e8e2d9', marginBottom: 10 }}>
+              <div key={a.id} style={{ background: '#FFFFFF', borderRadius: 10, padding: '1rem 1.25rem', border: '1px solid #EDE5D8', marginBottom: 10 }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8 }}>
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#2D3748' }}>{a.client_nom || 'Client anonyme'}</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: '#1C2A2F' }}>{a.client_nom || 'Client anonyme'}</div>
                     {a.dossiers && <div style={{ fontSize: 12, color: '#888' }}>{a.dossiers.immatriculation} — {a.dossiers.marque} {a.dossiers.modele}</div>}
                     <div style={{ fontSize: 11, color: '#aaa', marginTop: 2 }}>{new Date(a.created_at).toLocaleDateString('fr-FR')}</div>
                   </div>
@@ -220,7 +220,7 @@ export default function AvisPage() {
                   </div>
                 </div>
                 {a.commentaire && (
-                  <div style={{ background: '#f8f6f3', borderRadius: 8, padding: '10px 12px', fontSize: 14, color: '#2D3748', fontStyle: 'italic' as const }}>
+                  <div style={{ background: '#FAF7F2', borderRadius: 8, padding: '10px 12px', fontSize: 14, color: '#1C2A2F', fontStyle: 'italic' as const }}>
                     "{a.commentaire}"
                   </div>
                 )}

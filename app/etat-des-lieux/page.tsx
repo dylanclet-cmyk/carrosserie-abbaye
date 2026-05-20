@@ -102,7 +102,7 @@ export default function EtatDesLieux() {
     const canvas = sigCanvas.current!
     const ctx = canvas.getContext('2d')!
     const rect = canvas.getBoundingClientRect()
-    ctx.lineWidth = 2; ctx.strokeStyle = '#2D3748'; ctx.lineCap = 'round'
+    ctx.lineWidth = 2; ctx.strokeStyle = '#1C2A2F'; ctx.lineCap = 'round'
     ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top); ctx.stroke()
     setHasSig(true)
   }
@@ -125,7 +125,7 @@ export default function EtatDesLieux() {
     const ctx = canvas.getContext('2d')!
     const rect = canvas.getBoundingClientRect()
     const touch = e.touches[0]
-    ctx.lineWidth = 2; ctx.strokeStyle = '#2D3748'; ctx.lineCap = 'round'
+    ctx.lineWidth = 2; ctx.strokeStyle = '#1C2A2F'; ctx.lineCap = 'round'
     ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top); ctx.stroke()
     setHasSig(true)
   }
@@ -152,28 +152,28 @@ export default function EtatDesLieux() {
   if (!dossier) return <div style={{ padding: '2rem', fontFamily: 'system-ui', color: '#888' }}>Dossier introuvable</div>
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8f6f3', fontFamily: 'system-ui, sans-serif' }}>
-      <div style={{ background: '#2D3748', padding: '0 2rem', height: 64, display: 'flex', alignItems: 'center', gap: 12 }}>
-        <button onClick={() => router.back()} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: '#e8e2d9' }}>← Retour</button>
-        <img src="/logo.png" alt="Logo" style={{ height: 44, objectFit: 'contain' }} />
+    <div style={{ minHeight: '100vh', background: '#FAF7F2', fontFamily: 'system-ui, sans-serif' }}>
+      <div style={{ background: '#C8723A', padding: '0 1.5rem', height: 52, display: 'flex', alignItems: 'center', gap: 12 }}>
+        <button onClick={() => router.back()} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: '#EDE5D8' }}>← Retour</button>
+        <img src="/logo.png" alt="Logo" style={{ height: 34, objectFit: 'contain' }} />
         <span style={{ color: 'white', fontSize: 15, fontWeight: 600 }}>Etat des lieux — {type === 'entree' ? 'Entree' : 'Sortie'} — {dossier.immatriculation}</span>
       </div>
 
-      <div style={{ padding: '1.5rem 2rem', maxWidth: 900, margin: '0 auto' }}>
-        {saved && <div style={{ background: '#EAF3DE', border: '1px solid #97C459', borderRadius: 12, padding: '1rem', marginBottom: 16, color: '#27500A', fontWeight: 600, textAlign: 'center' as const }}>Sauvegarde !</div>}
+      <div style={{ padding: '20px 16px', maxWidth: 900, margin: '0 auto' }}>
+        {saved && <div style={{ background: '#EBF5EE', border: '1px solid #97C459', borderRadius: 12, padding: '1rem', marginBottom: 16, color: '#2A6B3A', fontWeight: 600, textAlign: 'center' as const }}>Sauvegarde !</div>}
 
         <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
           {(['entree', 'sortie'] as const).map(t => (
-            <button key={t} onClick={() => setType(t)} style={{ padding: '8px 20px', borderRadius: 8, border: '2px solid ' + (type === t ? '#E07B2A' : '#e8e2d9'), background: type === t ? '#E07B2A' : 'white', color: type === t ? 'white' : '#2D3748', fontWeight: 600, cursor: 'pointer', fontSize: 14 }}>
+            <button key={t} onClick={() => setType(t)} style={{ padding: '8px 20px', borderRadius: 8, border: '2px solid ' + (type === t ? '#C8723A' : '#EDE5D8'), background: type === t ? '#C8723A' : 'white', color: type === t ? 'white' : '#1C2A2F', fontWeight: 600, cursor: 'pointer', fontSize: 14 }}>
               {t === 'entree' ? 'Entree du vehicule' : 'Sortie du vehicule'}
             </button>
           ))}
         </div>
 
         {/* Schema vehicule */}
-        <div style={{ background: 'white', borderRadius: 12, padding: '1.5rem', border: '1px solid #e8e2d9', marginBottom: 16 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 16 }}>Schema du vehicule — cliquez sur une zone</div>
-          <svg viewBox="0 0 600 280" style={{ width: '100%', display: 'block', background: '#f8f6f3', borderRadius: 8, marginBottom: 12 }}>
+        <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '1.5rem', border: '1px solid #EDE5D8', marginBottom: 16 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#C8723A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 16 }}>Schema du vehicule — cliquez sur une zone</div>
+          <svg viewBox="0 0 600 280" style={{ width: '100%', display: 'block', background: '#FAF7F2', borderRadius: 8, marginBottom: 12 }}>
             <rect x="60" y="100" width="480" height="80" rx="10" fill="#D3D1C7" />
             <rect x="120" y="70" width="280" height="80" rx="8" fill="#B4B2A9" />
             <rect x="60" y="170" width="480" height="18" rx="4" fill="#B4B2A9" />
@@ -185,49 +185,49 @@ export default function EtatDesLieux() {
             <text x="570" y="145" textAnchor="middle" fontSize="11" fill="#888">D</text>
             {ZONES.map(z => {
               const dmg = dommages[z.id]
-              const color = dmg ? (dmg.gravite === 'grave' ? '#E24B4A' : '#EF9F27') : '#E07B2A'
+              const color = dmg ? (dmg.gravite === 'grave' ? '#E24B4A' : '#EF9F27') : '#C8723A'
               const isSelected = selectedZone === z.id
               const hasPhoto = photos.some(p => p.zone === z.id)
               return (
                 <g key={z.id} onClick={() => setSelectedZone(selectedZone === z.id ? null : z.id)} style={{ cursor: 'pointer' }}>
                   <circle cx={z.x} cy={z.y} r={isSelected ? 14 : 10} fill={dmg ? color : 'rgba(224,123,42,0.15)'} stroke={color} strokeWidth={isSelected ? 2.5 : 1} />
                   {dmg && <text x={z.x} y={z.y + 4} textAnchor="middle" fontSize="10" fill="white" fontWeight="700">{dmg.gravite === 'grave' ? '!' : '~'}</text>}
-                  {hasPhoto && !dmg && <text x={z.x} y={z.y + 4} textAnchor="middle" fontSize="10" fill="#E07B2A">📷</text>}
+                  {hasPhoto && !dmg && <text x={z.x} y={z.y + 4} textAnchor="middle" fontSize="10" fill="#C8723A">📷</text>}
                 </g>
               )
             })}
           </svg>
 
           {selectedZone && (
-            <div style={{ background: '#FDF0E6', borderRadius: 10, padding: '1rem', border: '1px solid #E07B2A' }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: '#2D3748', marginBottom: 10 }}>{ZONES.find(z => z.id === selectedZone)?.label}</div>
+            <div style={{ background: '#FFF0E6', borderRadius: 10, padding: '1rem', border: '1px solid #C8723A' }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#1C2A2F', marginBottom: 10 }}>{ZONES.find(z => z.id === selectedZone)?.label}</div>
               <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' as const }}>
-                <button onClick={() => toggleDommage(selectedZone, 'leger')} style={{ padding: '6px 14px', borderRadius: 8, border: '2px solid ' + (dommages[selectedZone]?.gravite === 'leger' ? '#EF9F27' : '#e8e2d9'), background: dommages[selectedZone]?.gravite === 'leger' ? '#FAEEDA' : 'white', color: '#854F0B', fontWeight: 600, cursor: 'pointer', fontSize: 13 }}>Leger</button>
-                <button onClick={() => toggleDommage(selectedZone, 'grave')} style={{ padding: '6px 14px', borderRadius: 8, border: '2px solid ' + (dommages[selectedZone]?.gravite === 'grave' ? '#E24B4A' : '#e8e2d9'), background: dommages[selectedZone]?.gravite === 'grave' ? '#FCEBEB' : 'white', color: '#791F1F', fontWeight: 600, cursor: 'pointer', fontSize: 13 }}>Grave</button>
-                {dommages[selectedZone] && <button onClick={() => { const n = {...dommages}; delete n[selectedZone]; setDommages(n) }} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e8e2d9', background: 'white', color: '#888', cursor: 'pointer', fontSize: 13 }}>Effacer</button>}
+                <button onClick={() => toggleDommage(selectedZone, 'leger')} style={{ padding: '6px 14px', borderRadius: 8, border: '2px solid ' + (dommages[selectedZone]?.gravite === 'leger' ? '#EF9F27' : '#EDE5D8'), background: dommages[selectedZone]?.gravite === 'leger' ? '#FFF0E6' : 'white', color: '#7A3E10', fontWeight: 600, cursor: 'pointer', fontSize: 13 }}>Leger</button>
+                <button onClick={() => toggleDommage(selectedZone, 'grave')} style={{ padding: '6px 14px', borderRadius: 8, border: '2px solid ' + (dommages[selectedZone]?.gravite === 'grave' ? '#E24B4A' : '#EDE5D8'), background: dommages[selectedZone]?.gravite === 'grave' ? '#FCEBEB' : 'white', color: '#791F1F', fontWeight: 600, cursor: 'pointer', fontSize: 13 }}>Grave</button>
+                {dommages[selectedZone] && <button onClick={() => { const n = {...dommages}; delete n[selectedZone]; setDommages(n) }} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #EDE5D8', background: '#FFFFFF', color: '#888', cursor: 'pointer', fontSize: 13 }}>Effacer</button>}
                 {/* Bouton photo pour cette zone */}
-                <label style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e8e2d9', background: 'white', color: '#2D3748', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <label style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #EDE5D8', background: '#FFFFFF', color: '#1C2A2F', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 4 }}>
                   📷 Photo
                   <input type="file" accept="image/*" capture="environment" onChange={e => handlePhotoUpload(e, selectedZone)} style={{ display: 'none' }} multiple />
                 </label>
               </div>
-              {dommages[selectedZone] && <input style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e8e2d9', fontSize: 13, color: '#2D3748' }} placeholder="Description..." value={dommages[selectedZone]?.description || ''} onChange={e => setDommages((p: any) => ({ ...p, [selectedZone]: { ...p[selectedZone], description: e.target.value } }))} />}
+              {dommages[selectedZone] && <input style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #EDE5D8', fontSize: 13, color: '#1C2A2F' }} placeholder="Description..." value={dommages[selectedZone]?.description || ''} onChange={e => setDommages((p: any) => ({ ...p, [selectedZone]: { ...p[selectedZone], description: e.target.value } }))} />}
             </div>
           )}
         </div>
 
         {/* Section photos generales */}
-        <div style={{ background: 'white', borderRadius: 12, padding: '1.25rem', border: '1px solid #e8e2d9', marginBottom: 16 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 12 }}>Photos du vehicule</div>
+        <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '1.25rem', border: '1px solid #EDE5D8', marginBottom: 16 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#C8723A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 12 }}>Photos du vehicule</div>
           
           <div style={{ display: 'flex', gap: 10, marginBottom: 12, flexWrap: 'wrap' as const }}>
             {/* Bouton prendre photo (mobile/tablette) */}
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 10, border: '2px solid #E07B2A', background: '#FDF0E6', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#E07B2A' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 10, border: '2px solid #C8723A', background: '#FFF0E6', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#C8723A' }}>
               📷 Prendre une photo
               <input type="file" accept="image/*" capture="environment" onChange={e => handlePhotoUpload(e)} style={{ display: 'none' }} multiple />
             </label>
             {/* Bouton importer photo */}
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 10, border: '1px solid #e8e2d9', background: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#2D3748' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 10, border: '1px solid #EDE5D8', background: '#FFFFFF', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#1C2A2F' }}>
               🖼 Importer des photos
               <input type="file" accept="image/*" onChange={e => handlePhotoUpload(e)} style={{ display: 'none' }} multiple />
             </label>
@@ -251,7 +251,7 @@ export default function EtatDesLieux() {
           )}
 
           {photos.length === 0 && (
-            <div style={{ textAlign: 'center' as const, color: '#888', fontSize: 13, padding: '1rem', background: '#f8f6f3', borderRadius: 8 }}>
+            <div style={{ textAlign: 'center' as const, color: '#888', fontSize: 13, padding: '1rem', background: '#FAF7F2', borderRadius: 8 }}>
               Aucune photo — utilisez les boutons ci-dessus
             </div>
           )}
@@ -260,12 +260,12 @@ export default function EtatDesLieux() {
         {/* Controles */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
           {[{ title: 'Controle interieur', items: CTRL_INT, state: controleInt, setter: setControleInt }, { title: 'Controle equipements', items: CTRL_EQ, state: controleEquip, setter: setControleEquip }].map(({ title, items, state, setter }) => (
-            <div key={title} style={{ background: 'white', borderRadius: 12, padding: '1.25rem', border: '1px solid #e8e2d9' }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 12 }}>{title}</div>
+            <div key={title} style={{ background: '#FFFFFF', borderRadius: 12, padding: '1.25rem', border: '1px solid #EDE5D8' }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#C8723A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 12 }}>{title}</div>
               {items.map(item => (
                 <div key={item} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f5f5f5' }}>
-                  <span style={{ fontSize: 13, color: '#2D3748' }}>{item}</span>
-                  <input type="checkbox" checked={state[item] || false} onChange={e => setter((p: any) => ({ ...p, [item]: e.target.checked }))} style={{ width: 18, height: 18, cursor: 'pointer', accentColor: '#E07B2A' }} />
+                  <span style={{ fontSize: 13, color: '#1C2A2F' }}>{item}</span>
+                  <input type="checkbox" checked={state[item] || false} onChange={e => setter((p: any) => ({ ...p, [item]: e.target.checked }))} style={{ width: 18, height: 18, cursor: 'pointer', accentColor: '#C8723A' }} />
                 </div>
               ))}
             </div>
@@ -273,19 +273,19 @@ export default function EtatDesLieux() {
         </div>
 
         {/* Signature */}
-        <div style={{ background: 'white', borderRadius: 12, padding: '1.25rem', border: '1px solid #e8e2d9', marginBottom: 16 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 8 }}>Signature client</div>
+        <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '1.25rem', border: '1px solid #EDE5D8', marginBottom: 16 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#C8723A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 8 }}>Signature client</div>
           <canvas ref={sigCanvas} width={800} height={150}
-            style={{ border: '1.5px dashed #e8e2d9', borderRadius: 8, width: '100%', cursor: 'crosshair', background: '#fafafa', display: 'block', touchAction: 'none' }}
+            style={{ border: '1.5px dashed #EDE5D8', borderRadius: 8, width: '100%', cursor: 'crosshair', background: '#fafafa', display: 'block', touchAction: 'none' }}
             onMouseDown={startDraw} onMouseMove={draw} onMouseUp={() => setDrawing(false)} onMouseLeave={() => setDrawing(false)}
             onTouchStart={startDrawTouch} onTouchMove={drawTouch} onTouchEnd={() => setDrawing(false)}
           />
-          <button onClick={() => { sigCanvas.current!.getContext('2d')!.clearRect(0, 0, 800, 150); setHasSig(false) }} style={{ marginTop: 8, fontSize: 12, padding: '4px 12px', borderRadius: 6, border: '1px solid #e8e2d9', background: 'white', cursor: 'pointer', color: '#888' }}>Effacer</button>
+          <button onClick={() => { sigCanvas.current!.getContext('2d')!.clearRect(0, 0, 800, 150); setHasSig(false) }} style={{ marginTop: 8, fontSize: 12, padding: '4px 12px', borderRadius: 6, border: '1px solid #EDE5D8', background: '#FFFFFF', cursor: 'pointer', color: '#888' }}>Effacer</button>
         </div>
 
         <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
-          <button onClick={() => router.back()} style={{ padding: '10px 20px', borderRadius: 8, border: '1px solid #e8e2d9', background: 'white', cursor: 'pointer', fontSize: 14, color: '#2D3748' }}>Annuler</button>
-          <button onClick={handleSave} disabled={saving} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: '#E07B2A', color: 'white', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>
+          <button onClick={() => router.back()} style={{ padding: '10px 20px', borderRadius: 8, border: '1px solid #EDE5D8', background: '#FFFFFF', cursor: 'pointer', fontSize: 14, color: '#1C2A2F' }}>Annuler</button>
+          <button onClick={handleSave} disabled={saving} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: '#C8723A', color: 'white', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>
             {saving ? 'Sauvegarde...' : 'Sauvegarder'}
           </button>
         </div>

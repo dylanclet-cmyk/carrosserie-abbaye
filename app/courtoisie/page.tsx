@@ -82,24 +82,24 @@ export default function CourtoisePage() {
   const today = new Date().toISOString().split('T')[0]
   const enRetard = pretsEnCours.filter(p => p.date_fin_prevue < today)
 
-  const inputStyle = { width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e8e2d9', fontSize: 13, color: '#2D3748', background: 'white' }
+  const inputStyle = { width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #EDE5D8', fontSize: 13, color: '#1C2A2F', background: '#FFFFFF' }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8f6f3', fontFamily: 'system-ui, sans-serif' }}>
-      <div style={{ background: '#2D3748', padding: '0 2rem', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <div style={{ minHeight: '100vh', background: '#FAF7F2', fontFamily: 'system-ui, sans-serif' }}>
+      <div style={{ background: '#C8723A', padding: '0 1.5rem', height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button onClick={() => router.push('/')} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: '#e8e2d9' }}>← Retour</button>
-          <img src="/logo.png" alt="Logo" style={{ height: 44, objectFit: 'contain' }} />
-          <span style={{ color: 'white', fontSize: 15, fontWeight: 600 }}>Vehicules de courtoisie</span>
+          <button onClick={() => router.push('/')} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: '#EDE5D8' }}>← Retour</button>
+          <img src="/logo.png" alt="Logo" style={{ height: 34, objectFit: 'contain' }} />
+          <span style={{ color: '#FAF7F2', fontSize: 14, fontWeight: 500 }}>Vehicules de courtoisie</span>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={() => router.push('/courtoisie/planning')} style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: '#e8e2d9', fontSize: 13 }}>Planning</button>
-          <button onClick={() => router.push('/courtoisie/pret-direct')} style={{ background: '#E07B2A', color: 'white', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+ Nouveau pret</button>
-          <button onClick={() => setShowAddVehicule(true)} style={{ background: 'white', color: '#2D3748', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>+ Ajouter vehicule</button>
+          <button onClick={() => router.push('/courtoisie/planning')} style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: '#EDE5D8', fontSize: 13 }}>Planning</button>
+          <button onClick={() => router.push('/courtoisie/pret-direct')} style={{ background: '#C8723A', color: 'white', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+ Nouveau pret</button>
+          <button onClick={() => setShowAddVehicule(true)} style={{ background: '#FFFFFF', color: '#1C2A2F', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>+ Ajouter vehicule</button>
         </div>
       </div>
 
-      <div style={{ padding: '1.5rem 2rem', maxWidth: 1000, margin: '0 auto' }}>
+      <div style={{ padding: '20px 16px', maxWidth: 1000, margin: '0 auto' }}>
 
         {enRetard.length > 0 && (
           <div style={{ background: '#FCEBEB', border: '2px solid #E24B4A', borderRadius: 12, padding: '1rem 1.25rem', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -112,19 +112,19 @@ export default function CourtoisePage() {
         )}
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 24 }}>
-          <div style={{ background: 'white', borderRadius: 12, padding: '1rem', border: '1px solid #e8e2d9' }}>
+          <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '1rem', border: '1px solid #EDE5D8' }}>
             <div style={{ fontSize: 12, color: '#888', marginBottom: 6 }}>Total flotte</div>
-            <div style={{ fontSize: 28, fontWeight: 700, color: '#2D3748' }}>{vehicules.length}</div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: '#1C2A2F' }}>{vehicules.length}</div>
           </div>
-          <div style={{ background: 'white', borderRadius: 12, padding: '1rem', border: '1px solid #e8e2d9' }}>
+          <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '1rem', border: '1px solid #EDE5D8' }}>
             <div style={{ fontSize: 12, color: '#888', marginBottom: 6 }}>Disponibles</div>
-            <div style={{ fontSize: 28, fontWeight: 700, color: '#3B6D11' }}>{vehiculesDisponibles.length}</div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: '#2A6B3A' }}>{vehiculesDisponibles.length}</div>
           </div>
-          <div style={{ background: 'white', borderRadius: 12, padding: '1rem', border: '1px solid #e8e2d9' }}>
+          <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '1rem', border: '1px solid #EDE5D8' }}>
             <div style={{ fontSize: 12, color: '#888', marginBottom: 6 }}>En pret</div>
-            <div style={{ fontSize: 28, fontWeight: 700, color: '#E07B2A' }}>{vehiculesPretes.length}</div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: '#C8723A' }}>{vehiculesPretes.length}</div>
           </div>
-          <div style={{ background: 'white', borderRadius: 12, padding: '1rem', border: enRetard.length > 0 ? '2px solid #E24B4A' : '1px solid #e8e2d9' }}>
+          <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '1rem', border: enRetard.length > 0 ? '2px solid #E24B4A' : '1px solid #EDE5D8' }}>
             <div style={{ fontSize: 12, color: '#888', marginBottom: 6 }}>En retard</div>
             <div style={{ fontSize: 28, fontWeight: 700, color: enRetard.length > 0 ? '#A32D2D' : '#888' }}>{enRetard.length}</div>
           </div>
@@ -132,26 +132,26 @@ export default function CourtoisePage() {
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 }}>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#2D3748', marginBottom: 10 }}>Flotte ({vehicules.length} vehicules)</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#1C2A2F', marginBottom: 10 }}>Flotte ({vehicules.length} vehicules)</div>
             {vehicules.map(v => {
               const pretActif = pretsEnCours.find(p => p.vehicule_id === v.id)
               const enRet = pretActif && pretActif.date_fin_prevue < today
               return (
-                <div key={v.id} style={{ background: 'white', borderRadius: 10, padding: '1rem', border: enRet ? '2px solid #E24B4A' : pretActif ? '1px solid #E07B2A' : '1px solid #e8e2d9', marginBottom: 8 }}>
+                <div key={v.id} style={{ background: '#FFFFFF', borderRadius: 10, padding: '1rem', border: enRet ? '2px solid #E24B4A' : pretActif ? '1px solid #C8723A' : '1px solid #EDE5D8', marginBottom: 8 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: '#2D3748' }}>{v.immatriculation}</div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: '#1C2A2F' }}>{v.immatriculation}</div>
                       <div style={{ fontSize: 12, color: '#888' }}>{v.marque} {v.modele} {v.couleur ? '· ' + v.couleur : ''} {v.annee ? '· ' + v.annee : ''}</div>
                       <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>{v.km_actuel?.toLocaleString()} km</div>
                     </div>
-                    <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: pretActif ? (enRet ? '#FCEBEB' : '#FAEEDA') : '#EAF3DE', color: pretActif ? (enRet ? '#791F1F' : '#854F0B') : '#27500A' }}>
+                    <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: pretActif ? (enRet ? '#FCEBEB' : '#FFF0E6') : '#EBF5EE', color: pretActif ? (enRet ? '#791F1F' : '#7A3E10') : '#2A6B3A' }}>
                       {pretActif ? (enRet ? 'En retard' : 'En pret') : 'Disponible'}
                     </span>
                   </div>
                   {pretActif && (
-                    <div style={{ marginTop: 8, padding: '6px 10px', background: '#f8f6f3', borderRadius: 6, fontSize: 12, color: '#2D3748' }}>
+                    <div style={{ marginTop: 8, padding: '6px 10px', background: '#FAF7F2', borderRadius: 6, fontSize: 12, color: '#1C2A2F' }}>
                       {pretActif.dossiers?.clients?.prenom} {pretActif.dossiers?.clients?.nom} · Retour prevu le {new Date(pretActif.date_fin_prevue).toLocaleDateString('fr-FR')}
-                      <button onClick={() => enregistrerRetour(pretActif)} style={{ marginLeft: 10, fontSize: 11, padding: '3px 8px', borderRadius: 6, border: '1px solid #3B6D11', background: 'white', cursor: 'pointer', color: '#3B6D11' }}>Retour</button>
+                      <button onClick={() => enregistrerRetour(pretActif)} style={{ marginLeft: 10, fontSize: 11, padding: '3px 8px', borderRadius: 6, border: '1px solid #2A6B3A', background: '#FFFFFF', cursor: 'pointer', color: '#2A6B3A' }}>Retour</button>
                     </div>
                   )}
                 </div>
@@ -160,25 +160,25 @@ export default function CourtoisePage() {
           </div>
 
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#2D3748', marginBottom: 10 }}>Prets en cours ({pretsEnCours.length})</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#1C2A2F', marginBottom: 10 }}>Prets en cours ({pretsEnCours.length})</div>
             {pretsEnCours.length === 0 ? (
-              <div style={{ background: 'white', borderRadius: 10, padding: '2rem', textAlign: 'center' as const, color: '#888', border: '1px solid #e8e2d9' }}>Aucun pret en cours</div>
+              <div style={{ background: '#FFFFFF', borderRadius: 10, padding: '2rem', textAlign: 'center' as const, color: '#888', border: '1px solid #EDE5D8' }}>Aucun pret en cours</div>
             ) : pretsEnCours.map(p => {
               const enRet = p.date_fin_prevue < today
               return (
-                <div key={p.id} style={{ background: 'white', borderRadius: 10, padding: '1rem', border: enRet ? '2px solid #E24B4A' : '1px solid #e8e2d9', marginBottom: 8 }}>
+                <div key={p.id} style={{ background: '#FFFFFF', borderRadius: 10, padding: '1rem', border: enRet ? '2px solid #E24B4A' : '1px solid #EDE5D8', marginBottom: 8 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: '#2D3748' }}>{p.vehicules_courtoisie?.immatriculation} — {p.vehicules_courtoisie?.marque} {p.vehicules_courtoisie?.modele}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#1C2A2F' }}>{p.vehicules_courtoisie?.immatriculation} — {p.vehicules_courtoisie?.marque} {p.vehicules_courtoisie?.modele}</div>
                     {enRet && <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: '#FCEBEB', color: '#791F1F', fontWeight: 600 }}>En retard</span>}
                   </div>
                   <div style={{ fontSize: 12, color: '#888' }}>
-                    Client : <strong style={{ color: '#2D3748' }}>{p.dossiers?.clients?.prenom} {p.dossiers?.clients?.nom}</strong>
+                    Client : <strong style={{ color: '#1C2A2F' }}>{p.dossiers?.clients?.prenom} {p.dossiers?.clients?.nom}</strong>
                   </div>
                   <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>
                     Du {new Date(p.date_debut).toLocaleDateString('fr-FR')} au {new Date(p.date_fin_prevue).toLocaleDateString('fr-FR')}
                   </div>
-                  {p.notes && <div style={{ fontSize: 12, color: '#E07B2A', marginTop: 4 }}>{p.notes}</div>}
-                  <button onClick={() => enregistrerRetour(p)} style={{ marginTop: 8, fontSize: 12, padding: '5px 12px', borderRadius: 8, border: '1px solid #3B6D11', background: 'white', cursor: 'pointer', color: '#3B6D11', fontWeight: 600 }}>Enregistrer le retour</button>
+                  {p.notes && <div style={{ fontSize: 12, color: '#C8723A', marginTop: 4 }}>{p.notes}</div>}
+                  <button onClick={() => enregistrerRetour(p)} style={{ marginTop: 8, fontSize: 12, padding: '5px 12px', borderRadius: 8, border: '1px solid #2A6B3A', background: '#FFFFFF', cursor: 'pointer', color: '#2A6B3A', fontWeight: 600 }}>Enregistrer le retour</button>
                 </div>
               )
             })}
@@ -187,8 +187,8 @@ export default function CourtoisePage() {
 
         {showAddVehicule && (
           <div style={{ position: 'fixed' as const, inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-            <div style={{ background: 'white', borderRadius: 16, padding: '1.5rem', width: '100%', maxWidth: 480 }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#2D3748', marginBottom: 16 }}>Ajouter un vehicule</div>
+            <div style={{ background: '#FFFFFF', borderRadius: 16, padding: '1.5rem', width: '100%', maxWidth: 480 }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#1C2A2F', marginBottom: 16 }}>Ajouter un vehicule</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
                 <div><label style={{ fontSize: 12, color: '#888', display: 'block', marginBottom: 4 }}>Immatriculation</label><input style={inputStyle} value={newVehicule.immatriculation} onChange={e => setNewVehicule({ ...newVehicule, immatriculation: e.target.value })} placeholder="AB-123-CD" /></div>
                 <div><label style={{ fontSize: 12, color: '#888', display: 'block', marginBottom: 4 }}>Marque</label><input style={inputStyle} value={newVehicule.marque} onChange={e => setNewVehicule({ ...newVehicule, marque: e.target.value })} placeholder="Renault" /></div>
@@ -198,8 +198,8 @@ export default function CourtoisePage() {
                 <div><label style={{ fontSize: 12, color: '#888', display: 'block', marginBottom: 4 }}>Kilometrage actuel</label><input style={inputStyle} type="number" value={newVehicule.km_actuel} onChange={e => setNewVehicule({ ...newVehicule, km_actuel: e.target.value })} placeholder="25000" /></div>
               </div>
               <div style={{ display: 'flex', gap: 10 }}>
-                <button onClick={() => setShowAddVehicule(false)} style={{ padding: '10px 20px', borderRadius: 8, border: '1px solid #e8e2d9', background: 'white', cursor: 'pointer', fontSize: 14, color: '#2D3748' }}>Annuler</button>
-                <button onClick={addVehicule} style={{ flex: 1, padding: '10px', borderRadius: 8, border: 'none', background: '#E07B2A', color: 'white', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>Ajouter</button>
+                <button onClick={() => setShowAddVehicule(false)} style={{ padding: '10px 20px', borderRadius: 8, border: '1px solid #EDE5D8', background: '#FFFFFF', cursor: 'pointer', fontSize: 14, color: '#1C2A2F' }}>Annuler</button>
+                <button onClick={addVehicule} style={{ flex: 1, padding: '10px', borderRadius: 8, border: 'none', background: '#C8723A', color: 'white', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>Ajouter</button>
               </div>
             </div>
           </div>
@@ -207,8 +207,8 @@ export default function CourtoisePage() {
 
         {showAddPret && (
           <div style={{ position: 'fixed' as const, inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-            <div style={{ background: 'white', borderRadius: 16, padding: '1.5rem', width: '100%', maxWidth: 520 }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#2D3748', marginBottom: 16 }}>Nouveau pret de vehicule</div>
+            <div style={{ background: '#FFFFFF', borderRadius: 16, padding: '1.5rem', width: '100%', maxWidth: 520 }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#1C2A2F', marginBottom: 16 }}>Nouveau pret de vehicule</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
                 <div style={{ gridColumn: 'span 2' }}>
                   <label style={{ fontSize: 12, color: '#888', display: 'block', marginBottom: 4 }}>Vehicule disponible</label>
@@ -235,8 +235,8 @@ export default function CourtoisePage() {
                 <div style={{ gridColumn: 'span 2' }}><label style={{ fontSize: 12, color: '#888', display: 'block', marginBottom: 4 }}>Notes</label><input style={inputStyle} value={newPret.notes} onChange={e => setNewPret({ ...newPret, notes: e.target.value })} placeholder="Notes optionnelles..." /></div>
               </div>
               <div style={{ display: 'flex', gap: 10 }}>
-                <button onClick={() => setShowAddPret(false)} style={{ padding: '10px 20px', borderRadius: 8, border: '1px solid #e8e2d9', background: 'white', cursor: 'pointer', fontSize: 14, color: '#2D3748' }}>Annuler</button>
-                <button onClick={addPret} style={{ flex: 1, padding: '10px', borderRadius: 8, border: 'none', background: '#E07B2A', color: 'white', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>Confirmer le pret</button>
+                <button onClick={() => setShowAddPret(false)} style={{ padding: '10px 20px', borderRadius: 8, border: '1px solid #EDE5D8', background: '#FFFFFF', cursor: 'pointer', fontSize: 14, color: '#1C2A2F' }}>Annuler</button>
+                <button onClick={addPret} style={{ flex: 1, padding: '10px', borderRadius: 8, border: 'none', background: '#C8723A', color: 'white', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>Confirmer le pret</button>
               </div>
             </div>
           </div>
