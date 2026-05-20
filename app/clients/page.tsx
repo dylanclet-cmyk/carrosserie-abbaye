@@ -79,9 +79,9 @@ export default function ClientsPage() {
   const inputStyle = { width: '100%', padding: '8px 12px', borderRadius: 8, border: '1.5px solid #EDE5D8', fontSize: 14, color: '#1C2A2F', background: '#FFFFFF' }
   const labelStyle = { fontSize: 12, color: '#888', display: 'block' as const, marginBottom: 4, fontWeight: 600 }
 
-  const vehiculesFiltres = searchImat.length >= 2 ? dossiers.filter(d => 
-    d.immatriculation?.toLowerCase().includes(searchImat.toLowerCase())
-  ) : []
+  const vehiculesFiltres = searchImat.length >= 2 
+    ? dossiers.filter(d => d.immatriculation?.toLowerCase().includes(searchImat.toLowerCase()))
+    : []
 
   if (loading) return <div style={{ padding: '2rem', fontFamily: 'system-ui', color: '#888' }}>Chargement...</div>
 
@@ -101,9 +101,9 @@ export default function ClientsPage() {
           <img src="/logo.png" alt="Logo" style={{ height: 34, objectFit: 'contain' }} />
           <span style={{ color: '#FAF7F2', fontSize: 14, fontWeight: 500 }}>Clients & Véhicules</span>
         </div>
-        <div style={{ display: 'flex', gap: 6 }}>
-          <button onClick={() => setOnglet('clients')} style={{ padding: '5px 14px', borderRadius: 6, border: 'none', background: onglet === 'clients' ? 'rgba(255,255,255,0.3)' : 'transparent', color: '#FAF7F2', cursor: 'pointer', fontSize: 12, fontWeight: 500 }}>👤 Clients</button>
-          <button onClick={() => setOnglet('vehicules')} style={{ padding: '5px 14px', borderRadius: 6, border: 'none', background: onglet === 'vehicules' ? 'rgba(255,255,255,0.3)' : 'transparent', color: '#FAF7F2', cursor: 'pointer', fontSize: 12, fontWeight: 500 }}>🚗 Véhicules</button>
+        <div style={{ display: 'flex', gap: 4 }}>
+          <button onClick={() => setOnglet('clients')} style={{ padding: '5px 12px', borderRadius: 6, border: 'none', background: onglet === 'clients' ? 'rgba(255,255,255,0.3)' : 'transparent', color: '#FAF7F2', cursor: 'pointer', fontSize: 12, fontWeight: 500 }}>Clients</button>
+          <button onClick={() => setOnglet('vehicules')} style={{ padding: '5px 12px', borderRadius: 6, border: 'none', background: onglet === 'vehicules' ? 'rgba(255,255,255,0.3)' : 'transparent', color: '#FAF7F2', cursor: 'pointer', fontSize: 12, fontWeight: 500 }}>Véhicules</button>
         </div>
         <button onClick={() => { setEditForm({ nom: '', prenom: '', telephone: '', email: '', assurance: '', num_police: '' }); setShowForm(true) }} style={{ background: '#C8723A', color: 'white', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
           + Nouveau client
@@ -112,7 +112,6 @@ export default function ClientsPage() {
 
       <div style={{ padding: '20px 16px', maxWidth: 1100, margin: '0 auto' }}>
 
-        {onglet === 'clients' && (<>
         {/* Barre de recherche */}
         <div style={{ position: 'relative' as const, marginBottom: 20 }}>
           <span style={{ position: 'absolute' as const, left: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 18, color: '#888' }}>🔍</span>
@@ -225,72 +224,6 @@ export default function ClientsPage() {
         </div>
       </div>
 
-      </> )}
-
-      {/* Onglet véhicules */}
-      {onglet === 'vehicules' && (
-        <div style={{ maxWidth: 900, margin: '0 auto', padding: '20px 16px' }}>
-          <div style={{ position: 'relative' as const, marginBottom: 20 }}>
-            <span style={{ position: 'absolute' as const, left: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 18, color: '#888' }}>🔍</span>
-            <input value={searchImat} onChange={e => setSearchImat(e.target.value)}
-              placeholder="Rechercher par immatriculation (ex: AB-123-CD)..."
-              style={{ width: '100%', padding: '14px 14px 14px 44px', borderRadius: 12, border: '2px solid #EDE5D8', fontSize: 14, color: '#1A1A1A', background: '#FFFFFF', outline: 'none', boxSizing: 'border-box' as const }}
-              onFocus={e => e.target.style.borderColor = '#C8723A'}
-              onBlur={e => e.target.style.borderColor = '#EDE5D8'}
-              autoFocus />
-            {searchImat && <button onClick={() => setSearchImat('')} style={{ position: 'absolute' as const, right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: '#888' }}>×</button>}
-          </div>
-
-          {searchImat.length < 2 ? (
-            <div style={{ background: '#FFFFFF', borderRadius: 10, padding: '2rem', textAlign: 'center' as const, color: '#999', border: '1px solid #EDE5D8', fontSize: 13 }}>
-              Tapez au moins 2 caractères pour rechercher un véhicule
-            </div>
-          ) : vehiculesFiltres.length === 0 ? (
-            <div style={{ background: '#FFFFFF', borderRadius: 10, padding: '2rem', textAlign: 'center' as const, color: '#999', border: '1px solid #EDE5D8', fontSize: 13 }}>
-              Aucun véhicule trouvé pour "{searchImat}"
-            </div>
-          ) : (
-            <>
-              <div style={{ fontSize: 13, color: '#888', marginBottom: 12 }}>{vehiculesFiltres.length} dossier{vehiculesFiltres.length > 1 ? 's' : ''} trouvé{vehiculesFiltres.length > 1 ? 's' : ''}</div>
-              {vehiculesFiltres.map(d => {
-                const sc = statusColors[d.statut] || statusColors.en_cours
-                return (
-                  <div key={d.id} style={{ background: '#FFFFFF', borderRadius: 10, padding: '1rem 1.25rem', border: '1px solid #EDE5D8', marginBottom: 8 }}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                          <span style={{ fontSize: 15, fontWeight: 600, color: '#1A1A1A' }}>{d.immatriculation}</span>
-                          <span style={{ fontSize: 13, color: '#888' }}>{d.marque} {d.modele}</span>
-                          {d.couleur && <span style={{ fontSize: 11, color: '#888', background: '#F4F0EA', padding: '2px 8px', borderRadius: 10 }}>{d.couleur}</span>}
-                        </div>
-                        <div style={{ fontSize: 12, color: '#888', marginBottom: 4 }}>
-                          Client : <strong style={{ color: '#1A1A1A' }}>{d.clients?.prenom} {d.clients?.nom}</strong>
-                          {d.clients?.telephone && <span> · {d.clients.telephone}</span>}
-                        </div>
-                        <div style={{ fontSize: 12, color: '#888' }}>
-                          Entrée : {new Date(d.date_entree).toLocaleDateString('fr-FR')}
-                          {d.km_entree > 0 && <span> · {d.km_entree?.toLocaleString()} km</span>}
-                          {d.salaries && <span style={{ color: '#C8723A' }}> · {d.salaries.prenom} {d.salaries.nom}</span>}
-                        </div>
-                        {d.notes && <div style={{ marginTop: 6, padding: '4px 10px', background: '#FFF8F3', borderRadius: 6, fontSize: 12, color: '#7A3E10', border: '1px solid #E8C8A0' }}>{d.notes}</div>}
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'flex-end', gap: 8 }}>
-                        <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, background: sc.bg, color: sc.color, whiteSpace: 'nowrap' as const }}>{sc.label}</span>
-                        <button onClick={() => router.push('/dossier/' + d.id)} style={{ fontSize: 12, padding: '5px 14px', borderRadius: 6, border: '1px solid #C8723A', background: 'transparent', cursor: 'pointer', color: '#C8723A', fontWeight: 500 }}>Voir</button>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </>
-          )}
-        </div>
-      )}
-
-      {onglet === 'clients' && (
-        <div style={{ display: 'none' }} />
-      )}
-
       {/* Modal formulaire */}
       {showForm && editForm && (
         <div style={{ position: 'fixed' as const, inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
@@ -316,5 +249,59 @@ export default function ClientsPage() {
         </div>
       )}
     </div>
+
+      {/* Onglet vehicules */}
+      {onglet === 'vehicules' && (
+        <div style={{ maxWidth: 900, margin: '0 auto', padding: '20px 16px' }}>
+          <div style={{ position: 'relative' as const, marginBottom: 20 }}>
+            <input value={searchImat} onChange={e => setSearchImat(e.target.value)}
+              placeholder="Rechercher par immatriculation (ex: AB-123-CD)..."
+              style={{ width: '100%', padding: '12px 14px', borderRadius: 10, border: '1.5px solid #EDE5D8', fontSize: 14, color: '#1A1A1A', background: '#FFFFFF', outline: 'none', boxSizing: 'border-box' as const }}
+              autoFocus />
+            {searchImat && <button onClick={() => setSearchImat('')} style={{ position: 'absolute' as const, right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: '#888' }}>×</button>}
+          </div>
+          {searchImat.length < 2 ? (
+            <div style={{ background: '#FFFFFF', borderRadius: 10, padding: '2rem', textAlign: 'center' as const, color: '#999', border: '1px solid #EDE5D8', fontSize: 13 }}>
+              Tapez au moins 2 caractères pour rechercher un véhicule
+            </div>
+          ) : vehiculesFiltres.length === 0 ? (
+            <div style={{ background: '#FFFFFF', borderRadius: 10, padding: '2rem', textAlign: 'center' as const, color: '#999', border: '1px solid #EDE5D8', fontSize: 13 }}>
+              Aucun véhicule trouvé pour "{searchImat}"
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
+              <div style={{ fontSize: 13, color: '#888', marginBottom: 4 }}>{vehiculesFiltres.length} dossier{vehiculesFiltres.length > 1 ? 's' : ''} trouvé{vehiculesFiltres.length > 1 ? 's' : ''}</div>
+              {vehiculesFiltres.map(d => {
+                const sc = statusColors[d.statut] || statusColors.en_cours
+                return (
+                  <div key={d.id} style={{ background: '#FFFFFF', borderRadius: 10, padding: '1rem 1.25rem', border: '1px solid #EDE5D8' }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+                          <span style={{ fontSize: 15, fontWeight: 600, color: '#1A1A1A' }}>{d.immatriculation}</span>
+                          <span style={{ fontSize: 13, color: '#888' }}>{d.marque} {d.modele}</span>
+                          {d.couleur && <span style={{ fontSize: 11, color: '#888', background: '#F4F0EA', padding: '2px 8px', borderRadius: 10 }}>{d.couleur}</span>}
+                        </div>
+                        <div style={{ fontSize: 12, color: '#888', marginBottom: 2 }}>
+                          Client : <strong style={{ color: '#1A1A1A' }}>{d.clients?.prenom} {d.clients?.nom}</strong>
+                          {d.clients?.telephone && <span> · {d.clients.telephone}</span>}
+                        </div>
+                        <div style={{ fontSize: 12, color: '#888' }}>
+                          Entrée : {new Date(d.date_entree).toLocaleDateString('fr-FR')}
+                          {d.salaries && <span style={{ color: '#C8723A' }}> · {d.salaries.prenom} {d.salaries.nom}</span>}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'flex-end', gap: 8 }}>
+                        <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, background: sc.bg, color: sc.color, whiteSpace: 'nowrap' as const }}>{sc.label}</span>
+                        <button onClick={() => router.push('/dossier/' + d.id)} style={{ fontSize: 12, padding: '5px 14px', borderRadius: 6, border: '1px solid #C8723A', background: 'transparent', cursor: 'pointer', color: '#C8723A', fontWeight: 500 }}>Voir</button>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
   )
 }
