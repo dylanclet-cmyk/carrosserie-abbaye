@@ -93,6 +93,13 @@ export default function Dashboard() {
         .voir { font-size:12px; padding:5px 14px; border-radius:6px; border:1px solid #C8723A; background:transparent; cursor:pointer; color:#C8723A; font-weight:500; }
         .voir:hover { background:#C8723A; color:#FFF; }
         .abtn:hover { border-color:#C8723A !important; background:#FFF8F3 !important; }
+        .actions-wrap { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+        @media (max-width: 640px) {
+          .actions-wrap { display:grid !important; grid-template-columns:repeat(4,1fr) !important; gap:6px !important; }
+          .abtn { min-width:0 !important; padding:10px 4px !important; }
+          .abtn span:first-child { font-size:18px !important; }
+          .abtn span:last-child { font-size:9px !important; }
+        }
       `}</style>
 
       {/* Header */}
@@ -147,8 +154,8 @@ export default function Dashboard() {
             { key: 'archives', label: 'Archives', count: archives.length },
           ].map(item => (
             <div key={item.key} onClick={() => setOnglet(item.key as any)}
-              style={{ background: onglet === item.key ? '#C8723A' : '#FFFFFF', borderRadius: 10, padding: '12px 14px', border: item.key === 'a_facturer' && aFacturer.length > 0 && onglet !== item.key ? '1.5px solid #C8723A' : '1px solid #EDE5D8', cursor: 'pointer', position: 'relative' as const }}>
-              <p style={{ fontSize: 11, color: onglet === item.key ? 'rgba(255,255,255,0.7)' : '#999', margin: '0 0 4px' }}>{item.label}</p>
+              style={{ background: onglet === item.key ? '#1C2A2F' : '#FFFFFF', borderRadius: 10, padding: '12px 14px', border: item.key === 'a_facturer' && aFacturer.length > 0 && onglet !== item.key ? '1.5px solid #C8723A' : '1px solid #EDE5D8', cursor: 'pointer', position: 'relative' as const }}>
+              <p style={{ fontSize: 11, color: onglet === item.key ? '#9AABB0' : '#999', margin: '0 0 4px' }}>{item.label}</p>
               <p style={{ fontSize: 24, fontWeight: 500, color: item.key === 'a_facturer' && aFacturer.length > 0 ? '#C8723A' : onglet === item.key ? '#FFFFFF' : '#1A1A1A', margin: 0 }}>{item.count}</p>
               {item.key === 'a_facturer' && aFacturer.length > 0 && <div style={{ position: 'absolute' as const, top: 8, right: 8, width: 7, height: 7, borderRadius: '50%', background: '#C8723A' }} />}
             </div>
@@ -156,7 +163,7 @@ export default function Dashboard() {
         </div>
 
         {/* Boutons actions */}
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' as const, marginBottom: 16 }}>
+        <div className="actions-wrap">
           {actions.map((a, i) => (
             <button key={i} className="abtn" onClick={() => router.push(a.path)}
               style={{ ...btnBase, background: a.bg, border: `1px solid ${a.bg === '#FFFFFF' ? '#EDE5D8' : a.bg === '#F5DEC8' ? '#E8C8A0' : 'transparent'}`, position: 'relative' as const }}>
