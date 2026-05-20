@@ -1,20 +1,16 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from 'next'
+import './globals.css'
 import './mobile.css'
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-export const metadata = {
-  title: 'Carrosserie de l\'Abbaye',
+export const metadata: Metadata = {
+  title: "Carrosserie de l'Abbaye",
   description: 'Gestion atelier carrosserie',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: "Carrosserie de l'Abbaye",
+  },
   icons: {
     icon: '/logo.png',
     apple: '/logo.png',
@@ -27,11 +23,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="fr">
+      <head>
+        <meta name="theme-color" content="#C8723A" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Carrosserie de l'Abbaye" />
+        <link rel="apple-touch-icon" href="/logo.png" />
+        <link rel="manifest" href="/manifest.json" />
+      </head>
+      <body>
+        {children}
+      </body>
     </html>
-  );
+  )
 }
