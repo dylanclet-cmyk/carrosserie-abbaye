@@ -145,7 +145,7 @@ export default function SalariesPage() {
                   <div key={s.id} onClick={() => setSelectedSalarie(selectedSalarie?.id === s.id ? null : s)} style={{ background: '#FFFFFF', borderRadius: 12, padding: '1.25rem', border: selectedSalarie?.id === s.id ? '2px solid #C8723A' : '1px solid #EDE5D8', marginBottom: 10, cursor: 'pointer' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{ width: 44, height: 44, borderRadius: '50%', background: s.role === 'chef_atelier' ? '#C8723A' : '#F5DEC8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: s.role === 'chef_atelier' ? '#C8723A' : '#C8723A', flexShrink: 0 }}>
+                        <div style={{ width: 44, height: 44, borderRadius: '50%', background: s.role === 'chef_atelier' ? '#C8723A' : '#F5DEC8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: s.role === 'chef_atelier' ? '#C8723A' : '#7A3E10', flexShrink: 0 }}>
                           {s.prenom?.[0]}{s.nom?.[0]}
                         </div>
                         <div>
