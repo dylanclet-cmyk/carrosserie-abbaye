@@ -123,7 +123,7 @@ export default function SalariesPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <button onClick={() => router.push('/')} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: '#EDE5D8' }}>← Retour</button>
           <img src="/logo.png" alt="Logo" style={{ height: 34, objectFit: 'contain' }} />
-          <span style={{ color: '#FAF7F2', fontSize: 14, fontWeight: 500 }}>Equipe & Messagerie</span>
+          <span style={{ color: '#7A3E10', fontSize: 14, fontWeight: 500 }}>Equipe & Messagerie</span>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={() => setOnglet('equipe')} style={{ padding: '7px 16px', borderRadius: 8, border: 'none', background: onglet === 'equipe' ? '#C8723A' : 'transparent', color: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Equipe</button>
@@ -136,7 +136,7 @@ export default function SalariesPage() {
         {onglet === 'equipe' && (
           <div style={{ display: 'grid', gridTemplateColumns: selectedSalarie ? '1fr 1.5fr' : '1fr', gap: 20 }}>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#1C2A2F', marginBottom: 16 }}>Equipe ({salaries.length} salaries)</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#1A1A1A', marginBottom: 16 }}>Equipe ({salaries.length} salaries)</div>
               {salaries.map(s => {
                 const congesEnCours = getCongesEnCours(s.id)
                 const joursMal = getJoursMaladie(s.id)
@@ -145,14 +145,14 @@ export default function SalariesPage() {
                   <div key={s.id} onClick={() => setSelectedSalarie(selectedSalarie?.id === s.id ? null : s)} style={{ background: '#FFFFFF', borderRadius: 12, padding: '1.25rem', border: selectedSalarie?.id === s.id ? '2px solid #C8723A' : '1px solid #EDE5D8', marginBottom: 10, cursor: 'pointer' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{ width: 44, height: 44, borderRadius: '50%', background: s.role === 'chef_atelier' ? '#1C2A2F' : '#FFF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: s.role === 'chef_atelier' ? '#C8723A' : '#C8723A', flexShrink: 0 }}>
+                        <div style={{ width: 44, height: 44, borderRadius: '50%', background: s.role === 'chef_atelier' ? '#C8723A' : '#FFF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: s.role === 'chef_atelier' ? '#C8723A' : '#C8723A', flexShrink: 0 }}>
                           {s.prenom?.[0]}{s.nom?.[0]}
                         </div>
                         <div>
-                          <div style={{ fontSize: 14, fontWeight: 700, color: '#1C2A2F' }}>{s.prenom} {s.nom}</div>
+                          <div style={{ fontSize: 14, fontWeight: 700, color: '#1A1A1A' }}>{s.prenom} {s.nom}</div>
                           <div style={{ fontSize: 12, color: '#888' }}>{s.email}</div>
                           <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
-                            <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 20, background: s.role === 'chef_atelier' ? '#1C2A2F' : '#FFF0E6', color: s.role === 'chef_atelier' ? '#C8723A' : '#7A3E10', fontWeight: 600 }}>
+                            <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 20, background: s.role === 'chef_atelier' ? '#C8723A' : '#FFF0E6', color: s.role === 'chef_atelier' ? '#C8723A' : '#7A3E10', fontWeight: 600 }}>
                               {s.role === 'chef_atelier' ? 'Chef atelier' : 'Technicien'}
                             </span>
                             {congesEnCours && (
@@ -181,7 +181,7 @@ export default function SalariesPage() {
                       {selectedSalarie.prenom?.[0]}{selectedSalarie.nom?.[0]}
                     </div>
                     <div>
-                      <div style={{ fontSize: 18, fontWeight: 700, color: '#1C2A2F' }}>{selectedSalarie.prenom} {selectedSalarie.nom}</div>
+                      <div style={{ fontSize: 18, fontWeight: 700, color: '#1A1A1A' }}>{selectedSalarie.prenom} {selectedSalarie.nom}</div>
                       <div style={{ fontSize: 13, color: '#888' }}>{selectedSalarie.email}</div>
                       <div style={{ fontSize: 12, color: '#888' }}>{selectedSalarie.role === 'chef_atelier' ? 'Chef atelier' : 'Technicien'} · {selectedSalarie.taux_horaire}€/h</div>
                     </div>
@@ -190,15 +190,15 @@ export default function SalariesPage() {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 20 }}>
                     <div style={{ background: '#FAF7F2', borderRadius: 8, padding: '0.75rem', textAlign: 'center' as const }}>
                       <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Maladie {new Date().getFullYear()}</div>
-                      <div style={{ fontSize: 24, fontWeight: 700, color: getJoursMaladie(selectedSalarie.id) >= 10 ? '#A32D2D' : '#1C2A2F' }}>{getJoursMaladie(selectedSalarie.id)}j</div>
+                      <div style={{ fontSize: 24, fontWeight: 700, color: getJoursMaladie(selectedSalarie.id) >= 10 ? '#A32D2D' : '#1A1A1A' }}>{getJoursMaladie(selectedSalarie.id)}j</div>
                     </div>
                     <div style={{ background: '#FAF7F2', borderRadius: 8, padding: '0.75rem', textAlign: 'center' as const }}>
                       <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Total absences</div>
-                      <div style={{ fontSize: 24, fontWeight: 700, color: '#1C2A2F' }}>{getCongesSalarie(selectedSalarie.id).filter(c => c.statut === 'accepte').reduce((a, c) => a + (c.nb_jours || 0), 0)}j</div>
+                      <div style={{ fontSize: 24, fontWeight: 700, color: '#1A1A1A' }}>{getCongesSalarie(selectedSalarie.id).filter(c => c.statut === 'accepte').reduce((a, c) => a + (c.nb_jours || 0), 0)}j</div>
                     </div>
                     <div style={{ background: '#FAF7F2', borderRadius: 8, padding: '0.75rem', textAlign: 'center' as const }}>
                       <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Demandes</div>
-                      <div style={{ fontSize: 24, fontWeight: 700, color: '#1C2A2F' }}>{getCongesSalarie(selectedSalarie.id).length}</div>
+                      <div style={{ fontSize: 24, fontWeight: 700, color: '#1A1A1A' }}>{getCongesSalarie(selectedSalarie.id).length}</div>
                     </div>
                   </div>
 
@@ -210,7 +210,7 @@ export default function SalariesPage() {
                     return (
                       <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', background: '#FAF7F2', borderRadius: 8, marginBottom: 6 }}>
                         <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 20, background: '#f0ede8', color: '#555' }}>{typeLabels[c.type]}</span>
-                        <span style={{ fontSize: 12, color: '#1C2A2F', flex: 1 }}>{new Date(c.date_debut).toLocaleDateString('fr-FR')} → {new Date(c.date_fin).toLocaleDateString('fr-FR')}</span>
+                        <span style={{ fontSize: 12, color: '#1A1A1A', flex: 1 }}>{new Date(c.date_debut).toLocaleDateString('fr-FR')} → {new Date(c.date_fin).toLocaleDateString('fr-FR')}</span>
                         <span style={{ fontSize: 11, color: '#888' }}>{c.nb_jours}j</span>
                         <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 20, background: sc.bg, color: sc.color, fontWeight: 600 }}>{c.statut}</span>
                       </div>
@@ -226,13 +226,13 @@ export default function SalariesPage() {
           <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr', gap: 16, height: 'calc(100vh - 120px)' }}>
             {/* Sidebar conversations */}
             <div style={{ background: '#FFFFFF', borderRadius: 12, border: '1px solid #EDE5D8', overflow: 'hidden', display: 'flex', flexDirection: 'column' as const }}>
-              <div style={{ padding: '12px 16px', borderBottom: '1px solid #EDE5D8', fontSize: 13, fontWeight: 700, color: '#1C2A2F' }}>Conversations</div>
+              <div style={{ padding: '12px 16px', borderBottom: '1px solid #EDE5D8', fontSize: 13, fontWeight: 700, color: '#1A1A1A' }}>Conversations</div>
               <div style={{ flex: 1, overflowY: 'auto' as const }}>
                 {/* Message general */}
                 <div onClick={() => setConversation('general')} style={{ padding: '12px 16px', cursor: 'pointer', background: conversation === 'general' ? '#FFF0E6' : 'white', borderBottom: '1px solid #f5f5f5', display: 'flex', alignItems: 'center', gap: 10 }}>
                   <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#C8723A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>📢</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: '#1C2A2F' }}>General</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: '#1A1A1A' }}>General</div>
                     <div style={{ fontSize: 11, color: '#888', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>Message a toute l equipe</div>
                   </div>
                 </div>
@@ -246,7 +246,7 @@ export default function SalariesPage() {
                         {s.prenom?.[0]}{s.nom?.[0]}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13, fontWeight: nonLus > 0 ? 700 : 600, color: '#1C2A2F' }}>{s.prenom} {s.nom}</div>
+                        <div style={{ fontSize: 13, fontWeight: nonLus > 0 ? 700 : 600, color: '#1A1A1A' }}>{s.prenom} {s.nom}</div>
                         <div style={{ fontSize: 11, color: '#888', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
                           {lastMsg ? (lastMsg.fichier_nom || lastMsg.contenu || 'Fichier') : 'Aucun message'}
                         </div>
@@ -266,7 +266,7 @@ export default function SalariesPage() {
                 </div>
               ) : (
                 <>
-                  <div style={{ padding: '12px 16px', borderBottom: '1px solid #EDE5D8', fontSize: 14, fontWeight: 700, color: '#1C2A2F', display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ padding: '12px 16px', borderBottom: '1px solid #EDE5D8', fontSize: 14, fontWeight: 700, color: '#1A1A1A', display: 'flex', alignItems: 'center', gap: 10 }}>
                     {conversation === 'general' ? '📢 General — toute l equipe' : (() => { const s = salaries.find(s => s.id === conversation); return s ? s.prenom + ' ' + s.nom : '' })()}
                   </div>
                   <div style={{ flex: 1, overflowY: 'auto' as const, padding: '16px' }}>
@@ -281,7 +281,7 @@ export default function SalariesPage() {
                           )}
                           <div style={{ maxWidth: '70%' }}>
                             {!isMine && <div style={{ fontSize: 11, color: '#888', marginBottom: 3 }}>{m.expediteur?.prenom} {m.expediteur?.nom}</div>}
-                            <div style={{ background: isMine ? '#C8723A' : '#FAF7F2', color: isMine ? 'white' : '#1C2A2F', padding: '10px 14px', borderRadius: isMine ? '12px 12px 4px 12px' : '12px 12px 12px 4px', fontSize: 13 }}>
+                            <div style={{ background: isMine ? '#C8723A' : '#FAF7F2', color: isMine ? 'white' : '#1A1A1A', padding: '10px 14px', borderRadius: isMine ? '12px 12px 4px 12px' : '12px 12px 12px 4px', fontSize: 13 }}>
                               {m.fichier_url ? (
                                 <a href={m.fichier_url} target="_blank" rel="noreferrer" style={{ color: isMine ? 'white' : '#C8723A', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
                                   <span>📄</span> {m.fichier_nom}
@@ -305,7 +305,7 @@ export default function SalariesPage() {
                     <textarea value={newMessage} onChange={e => setNewMessage(e.target.value)}
                       onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(conversation === 'general' ? null : conversation) } }}
                       placeholder="Ecrire un message... (Entree pour envoyer)"
-                      style={{ flex: 1, padding: '10px 12px', borderRadius: 8, border: '1px solid #EDE5D8', fontSize: 13, color: '#1C2A2F', resize: 'none' as const, minHeight: 40, maxHeight: 100, fontFamily: 'system-ui' }} rows={1} />
+                      style={{ flex: 1, padding: '10px 12px', borderRadius: 8, border: '1px solid #EDE5D8', fontSize: 13, color: '#1A1A1A', resize: 'none' as const, minHeight: 40, maxHeight: 100, fontFamily: 'system-ui' }} rows={1} />
                     <button onClick={() => sendMessage(conversation === 'general' ? null : conversation)} disabled={sending || !newMessage.trim()}
                       style={{ padding: '10px 16px', borderRadius: 8, border: 'none', background: '#C8723A', color: 'white', cursor: 'pointer', fontSize: 14, fontWeight: 700, flexShrink: 0 }}>
                       {sending ? '...' : '→'}
