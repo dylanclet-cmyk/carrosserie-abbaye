@@ -49,7 +49,7 @@ export default function Dashboard() {
       dimanche.setDate(lundi.getDate() + 6)
       dimanche.setHours(23, 59, 59, 999)
 
-      if (sal?.role === 'technicien' || sal?.role === 'apprenti') {
+      if (sal?.role === 'technicien' || sal?.role === 'apprenti' || sal?.role === 'chef_atelier') {
         const { data: heures } = await supabase
           .from('heures')
           .select('nb_heures')
@@ -61,7 +61,7 @@ export default function Dashboard() {
       }
 
       if (sal?.role === 'chef_atelier' || sal?.role === 'gerant') {
-        const { data: tousLesSalaries } = await supabase.from('salaries').select('id, prenom, nom, role, heures_contrat').eq('actif', true).neq('role', 'chef_atelier').neq('role', 'gerant')
+        const { data: tousLesSalaries } = await supabase.from('salaries').select('id, prenom, nom, role, heures_contrat').eq('actif', true).neq('role', 'gerant')
         const equipeData = await Promise.all((tousLesSalaries || []).map(async (s: any) => {
           const { data: heures } = await supabase
             .from('heures')
@@ -152,7 +152,7 @@ export default function Dashboard() {
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '20px 16px' }}>
 
         {/* Compteur heures semaine technicien */}
-        {(salarie?.role === 'technicien' || salarie?.role === 'apprenti') && (() => {
+        {(salarie?.role === 'technicien' || salarie?.role === 'apprenti' || salarie?.role === 'chef_atelier') && (() => {
           const contrat = salarie?.heures_contrat || 35
           const diff = heuresSemaine - contrat
           const pct = Math.min(100, (heuresSemaine / contrat) * 100)
@@ -183,7 +183,7 @@ export default function Dashboard() {
         })()}
 
         {/* Compteur maladie */}
-        {(salarie?.role === 'technicien' || salarie?.role === 'apprenti') && (
+        {(salarie?.role === 'technicien' || salarie?.role === 'apprenti' || salarie?.role === 'chef_atelier') && (
           <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '14px 18px', border: '1px solid #EDE5D8', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <p style={{ fontSize: 12, color: '#999', margin: '0 0 4px' }}>Jours d'arrêt maladie en {annee}</p>
