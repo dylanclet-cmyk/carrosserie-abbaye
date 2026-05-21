@@ -29,7 +29,7 @@ export default function Dashboard() {
       if (sal?.role === 'technicien') { query.eq('salarie_id', sal.id) }
       const { data: dos } = await query
       setDossiers(dos || [])
-      if (sal?.role === 'chef_atelier') {
+      if (sal?.role === 'chef_atelier' || sal?.role === 'gerant') {
         const { count } = await supabase.from('conges').select('*', { count: 'exact', head: true }).eq('statut', 'en_attente')
         setCongesEnAttente(count || 0)
       } else {
@@ -60,7 +60,7 @@ export default function Dashboard() {
         setHeuresSemaine(total)
       }
 
-      if (sal?.role === 'chef_atelier') {
+      if (sal?.role === 'chef_atelier' || sal?.role === 'gerant') {
         const { data: tousLesSalaries } = await supabase.from('salaries').select('id, prenom, nom, role, heures_contrat').eq('actif', true).neq('role', 'gerant')
         const equipeData = await Promise.all((tousLesSalaries || []).map(async (s: any) => {
           const { data: heures } = await supabase
@@ -112,14 +112,14 @@ export default function Dashboard() {
   }
 
   const actions = [
-    ...(salarie?.role === 'chef_atelier' && onglet === 'en_cours' ? [{ label: 'Nouveau', path: '/nouveau-dossier', bg: '#C8723A', color: '#FFF', icon: 'M12 5v14M5 12h14' }] : []),
+    ...((salarie?.role === 'chef_atelier' || salarie?.role === 'gerant') && onglet === 'en_cours' ? [{ label: 'Nouveau', path: '/nouveau-dossier', bg: '#C8723A', color: '#FFF', icon: 'M12 5v14M5 12h14' }] : []),
     { label: 'Rapide', path: '/passage-rapide', bg: '#F5DEC8', color: '#7A3E10', icon: 'M13 2L3 14h9l-1 8 10-12h-9l1-8z' },
     { label: 'Clients', path: '/clients', bg: '#FFFFFF', color: '#C8723A', icon: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z' },
-    ...(salarie?.role === 'chef_atelier' ? [{ label: 'Courtoisie', path: '/courtoisie', bg: '#FFFFFF', color: '#C8723A', icon: 'M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3M13 21H6a2 2 0 0 1-2-2v-2a4 4 0 0 1 4-4h5M16 16l2 2 4-4' }] : []),
+    ...(salarie?.role === 'chef_atelier' || salarie?.role === 'gerant' ? [{ label: 'Courtoisie', path: '/courtoisie', bg: '#FFFFFF', color: '#C8723A', icon: 'M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3M13 21H6a2 2 0 0 1-2-2v-2a4 4 0 0 1 4-4h5M16 16l2 2 4-4' }] : []),
     { label: 'Equipe', path: '/salaries', bg: '#FFFFFF', color: '#C8723A', icon: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75' },
     { label: 'Absences', path: '/conges', bg: '#FFFFFF', color: '#C8723A', badge: congesEnAttente || notifCount || 0, icon: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' },
     { label: 'Avis', path: '/avis?mode=salarie', bg: '#FFFFFF', color: '#C8723A', icon: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z' },
-    ...(salarie?.role === 'chef_atelier' ? [{ label: 'Admin', path: '/admin', bg: '#F4F0EA', color: '#888', icon: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z' }] : []),
+    ...(salarie?.role === 'chef_atelier' || salarie?.role === 'gerant' ? [{ label: 'Admin', path: '/admin', bg: '#F4F0EA', color: '#888', icon: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z' }] : []),
   ]
 
   return (
@@ -144,7 +144,7 @@ export default function Dashboard() {
         <img src="/logo.png" alt="Logo" style={{ height: 38, objectFit: 'contain' }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)' }}>{salarie?.prenom} {salarie?.nom}</span>
-          {salarie?.role === 'chef_atelier' && <span style={{ fontSize: 11, background: 'rgba(255,255,255,0.2)', color: '#FAF7F2', padding: '3px 10px', borderRadius: 20 }}>Chef atelier</span>}
+          {(salarie?.role === 'chef_atelier' || salarie?.role === 'gerant') && <span style={{ fontSize: 11, background: 'rgba(255,255,255,0.2)', color: '#FAF7F2', padding: '3px 10px', borderRadius: 20 }}>Chef atelier</span>}
           <button onClick={handleLogout} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 6, padding: '5px 12px', fontSize: 12, color: '#FAF7F2', cursor: 'pointer' }}>Déconnexion</button>
         </div>
       </div>
@@ -227,7 +227,7 @@ export default function Dashboard() {
         )}
 
         {/* Planning banner */}
-        {salarie?.role === 'chef_atelier' && (
+        {(salarie?.role === 'chef_atelier' || salarie?.role === 'gerant') && (
           <div onClick={() => router.push('/planning')} style={{ background: '#FFFFFF', borderRadius: 12, padding: '12px 16px', marginBottom: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid #EDE5D8' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <div style={{ width: 38, height: 38, borderRadius: 8, background: '#FFF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -275,7 +275,7 @@ export default function Dashboard() {
         </div>
 
         {/* Alertes */}
-        {congesEnAttente > 0 && salarie?.role === 'chef_atelier' && (
+        {congesEnAttente > 0 && (salarie?.role === 'chef_atelier' || salarie?.role === 'gerant') && (
           <div onClick={() => router.push('/conges')} style={{ background: '#FFF8F3', border: '1px solid #E8C8A0', borderRadius: 10, padding: '10px 16px', marginBottom: 10, fontSize: 13, color: '#7A3E10', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
             📋 <strong>{congesEnAttente} demande{congesEnAttente > 1 ? 's' : ''} de congé en attente</strong>
           </div>
