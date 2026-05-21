@@ -123,7 +123,7 @@ export default function SalariesPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <button onClick={() => router.push('/')} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: '#EDE5D8' }}>← Retour</button>
           <img src="/logo.png" alt="Logo" style={{ height: 34, objectFit: 'contain' }} />
-          <span style={{ color: '#7A3E10', fontSize: 14, fontWeight: 500 }}>Equipe & Messagerie</span>
+          <span style={{ color: '#FFFFFF', fontSize: 14, fontWeight: 500 }}>Equipe & Messagerie</span>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={() => setOnglet('equipe')} style={{ padding: '7px 16px', borderRadius: 8, border: 'none', background: onglet === 'equipe' ? '#C8723A' : 'transparent', color: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Equipe</button>
@@ -152,7 +152,7 @@ export default function SalariesPage() {
                           <div style={{ fontSize: 14, fontWeight: 700, color: '#1A1A1A' }}>{s.prenom} {s.nom}</div>
                           <div style={{ fontSize: 12, color: '#888' }}>{s.email}</div>
                           <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
-                            <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 20, background: s.role === 'chef_atelier' ? '#C8723A' : '#FFF0E6', color: s.role === 'chef_atelier' ? '#C8723A' : '#7A3E10', fontWeight: 600 }}>
+                            <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 20, background: s.role === 'chef_atelier' ? '#C8723A' : '#FFF0E6', color: s.role === 'chef_atelier' ? '#FFFFFF' : '#7A3E10', fontWeight: 600 }}>
                               {s.role === 'chef_atelier' ? 'Chef atelier' : 'Technicien'}
                             </span>
                             {congesEnCours && (
