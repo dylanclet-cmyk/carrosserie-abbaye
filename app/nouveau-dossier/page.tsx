@@ -134,30 +134,30 @@ export default function NouveauDossier() {
   }
 
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }))
-  const inputStyle = { width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #EDE5D8', fontSize: 14, color: '#1C2A2F', background: '#FFFFFF' }
+  const inputStyle = { width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e8e2d9', fontSize: 14, color: '#2D3748', background: 'white' }
   const labelStyle = { fontSize: 12, color: '#888', display: 'block' as const, marginBottom: 4 }
   const selectedVehicule = vehiculesDisponibles.find(v => v.id === form.vehicule_courtoisie_id)
 
   return (
-    <div style={{ minHeight: '100vh', background: '#FAF7F2', fontFamily: 'system-ui, sans-serif' }}>
-      <div style={{ background: '#C8723A', padding: '0 1.5rem', height: 52, display: 'flex', alignItems: 'center', gap: 12 }}>
-        <button onClick={() => router.push('/')} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: '#EDE5D8' }}>← Retour</button>
-        <img src="/logo.png" alt="Logo" style={{ height: 34, objectFit: 'contain' }} />
-        <span style={{ color: '#FAF7F2', fontSize: 14, fontWeight: 500 }}>Nouveau dossier</span>
+    <div style={{ minHeight: '100vh', background: '#f8f6f3', fontFamily: 'system-ui, sans-serif' }}>
+      <div style={{ background: '#2D3748', padding: '0 2rem', height: 64, display: 'flex', alignItems: 'center', gap: 12 }}>
+        <button onClick={() => router.push('/')} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: '#e8e2d9' }}>← Retour</button>
+        <img src="/logo.png" alt="Logo" style={{ height: 44, objectFit: 'contain' }} />
+        <span style={{ color: 'white', fontSize: 15, fontWeight: 600 }}>Nouveau dossier</span>
       </div>
 
-      <div style={{ padding: '20px 16px', maxWidth: 820, margin: '0 auto' }}>
+      <div style={{ padding: '1.5rem 2rem', maxWidth: 800, margin: '0 auto' }}>
 
         {/* Section client */}
-        <div style={{ background: '#FFFFFF', borderRadius: 10, padding: '1.25rem', border: '1px solid #EDE5D8', marginBottom: 16 }}>
-          <div style={{ fontSize: 13, fontWeight: 500, color: '#C8723A', textTransform: 'uppercase' as const, letterSpacing: '0.06em', marginBottom: 16 }}>Client</div>
+        <div style={{ background: 'white', borderRadius: 12, padding: '1.5rem', border: '1px solid #e8e2d9', marginBottom: 16 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 16 }}>Client</div>
 
           {/* Toggle search/new */}
           <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-            <button onClick={() => { setClientMode('search'); setSelectedClient(null); setSearchClient('') }} style={{ flex: 1, padding: '8px', borderRadius: 8, border: '2px solid ' + (clientMode === 'search' ? '#C8723A' : '#EDE5D8'), background: clientMode === 'search' ? '#C8723A' : 'white', color: clientMode === 'search' ? 'white' : '#1C2A2F', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+            <button onClick={() => { setClientMode('search'); setSelectedClient(null); setSearchClient('') }} style={{ flex: 1, padding: '8px', borderRadius: 8, border: '2px solid ' + (clientMode === 'search' ? '#E07B2A' : '#e8e2d9'), background: clientMode === 'search' ? '#E07B2A' : 'white', color: clientMode === 'search' ? 'white' : '#2D3748', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
               🔍 Chercher client existant
             </button>
-            <button onClick={() => { setClientMode('new'); setSelectedClient(null); setSearchClient(''); setForm(f => ({ ...f, client_nom: '', client_prenom: '', client_telephone: '', client_email: '', client_assurance: '', client_num_police: '' })) }} style={{ flex: 1, padding: '8px', borderRadius: 8, border: '2px solid ' + (clientMode === 'new' ? '#C8723A' : '#EDE5D8'), background: clientMode === 'new' ? '#C8723A' : 'white', color: clientMode === 'new' ? 'white' : '#1C2A2F', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+            <button onClick={() => { setClientMode('new'); setSelectedClient(null); setSearchClient(''); setForm(f => ({ ...f, client_nom: '', client_prenom: '', client_telephone: '', client_email: '', client_assurance: '', client_num_police: '' })) }} style={{ flex: 1, padding: '8px', borderRadius: 8, border: '2px solid ' + (clientMode === 'new' ? '#E07B2A' : '#e8e2d9'), background: clientMode === 'new' ? '#E07B2A' : 'white', color: clientMode === 'new' ? 'white' : '#2D3748', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
               + Nouveau client
             </button>
           </div>
@@ -174,16 +174,16 @@ export default function NouveauDossier() {
               <span style={{ position: 'absolute' as const, left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 16, color: '#888' }}>🔍</span>
 
               {showDropdown && searchClient && filteredClients.length > 0 && (
-                <div style={{ position: 'absolute' as const, top: '100%', left: 0, right: 0, background: '#FFFFFF', border: '1px solid #EDE5D8', borderRadius: 10, boxShadow: '0 4px 20px rgba(0,0,0,0.1)', zIndex: 100, maxHeight: 280, overflowY: 'auto' as const }}>
+                <div style={{ position: 'absolute' as const, top: '100%', left: 0, right: 0, background: 'white', border: '1px solid #e8e2d9', borderRadius: 10, boxShadow: '0 4px 20px rgba(0,0,0,0.1)', zIndex: 100, maxHeight: 280, overflowY: 'auto' as const }}>
                   {filteredClients.map(c => (
                     <div key={c.id} onClick={() => selectClient(c)} style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid #f5f5f5', display: 'flex', alignItems: 'center', gap: 10 }}
-                      onMouseEnter={e => (e.currentTarget.style.background = '#FFF0E6')}
+                      onMouseEnter={e => (e.currentTarget.style.background = '#FDF0E6')}
                       onMouseLeave={e => (e.currentTarget.style.background = 'white')}>
-                      <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#FFF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#C8723A', flexShrink: 0 }}>
+                      <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#FDF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#E07B2A', flexShrink: 0 }}>
                         {c.prenom?.[0]}{c.nom?.[0]}
                       </div>
                       <div>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: '#1C2A2F' }}>{c.prenom} {c.nom}</div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: '#2D3748' }}>{c.prenom} {c.nom}</div>
                         <div style={{ fontSize: 11, color: '#888' }}>{c.telephone}{c.email ? ' · ' + c.email : ''}</div>
                       </div>
                     </div>
@@ -192,9 +192,9 @@ export default function NouveauDossier() {
               )}
 
               {showDropdown && searchClient && filteredClients.length === 0 && (
-                <div style={{ position: 'absolute' as const, top: '100%', left: 0, right: 0, background: '#FFFFFF', border: '1px solid #EDE5D8', borderRadius: 10, padding: '1rem', textAlign: 'center' as const, color: '#888', fontSize: 13, zIndex: 100 }}>
+                <div style={{ position: 'absolute' as const, top: '100%', left: 0, right: 0, background: 'white', border: '1px solid #e8e2d9', borderRadius: 10, padding: '1rem', textAlign: 'center' as const, color: '#888', fontSize: 13, zIndex: 100 }}>
                   Aucun client trouvé —
-                  <button onClick={() => { setClientMode('new'); setShowDropdown(false); setForm(f => ({ ...f, client_prenom: searchClient.split(' ')[0] || '', client_nom: searchClient.split(' ')[1] || '' })) }} style={{ background: 'none', border: 'none', color: '#C8723A', cursor: 'pointer', fontWeight: 600, fontSize: 13 }}>
+                  <button onClick={() => { setClientMode('new'); setShowDropdown(false); setForm(f => ({ ...f, client_prenom: searchClient.split(' ')[0] || '', client_nom: searchClient.split(' ')[1] || '' })) }} style={{ background: 'none', border: 'none', color: '#E07B2A', cursor: 'pointer', fontWeight: 600, fontSize: 13 }}>
                     créer un nouveau client
                   </button>
                 </div>
@@ -203,7 +203,7 @@ export default function NouveauDossier() {
           )}
 
           {selectedClient && (
-            <div style={{ padding: '10px 14px', background: '#EBF5EE', borderRadius: 8, border: '1px solid #97C459', fontSize: 13, color: '#2A6B3A', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ padding: '10px 14px', background: '#EAF3DE', borderRadius: 8, border: '1px solid #97C459', fontSize: 13, color: '#27500A', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
                 <strong>✓ {selectedClient.prenom} {selectedClient.nom}</strong>
                 {selectedClient.telephone && <span style={{ marginLeft: 8, color: '#555' }}>{selectedClient.telephone}</span>}
@@ -226,8 +226,8 @@ export default function NouveauDossier() {
         </div>
 
         {/* Vehicule */}
-        <div style={{ background: '#FFFFFF', borderRadius: 10, padding: '1.25rem', border: '1px solid #EDE5D8', marginBottom: 16 }}>
-          <div style={{ fontSize: 13, fontWeight: 500, color: '#C8723A', textTransform: 'uppercase' as const, letterSpacing: '0.06em', marginBottom: 16 }}>Vehicule client</div>
+        <div style={{ background: 'white', borderRadius: 12, padding: '1.5rem', border: '1px solid #e8e2d9', marginBottom: 16 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 16 }}>Vehicule client</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div><label style={labelStyle}>Immatriculation *</label><input style={{ ...inputStyle, textTransform: 'uppercase' as const, fontWeight: 700 }} value={form.immatriculation} onChange={e => set('immatriculation', e.target.value)} placeholder="AB-123-CD" /></div>
             <div><label style={labelStyle}>Marque</label><input style={inputStyle} value={form.marque} onChange={e => set('marque', e.target.value)} placeholder="Citroen" /></div>
@@ -247,8 +247,8 @@ export default function NouveauDossier() {
         </div>
 
         {/* Vehicule courtoisie */}
-        <div style={{ background: '#FFFFFF', borderRadius: 10, padding: '1.25rem', border: '1px solid #EDE5D8', marginBottom: 16 }}>
-          <div style={{ fontSize: 13, fontWeight: 500, color: '#C8723A', textTransform: 'uppercase' as const, letterSpacing: '0.06em', marginBottom: 8 }}>Vehicule de courtoisie</div>
+        <div style={{ background: 'white', borderRadius: 12, padding: '1.5rem', border: '1px solid #e8e2d9', marginBottom: 16 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#E07B2A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 8 }}>Vehicule de courtoisie</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div><label style={labelStyle}>Date debut pret</label><input style={inputStyle} type="date" value={form.courtoisie_date_debut} onChange={e => set('courtoisie_date_debut', e.target.value)} /></div>
             <div><label style={labelStyle}>Date retour prevue</label><input style={inputStyle} type="date" value={form.courtoisie_date_retour} onChange={e => set('courtoisie_date_retour', e.target.value)} /></div>
@@ -273,8 +273,8 @@ export default function NouveauDossier() {
         </div>
 
         <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
-          <button onClick={() => router.push('/')} style={{ padding: '10px 20px', borderRadius: 8, border: '1px solid #EDE5D8', background: '#FFFFFF', cursor: 'pointer', fontSize: 14, color: '#1C2A2F' }}>Annuler</button>
-          <button onClick={handleSubmit} disabled={loading} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: '#C8723A', color: 'white', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>
+          <button onClick={() => router.push('/')} style={{ padding: '10px 20px', borderRadius: 8, border: '1px solid #e8e2d9', background: 'white', cursor: 'pointer', fontSize: 14, color: '#2D3748' }}>Annuler</button>
+          <button onClick={handleSubmit} disabled={loading} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: '#E07B2A', color: 'white', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>
             {loading ? 'Creation...' : 'Creer le dossier'}
           </button>
         </div>

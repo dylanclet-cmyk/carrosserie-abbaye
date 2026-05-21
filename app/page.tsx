@@ -5,7 +5,6 @@ import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 
 export default function Dashboard() {
-  const [user, setUser] = useState<any>(null)
   const [salarie, setSalarie] = useState<any>(null)
   const [dossiers, setDossiers] = useState<any[]>([])
   const [congesEnAttente, setCongesEnAttente] = useState(0)
@@ -18,29 +17,30 @@ export default function Dashboard() {
   const router = useRouter()
   const supabase = createClient()
 
+  const isGerant = (role: string) => role === 'gerant'
+  const isEncadrant = (role: string) => role === 'gerant' || role === 'chef_atelier'
+  const isTechnicien = (role: string) => role === 'technicien' || role === 'apprenti'
+
   useEffect(() => {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
-      setUser(user)
       const { data: sal } = await supabase.from('salaries').select('*').eq('email', user.email).single()
       setSalarie(sal)
+
       const query = supabase.from('dossiers').select('*, clients(*), salaries(*)').order('created_at', { ascending: false })
-      if (sal?.role === 'technicien') { query.eq('salarie_id', sal.id) }
+      if (isTechnicien(sal?.role)) { query.eq('salarie_id', sal.id) }
       const { data: dos } = await query
       setDossiers(dos || [])
-      if (sal?.role === 'chef_atelier' || sal?.role === 'gerant') {
+
+      if (isEncadrant(sal?.role)) {
         const { count } = await supabase.from('conges').select('*', { count: 'exact', head: true }).eq('statut', 'en_attente')
         setCongesEnAttente(count || 0)
       } else {
         const { count } = await supabase.from('notifications').select('*', { count: 'exact', head: true }).eq('salarie_id', sal.id).eq('lu', false)
         setNotifCount(count || 0)
-        const annee = new Date().getFullYear()
-        const { data: congesMaladie } = await supabase.from('conges').select('nb_jours').eq('salarie_id', sal.id).eq('type', 'maladie').eq('statut', 'accepte').gte('date_debut', annee + '-01-01')
-        const total = (congesMaladie || []).reduce((a: number, c: any) => a + (c.nb_jours || 0), 0)
-        setJoursMaladie(total)
       }
-      // Heures de la semaine en cours
+
       const maintenant = new Date()
       const lundi = new Date(maintenant)
       lundi.setDate(maintenant.getDate() - ((maintenant.getDay() + 6) % 7))
@@ -49,26 +49,24 @@ export default function Dashboard() {
       dimanche.setDate(lundi.getDate() + 6)
       dimanche.setHours(23, 59, 59, 999)
 
-      if (sal?.role === 'technicien' || sal?.role === 'apprenti' || sal?.role === 'chef_atelier') {
-        const { data: heures } = await supabase
-          .from('heures')
-          .select('nb_heures')
-          .eq('salarie_id', sal.id)
-          .gte('created_at', lundi.toISOString())
-          .lte('created_at', dimanche.toISOString())
+      // Compteur heures perso pour techniciens et chefs
+      if (!isGerant(sal?.role)) {
+        const annee = new Date().getFullYear()
+        if (isTechnicien(sal?.role)) {
+          const { data: congesMaladie } = await supabase.from('conges').select('nb_jours').eq('salarie_id', sal.id).eq('type', 'maladie').eq('statut', 'accepte').gte('date_debut', annee + '-01-01')
+          const total = (congesMaladie || []).reduce((a: number, c: any) => a + (c.nb_jours || 0), 0)
+          setJoursMaladie(total)
+        }
+        const { data: heures } = await supabase.from('heures').select('nb_heures').eq('salarie_id', sal.id).gte('created_at', lundi.toISOString()).lte('created_at', dimanche.toISOString())
         const total = (heures || []).reduce((a: number, h: any) => a + (h.nb_heures || 0), 0)
         setHeuresSemaine(total)
       }
 
-      if (sal?.role === 'chef_atelier' || sal?.role === 'gerant') {
+      // Vue equipe pour encadrants
+      if (isEncadrant(sal?.role)) {
         const { data: tousLesSalaries } = await supabase.from('salaries').select('id, prenom, nom, role, heures_contrat').eq('actif', true).neq('role', 'gerant')
         const equipeData = await Promise.all((tousLesSalaries || []).map(async (s: any) => {
-          const { data: heures } = await supabase
-            .from('heures')
-            .select('nb_heures')
-            .eq('salarie_id', s.id)
-            .gte('created_at', lundi.toISOString())
-            .lte('created_at', dimanche.toISOString())
+          const { data: heures } = await supabase.from('heures').select('nb_heures').eq('salarie_id', s.id).gte('created_at', lundi.toISOString()).lte('created_at', dimanche.toISOString())
           const total = (heures || []).reduce((a: number, h: any) => a + (h.nb_heures || 0), 0)
           return { ...s, heures_semaine: total }
         }))
@@ -111,15 +109,17 @@ export default function Dashboard() {
     border: '1px solid #EDE5D8', background: '#FFFFFF', minWidth: 0, flex: 1,
   }
 
+  const roleLabel = salarie?.role === 'gerant' ? 'Gérant' : salarie?.role === 'chef_atelier' ? 'Chef atelier' : salarie?.role === 'technicien' ? 'Technicien' : 'Apprenti'
+
   const actions = [
-    ...((salarie?.role === 'chef_atelier' || salarie?.role === 'gerant') && onglet === 'en_cours' ? [{ label: 'Nouveau', path: '/nouveau-dossier', bg: '#C8723A', color: '#FFF', icon: 'M12 5v14M5 12h14' }] : []),
+    ...(isEncadrant(salarie?.role) && onglet === 'en_cours' ? [{ label: 'Nouveau', path: '/nouveau-dossier', bg: '#C8723A', color: '#FFF', icon: 'M12 5v14M5 12h14' }] : []),
     { label: 'Rapide', path: '/passage-rapide', bg: '#F5DEC8', color: '#7A3E10', icon: 'M13 2L3 14h9l-1 8 10-12h-9l1-8z' },
     { label: 'Clients', path: '/clients', bg: '#FFFFFF', color: '#C8723A', icon: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z' },
-    ...(salarie?.role === 'chef_atelier' || salarie?.role === 'gerant' ? [{ label: 'Courtoisie', path: '/courtoisie', bg: '#FFFFFF', color: '#C8723A', icon: 'M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3M13 21H6a2 2 0 0 1-2-2v-2a4 4 0 0 1 4-4h5M16 16l2 2 4-4' }] : []),
+    ...(isEncadrant(salarie?.role) ? [{ label: 'Courtoisie', path: '/courtoisie', bg: '#FFFFFF', color: '#C8723A', icon: 'M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3M13 21H6a2 2 0 0 1-2-2v-2a4 4 0 0 1 4-4h5M16 16l2 2 4-4' }] : []),
     { label: 'Equipe', path: '/salaries', bg: '#FFFFFF', color: '#C8723A', icon: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75' },
     { label: 'Absences', path: '/conges', bg: '#FFFFFF', color: '#C8723A', badge: congesEnAttente || notifCount || 0, icon: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' },
     { label: 'Avis', path: '/avis?mode=salarie', bg: '#FFFFFF', color: '#C8723A', icon: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z' },
-    ...(salarie?.role === 'chef_atelier' || salarie?.role === 'gerant' ? [{ label: 'Admin', path: '/admin', bg: '#F4F0EA', color: '#888', icon: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z' }] : []),
+    ...(isEncadrant(salarie?.role) ? [{ label: 'Admin', path: '/admin', bg: '#F4F0EA', color: '#888', icon: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z' }] : []),
   ]
 
   return (
@@ -134,25 +134,24 @@ export default function Dashboard() {
         @media (max-width: 640px) {
           .actions-wrap { display:grid !important; grid-template-columns:repeat(4,1fr) !important; gap:6px !important; }
           .abtn { min-width:0 !important; padding:10px 4px !important; }
-          .abtn span:first-child { font-size:18px !important; }
           .abtn span:last-child { font-size:9px !important; }
         }
       `}</style>
 
       {/* Header */}
-      <div style={{ background: '#C8723A', padding: '0 24px', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky' as const, top: 0, zIndex: 50 }}>
+      <div style={{ background: '#C8723A', padding: '0 24px', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 50 }}>
         <img src="/logo.png" alt="Logo" style={{ height: 38, objectFit: 'contain' }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)' }}>{salarie?.prenom} {salarie?.nom}</span>
-          {(salarie?.role === 'chef_atelier' || salarie?.role === 'gerant') && <span style={{ fontSize: 11, background: 'rgba(255,255,255,0.2)', color: '#FAF7F2', padding: '3px 10px', borderRadius: 20 }}>Chef atelier</span>}
+          <span style={{ fontSize: 11, background: 'rgba(255,255,255,0.2)', color: '#FAF7F2', padding: '3px 10px', borderRadius: 20 }}>{roleLabel}</span>
           <button onClick={handleLogout} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 6, padding: '5px 12px', fontSize: 12, color: '#FAF7F2', cursor: 'pointer' }}>Déconnexion</button>
         </div>
       </div>
 
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '20px 16px' }}>
 
-        {/* Compteur heures semaine technicien */}
-        {(salarie?.role === 'technicien' || salarie?.role === 'apprenti' || salarie?.role === 'chef_atelier') && (() => {
+        {/* Compteur heures perso (pas pour gerant) */}
+        {!isGerant(salarie?.role) && (() => {
           const contrat = salarie?.heures_contrat || 35
           const diff = heuresSemaine - contrat
           const pct = Math.min(100, (heuresSemaine / contrat) * 100)
@@ -169,21 +168,21 @@ export default function Dashboard() {
                     <span style={{ fontSize: 13, color: '#999' }}>/ {contrat}h contractuelles</span>
                   </div>
                 </div>
-                <div style={{ textAlign: 'right' as const }}>
+                <div>
                   {isPlus && <div style={{ fontSize: 13, fontWeight: 500, color: '#C8723A', background: '#FFF0E6', padding: '4px 12px', borderRadius: 20 }}>+{diff.toFixed(1)}h sup</div>}
                   {isMoins && <div style={{ fontSize: 13, fontWeight: 500, color: '#A32D2D', background: '#FFF0F0', padding: '4px 12px', borderRadius: 20 }}>{diff.toFixed(1)}h manquantes</div>}
                   {isOk && <div style={{ fontSize: 13, fontWeight: 500, color: '#2A6B3A', background: '#EBF5EE', padding: '4px 12px', borderRadius: 20 }}>✓ OK</div>}
                 </div>
               </div>
-              <div style={{ background: '#F4F0EA', borderRadius: 20, height: 8, overflow: 'hidden' as const }}>
-                <div style={{ height: '100%', width: pct + '%', background: isPlus ? '#C8723A' : isMoins ? '#E09090' : '#2A6B3A', borderRadius: 20, transition: 'width 0.3s' }} />
+              <div style={{ background: '#F4F0EA', borderRadius: 20, height: 8, overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: pct + '%', background: isPlus ? '#C8723A' : isMoins ? '#E09090' : '#2A6B3A', borderRadius: 20 }} />
               </div>
             </div>
           )
         })()}
 
-        {/* Compteur maladie */}
-        {(salarie?.role === 'technicien' || salarie?.role === 'apprenti' || salarie?.role === 'chef_atelier') && (
+        {/* Compteur maladie technicien */}
+        {isTechnicien(salarie?.role) && (
           <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '14px 18px', border: '1px solid #EDE5D8', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <p style={{ fontSize: 12, color: '#999', margin: '0 0 4px' }}>Jours d'arrêt maladie en {annee}</p>
@@ -196,10 +195,10 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Compteur heures equipe pour chef/gerant */}
-        {salarie?.role === 'chef_atelier' && equipeHeures.length > 0 && (
+        {/* Vue equipe heures pour encadrants */}
+        {isEncadrant(salarie?.role) && equipeHeures.length > 0 && (
           <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '16px 18px', border: '1px solid #EDE5D8', marginBottom: 16 }}>
-            <div style={{ fontSize: 11, fontWeight: 500, color: '#C8723A', textTransform: 'uppercase' as const, letterSpacing: '0.06em', marginBottom: 12 }}>Heures équipe cette semaine</div>
+            <div style={{ fontSize: 11, fontWeight: 500, color: '#C8723A', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>Heures équipe cette semaine</div>
             {equipeHeures.map((s: any) => {
               const contrat = s.heures_contrat || 35
               const diff = s.heures_semaine - contrat
@@ -217,7 +216,7 @@ export default function Dashboard() {
                       {!isPlus && !isMoins && <span style={{ fontSize: 11, color: '#2A6B3A', background: '#EBF5EE', padding: '2px 8px', borderRadius: 20 }}>✓</span>}
                     </div>
                   </div>
-                  <div style={{ background: '#F4F0EA', borderRadius: 20, height: 6, overflow: 'hidden' as const }}>
+                  <div style={{ background: '#F4F0EA', borderRadius: 20, height: 6, overflow: 'hidden' }}>
                     <div style={{ height: '100%', width: pct + '%', background: isPlus ? '#C8723A' : isMoins ? '#E09090' : '#2A6B3A', borderRadius: 20 }} />
                   </div>
                 </div>
@@ -227,7 +226,7 @@ export default function Dashboard() {
         )}
 
         {/* Planning banner */}
-        {(salarie?.role === 'chef_atelier' || salarie?.role === 'gerant') && (
+        {isEncadrant(salarie?.role) && (
           <div onClick={() => router.push('/planning')} style={{ background: '#FFFFFF', borderRadius: 12, padding: '12px 16px', marginBottom: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid #EDE5D8' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <div style={{ width: 38, height: 38, borderRadius: 8, background: '#FFF0E6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -252,10 +251,10 @@ export default function Dashboard() {
             { key: 'archives', label: 'Archives', count: archives.length },
           ].map(item => (
             <div key={item.key} onClick={() => setOnglet(item.key as any)}
-              style={{ background: onglet === item.key ? '#C8723A' : '#FFFFFF', borderRadius: 10, padding: '12px 14px', border: item.key === 'a_facturer' && aFacturer.length > 0 && onglet !== item.key ? '1.5px solid #C8723A' : '1px solid #EDE5D8', cursor: 'pointer', position: 'relative' as const }}>
+              style={{ background: onglet === item.key ? '#C8723A' : '#FFFFFF', borderRadius: 10, padding: '12px 14px', border: item.key === 'a_facturer' && aFacturer.length > 0 && onglet !== item.key ? '1.5px solid #C8723A' : '1px solid #EDE5D8', cursor: 'pointer', position: 'relative' }}>
               <p style={{ fontSize: 11, color: onglet === item.key ? 'rgba(255,255,255,0.8)' : '#999', margin: '0 0 4px' }}>{item.label}</p>
-              <p style={{ fontSize: 24, fontWeight: 500, color: item.key === 'a_facturer' && aFacturer.length > 0 ? '#C8723A' : onglet === item.key ? '#FFFFFF' : '#1A1A1A', margin: 0 }}>{item.count}</p>
-              {item.key === 'a_facturer' && aFacturer.length > 0 && <div style={{ position: 'absolute' as const, top: 8, right: 8, width: 7, height: 7, borderRadius: '50%', background: '#C8723A' }} />}
+              <p style={{ fontSize: 24, fontWeight: 500, color: item.key === 'a_facturer' && aFacturer.length > 0 && onglet !== item.key ? '#C8723A' : onglet === item.key ? '#FFFFFF' : '#1A1A1A', margin: 0 }}>{item.count}</p>
+              {item.key === 'a_facturer' && aFacturer.length > 0 && <div style={{ position: 'absolute', top: 8, right: 8, width: 7, height: 7, borderRadius: '50%', background: '#C8723A' }} />}
             </div>
           ))}
         </div>
@@ -264,23 +263,23 @@ export default function Dashboard() {
         <div className="actions-wrap">
           {actions.map((a, i) => (
             <button key={i} className="abtn" onClick={() => router.push(a.path)}
-              style={{ ...btnBase, background: a.bg, border: `1px solid ${a.bg === '#FFFFFF' ? '#EDE5D8' : a.bg === '#F5DEC8' ? '#E8C8A0' : 'transparent'}`, position: 'relative' as const }}>
+              style={{ ...btnBase, background: a.bg, border: `1px solid ${a.bg === '#FFFFFF' ? '#EDE5D8' : a.bg === '#F5DEC8' ? '#E8C8A0' : 'transparent'}`, position: 'relative' }}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={a.color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d={a.icon} />
               </svg>
-              <span style={{ fontSize: 11, color: a.color, fontWeight: 500, whiteSpace: 'nowrap' as const }}>{a.label}</span>
-              {(a as any).badge > 0 && <span style={{ position: 'absolute' as const, top: -4, right: -4, background: '#C8723A', color: '#FFF', fontSize: 9, padding: '2px 5px', borderRadius: 20 }}>{(a as any).badge}</span>}
+              <span style={{ fontSize: 11, color: a.color, fontWeight: 500, whiteSpace: 'nowrap' }}>{a.label}</span>
+              {(a as any).badge > 0 && <span style={{ position: 'absolute', top: -4, right: -4, background: '#C8723A', color: '#FFF', fontSize: 9, padding: '2px 5px', borderRadius: 20 }}>{(a as any).badge}</span>}
             </button>
           ))}
         </div>
 
         {/* Alertes */}
-        {congesEnAttente > 0 && (salarie?.role === 'chef_atelier' || salarie?.role === 'gerant') && (
+        {congesEnAttente > 0 && isEncadrant(salarie?.role) && (
           <div onClick={() => router.push('/conges')} style={{ background: '#FFF8F3', border: '1px solid #E8C8A0', borderRadius: 10, padding: '10px 16px', marginBottom: 10, fontSize: 13, color: '#7A3E10', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
             📋 <strong>{congesEnAttente} demande{congesEnAttente > 1 ? 's' : ''} de congé en attente</strong>
           </div>
         )}
-        {notifCount > 0 && salarie?.role === 'technicien' && (
+        {notifCount > 0 && isTechnicien(salarie?.role) && (
           <div onClick={() => router.push('/conges')} style={{ background: '#EBF5EE', border: '1px solid #A8D8B8', borderRadius: 10, padding: '10px 16px', marginBottom: 10, fontSize: 13, color: '#2A6B3A', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
             🔔 <strong>{notifCount} notification{notifCount > 1 ? 's' : ''} non lue{notifCount > 1 ? 's' : ''}</strong>
           </div>
@@ -294,7 +293,7 @@ export default function Dashboard() {
         {/* Liste dossiers */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {dossiersAffiches.length === 0 ? (
-            <div style={{ background: '#FFFFFF', borderRadius: 10, padding: '2rem', textAlign: 'center' as const, color: '#999', border: '1px solid #EDE5D8', fontSize: 13 }}>
+            <div style={{ background: '#FFFFFF', borderRadius: 10, padding: '2rem', textAlign: 'center', color: '#999', border: '1px solid #EDE5D8', fontSize: 13 }}>
               {onglet === 'en_cours' ? 'Aucun dossier en cours' : onglet === 'a_facturer' ? 'Aucun dossier à facturer' : 'Aucun dossier archivé'}
             </div>
           ) : dossiersAffiches.map(d => {
@@ -322,8 +321,8 @@ export default function Dashboard() {
                     {d.notes && <div style={{ marginTop: 5, padding: '4px 10px', background: '#FFF8F3', borderRadius: 6, fontSize: 12, color: '#7A3E10', border: '1px solid #E8C8A0' }}>Note : {d.notes}</div>}
                   </div>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'flex-end', gap: 8, flexShrink: 0 }}>
-                  <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, background: s.bg, color: s.color, whiteSpace: 'nowrap' as const }}>{s.label}</span>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, flexShrink: 0 }}>
+                  <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, background: s.bg, color: s.color, whiteSpace: 'nowrap' }}>{s.label}</span>
                   <button className="voir" onClick={() => router.push('/dossier/' + d.id)}>Voir</button>
                 </div>
               </div>

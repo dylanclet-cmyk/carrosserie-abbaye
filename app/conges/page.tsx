@@ -21,7 +21,7 @@ export default function CongesPage() {
       if (!user) { router.push('/login'); return }
       const { data: sal } = await supabase.from('salaries').select('*').eq('email', user.email).single()
       setSalarie(sal)
-      if (sal?.role === 'chef_atelier') {
+      if ((sal?.role === 'chef_atelier' || sal?.role === 'gerant')) {
         const { data: sals } = await supabase.from('salaries').select('*').eq('actif', true)
         setSalaries(sals || [])
         setNewConge(n => ({ ...n, salarie_id: sal.id }))
@@ -130,15 +130,15 @@ export default function CongesPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <button onClick={() => router.push('/')} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: '#EDE5D8' }}>← Retour</button>
           <img src="/logo.png" alt="Logo" style={{ height: 34, objectFit: 'contain' }} />
-          <span style={{ color: '#FAF7F2', fontSize: 14, fontWeight: 500 }}>{salarie?.role === 'chef_atelier' ? 'Gestion des conges' : 'Mes conges'}</span>
+          <span style={{ color: '#FAF7F2', fontSize: 14, fontWeight: 500 }}>{(salarie?.role === 'chef_atelier' || salarie?.role === 'gerant') ? 'Gestion des conges' : 'Mes conges'}</span>
         </div>
         <button onClick={() => setShowForm(true)} style={{ background: '#C8723A', color: 'white', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-          {salarie?.role === 'chef_atelier' ? '+ Poser un conge' : '+ Demander un conge'}
+          {(salarie?.role === 'chef_atelier' || salarie?.role === 'gerant') ? '+ Poser un conge' : '+ Demander un conge'}
         </button>
       </div>
 
       <div style={{ padding: '20px 16px', maxWidth: 920, margin: '0 auto' }}>
-        {salarie?.role === 'chef_atelier' && (
+        {(salarie?.role === 'chef_atelier' || salarie?.role === 'gerant') && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
             <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '1rem', border: enAttente.length > 0 ? '2px solid #C8723A' : '1px solid #EDE5D8', position: 'relative' as const }}>
               <div style={{ fontSize: 12, color: '#888', marginBottom: 6 }}>En attente</div>
@@ -156,7 +156,7 @@ export default function CongesPage() {
           </div>
         )}
 
-        {enAttente.length > 0 && salarie?.role === 'chef_atelier' && (
+        {enAttente.length > 0 && (salarie?.role === 'chef_atelier' || salarie?.role === 'gerant') && (
           <div style={{ marginBottom: 24 }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#1C2A2F', marginBottom: 12 }}>⚠ Demandes en attente</div>
             {enAttente.map(c => <DemandeConge key={c.id} conge={c} isChef={true} typeLabels={typeLabels} statutColors={statutColors} onUpdate={updateStatut} onDelete={deleteConge} />)}
@@ -164,15 +164,15 @@ export default function CongesPage() {
         )}
 
         <div style={{ marginBottom: 24 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: '#1C2A2F', marginBottom: 12 }}>{salarie?.role === 'chef_atelier' ? 'Tous les conges' : 'Mes demandes'}</div>
-          {conges.filter(c => salarie?.role === 'chef_atelier' ? c.statut !== 'en_attente' : true).length === 0 ? (
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#1C2A2F', marginBottom: 12 }}>{(salarie?.role === 'chef_atelier' || salarie?.role === 'gerant') ? 'Tous les conges' : 'Mes demandes'}</div>
+          {conges.filter(c => (salarie?.role === 'chef_atelier' || salarie?.role === 'gerant') ? c.statut !== 'en_attente' : true).length === 0 ? (
             <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '2rem', textAlign: 'center' as const, color: '#888', border: '1px solid #EDE5D8' }}>Aucune demande de conge</div>
-          ) : conges.filter(c => salarie?.role === 'chef_atelier' ? c.statut !== 'en_attente' : true).map(c => (
-            <DemandeConge key={c.id} conge={c} isChef={salarie?.role === 'chef_atelier'} typeLabels={typeLabels} statutColors={statutColors} onUpdate={updateStatut} onDelete={deleteConge} />
+          ) : conges.filter(c => (salarie?.role === 'chef_atelier' || salarie?.role === 'gerant') ? c.statut !== 'en_attente' : true).map(c => (
+            <DemandeConge key={c.id} conge={c} isChef={(salarie?.role === 'chef_atelier' || salarie?.role === 'gerant')} typeLabels={typeLabels} statutColors={statutColors} onUpdate={updateStatut} onDelete={deleteConge} />
           ))}
         </div>
 
-        {salarie?.role === 'chef_atelier' && (
+        {(salarie?.role === 'chef_atelier' || salarie?.role === 'gerant') && (
           <div style={{ background: '#FFFFFF', borderRadius: 10, padding: '1.25rem', border: '1px solid #EDE5D8' }}>
             <div style={{ fontSize: 13, fontWeight: 500, color: '#C8723A', textTransform: 'uppercase' as const, letterSpacing: '0.06em', marginBottom: 16 }}>Planning des conges acceptes</div>
             <PlanningConges conges={acceptes} salaries={salaries} />
@@ -183,9 +183,9 @@ export default function CongesPage() {
       {showForm && (
         <div style={{ position: 'fixed' as const, inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
           <div style={{ background: '#FFFFFF', borderRadius: 16, padding: '1.5rem', width: '100%', maxWidth: 480 }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: '#1C2A2F', marginBottom: 16 }}>{salarie?.role === 'chef_atelier' ? 'Poser un conge / arret' : 'Demander un conge'}</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#1C2A2F', marginBottom: 16 }}>{(salarie?.role === 'chef_atelier' || salarie?.role === 'gerant') ? 'Poser un conge / arret' : 'Demander un conge'}</div>
             <div style={{ display: 'grid', gap: 12, marginBottom: 16 }}>
-              {salarie?.role === 'chef_atelier' && (
+              {(salarie?.role === 'chef_atelier' || salarie?.role === 'gerant') && (
                 <div>
                   <label style={{ fontSize: 12, color: '#888', display: 'block', marginBottom: 4 }}>Salarie concerne</label>
                   <select style={inputStyle} value={newConge.salarie_id} onChange={e => setNewConge({ ...newConge, salarie_id: e.target.value })}>
@@ -211,13 +211,13 @@ export default function CongesPage() {
                   {nbJours(newConge.date_debut, newConge.date_fin)} jour(s) ouvrable(s)
                 </div>
               )}
-              {salarie?.role === 'chef_atelier' && <div style={{ padding: '8px 12px', background: '#EBF5EE', borderRadius: 8, fontSize: 12, color: '#2A6B3A' }}>En tant que chef, le conge sera automatiquement accepte.</div>}
+              {(salarie?.role === 'chef_atelier' || salarie?.role === 'gerant') && <div style={{ padding: '8px 12px', background: '#EBF5EE', borderRadius: 8, fontSize: 12, color: '#2A6B3A' }}>En tant que chef, le conge sera automatiquement accepte.</div>}
               <div><label style={{ fontSize: 12, color: '#888', display: 'block', marginBottom: 4 }}>Motif (optionnel)</label><input style={inputStyle} value={newConge.motif} onChange={e => setNewConge({ ...newConge, motif: e.target.value })} placeholder="Ex : Vacances, arret medical..." /></div>
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => setShowForm(false)} style={{ padding: '10px 20px', borderRadius: 8, border: '1px solid #EDE5D8', background: '#FFFFFF', cursor: 'pointer', fontSize: 14, color: '#1C2A2F' }}>Annuler</button>
               <button onClick={submitConge} disabled={saving} style={{ flex: 1, padding: '10px', borderRadius: 8, border: 'none', background: '#C8723A', color: 'white', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>
-                {saving ? 'Enregistrement...' : salarie?.role === 'chef_atelier' ? 'Valider' : 'Envoyer la demande'}
+                {saving ? 'Enregistrement...' : (salarie?.role === 'chef_atelier' || salarie?.role === 'gerant') ? 'Valider' : 'Envoyer la demande'}
               </button>
             </div>
           </div>
