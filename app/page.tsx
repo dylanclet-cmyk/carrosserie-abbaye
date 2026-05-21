@@ -11,6 +11,8 @@ export default function Dashboard() {
   const [congesEnAttente, setCongesEnAttente] = useState(0)
   const [notifCount, setNotifCount] = useState(0)
   const [joursMaladie, setJoursMaladie] = useState(0)
+  const [heuresSemaine, setHeuresSemaine] = useState(0)
+  const [equipeHeures, setEquipeHeures] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [onglet, setOnglet] = useState<'en_cours' | 'a_facturer' | 'archives'>('en_cours')
   const router = useRouter()
@@ -38,6 +40,41 @@ export default function Dashboard() {
         const total = (congesMaladie || []).reduce((a: number, c: any) => a + (c.nb_jours || 0), 0)
         setJoursMaladie(total)
       }
+      // Heures de la semaine en cours
+      const maintenant = new Date()
+      const lundi = new Date(maintenant)
+      lundi.setDate(maintenant.getDate() - ((maintenant.getDay() + 6) % 7))
+      lundi.setHours(0, 0, 0, 0)
+      const dimanche = new Date(lundi)
+      dimanche.setDate(lundi.getDate() + 6)
+      dimanche.setHours(23, 59, 59, 999)
+
+      if (sal?.role === 'technicien' || sal?.role === 'apprenti') {
+        const { data: heures } = await supabase
+          .from('heures')
+          .select('nb_heures')
+          .eq('salarie_id', sal.id)
+          .gte('created_at', lundi.toISOString())
+          .lte('created_at', dimanche.toISOString())
+        const total = (heures || []).reduce((a: number, h: any) => a + (h.nb_heures || 0), 0)
+        setHeuresSemaine(total)
+      }
+
+      if (sal?.role === 'chef_atelier' || sal?.role === 'gerant') {
+        const { data: tousLesSalaries } = await supabase.from('salaries').select('id, prenom, nom, role, heures_contrat').eq('actif', true).neq('role', 'chef_atelier').neq('role', 'gerant')
+        const equipeData = await Promise.all((tousLesSalaries || []).map(async (s: any) => {
+          const { data: heures } = await supabase
+            .from('heures')
+            .select('nb_heures')
+            .eq('salarie_id', s.id)
+            .gte('created_at', lundi.toISOString())
+            .lte('created_at', dimanche.toISOString())
+          const total = (heures || []).reduce((a: number, h: any) => a + (h.nb_heures || 0), 0)
+          return { ...s, heures_semaine: total }
+        }))
+        setEquipeHeures(equipeData)
+      }
+
       setLoading(false)
     }
     load()
@@ -114,8 +151,39 @@ export default function Dashboard() {
 
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '20px 16px' }}>
 
+        {/* Compteur heures semaine technicien */}
+        {(salarie?.role === 'technicien' || salarie?.role === 'apprenti') && (() => {
+          const contrat = salarie?.heures_contrat || 35
+          const diff = heuresSemaine - contrat
+          const pct = Math.min(100, (heuresSemaine / contrat) * 100)
+          const isOk = Math.abs(diff) <= 1
+          const isPlus = diff > 1
+          const isMoins = diff < -1
+          return (
+            <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '16px 18px', border: '1px solid #EDE5D8', marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <div>
+                  <p style={{ fontSize: 12, color: '#999', margin: '0 0 4px' }}>Heures cette semaine</p>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                    <span style={{ fontSize: 30, fontWeight: 500, color: isPlus ? '#C8723A' : isMoins ? '#A32D2D' : '#2A6B3A' }}>{heuresSemaine}h</span>
+                    <span style={{ fontSize: 13, color: '#999' }}>/ {contrat}h contractuelles</span>
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' as const }}>
+                  {isPlus && <div style={{ fontSize: 13, fontWeight: 500, color: '#C8723A', background: '#FFF0E6', padding: '4px 12px', borderRadius: 20 }}>+{diff.toFixed(1)}h sup</div>}
+                  {isMoins && <div style={{ fontSize: 13, fontWeight: 500, color: '#A32D2D', background: '#FFF0F0', padding: '4px 12px', borderRadius: 20 }}>{diff.toFixed(1)}h manquantes</div>}
+                  {isOk && <div style={{ fontSize: 13, fontWeight: 500, color: '#2A6B3A', background: '#EBF5EE', padding: '4px 12px', borderRadius: 20 }}>✓ OK</div>}
+                </div>
+              </div>
+              <div style={{ background: '#F4F0EA', borderRadius: 20, height: 8, overflow: 'hidden' as const }}>
+                <div style={{ height: '100%', width: pct + '%', background: isPlus ? '#C8723A' : isMoins ? '#E09090' : '#2A6B3A', borderRadius: 20, transition: 'width 0.3s' }} />
+              </div>
+            </div>
+          )
+        })()}
+
         {/* Compteur maladie */}
-        {salarie?.role === 'technicien' && (
+        {(salarie?.role === 'technicien' || salarie?.role === 'apprenti') && (
           <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '14px 18px', border: '1px solid #EDE5D8', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <p style={{ fontSize: 12, color: '#999', margin: '0 0 4px' }}>Jours d'arrêt maladie en {annee}</p>
@@ -125,6 +193,36 @@ export default function Dashboard() {
               </div>
             </div>
             <span style={{ fontSize: 22 }}>{joursMaladie === 0 ? '🏆' : joursMaladie < 5 ? '👍' : '⚠️'}</span>
+          </div>
+        )}
+
+        {/* Compteur heures equipe pour chef/gerant */}
+        {(salarie?.role === 'chef_atelier' || salarie?.role === 'gerant') && equipeHeures.length > 0 && (
+          <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '16px 18px', border: '1px solid #EDE5D8', marginBottom: 16 }}>
+            <div style={{ fontSize: 11, fontWeight: 500, color: '#C8723A', textTransform: 'uppercase' as const, letterSpacing: '0.06em', marginBottom: 12 }}>Heures équipe cette semaine</div>
+            {equipeHeures.map((s: any) => {
+              const contrat = s.heures_contrat || 35
+              const diff = s.heures_semaine - contrat
+              const pct = Math.min(100, (s.heures_semaine / contrat) * 100)
+              const isPlus = diff > 1
+              const isMoins = diff < -1
+              return (
+                <div key={s.id} style={{ marginBottom: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                    <span style={{ fontSize: 13, fontWeight: 500, color: '#1A1A1A' }}>{s.prenom} {s.nom}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 12, color: '#888' }}>{s.heures_semaine}h / {contrat}h</span>
+                      {isPlus && <span style={{ fontSize: 11, color: '#C8723A', background: '#FFF0E6', padding: '2px 8px', borderRadius: 20 }}>+{diff.toFixed(1)}h</span>}
+                      {isMoins && <span style={{ fontSize: 11, color: '#A32D2D', background: '#FFF0F0', padding: '2px 8px', borderRadius: 20 }}>{diff.toFixed(1)}h</span>}
+                      {!isPlus && !isMoins && <span style={{ fontSize: 11, color: '#2A6B3A', background: '#EBF5EE', padding: '2px 8px', borderRadius: 20 }}>✓</span>}
+                    </div>
+                  </div>
+                  <div style={{ background: '#F4F0EA', borderRadius: 20, height: 6, overflow: 'hidden' as const }}>
+                    <div style={{ height: '100%', width: pct + '%', background: isPlus ? '#C8723A' : isMoins ? '#E09090' : '#2A6B3A', borderRadius: 20 }} />
+                  </div>
+                </div>
+              )
+            })}
           </div>
         )}
 
@@ -154,9 +252,9 @@ export default function Dashboard() {
             { key: 'archives', label: 'Archives', count: archives.length },
           ].map(item => (
             <div key={item.key} onClick={() => setOnglet(item.key as any)}
-              style={{ background: onglet === item.key ? '#C8723A' : '#FFFFFF', borderRadius: 10, padding: '12px 14px', border: item.key === 'a_facturer' && aFacturer.length > 0 && onglet !== item.key ? '1.5px solid #C8723A' : '1px solid #EDE5D8', cursor: 'pointer', position: 'relative' as const }}>
-              <p style={{ fontSize: 11, color: onglet === item.key ? 'rgba(255,255,255,0.8)' : '#999', margin: '0 0 4px' }}>{item.label}</p>
-              <p style={{ fontSize: 24, fontWeight: 500, color: item.key === 'a_facturer' && aFacturer.length > 0 && onglet !== item.key ? '#C8723A' : onglet === item.key ? '#FFFFFF' : '#1A1A1A', margin: 0 }}>{item.count}</p>
+              style={{ background: onglet === item.key ? '#1C2A2F' : '#FFFFFF', borderRadius: 10, padding: '12px 14px', border: item.key === 'a_facturer' && aFacturer.length > 0 && onglet !== item.key ? '1.5px solid #C8723A' : '1px solid #EDE5D8', cursor: 'pointer', position: 'relative' as const }}>
+              <p style={{ fontSize: 11, color: onglet === item.key ? '#9AABB0' : '#999', margin: '0 0 4px' }}>{item.label}</p>
+              <p style={{ fontSize: 24, fontWeight: 500, color: item.key === 'a_facturer' && aFacturer.length > 0 ? '#C8723A' : onglet === item.key ? '#FFFFFF' : '#1A1A1A', margin: 0 }}>{item.count}</p>
               {item.key === 'a_facturer' && aFacturer.length > 0 && <div style={{ position: 'absolute' as const, top: 8, right: 8, width: 7, height: 7, borderRadius: '50%', background: '#C8723A' }} />}
             </div>
           ))}
