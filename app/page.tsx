@@ -60,7 +60,7 @@ export default function Dashboard() {
         setHeuresSemaine(total)
       }
 
-      if (sal?.role === 'chef_atelier' || sal?.role === 'gerant') {
+      if (sal?.role === 'chef_atelier') {
         const { data: tousLesSalaries } = await supabase.from('salaries').select('id, prenom, nom, role, heures_contrat').eq('actif', true).neq('role', 'gerant')
         const equipeData = await Promise.all((tousLesSalaries || []).map(async (s: any) => {
           const { data: heures } = await supabase
@@ -197,7 +197,7 @@ export default function Dashboard() {
         )}
 
         {/* Compteur heures equipe pour chef/gerant */}
-        {(salarie?.role === 'chef_atelier' || salarie?.role === 'gerant') && equipeHeures.length > 0 && (
+        {salarie?.role === 'chef_atelier' && equipeHeures.length > 0 && (
           <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '16px 18px', border: '1px solid #EDE5D8', marginBottom: 16 }}>
             <div style={{ fontSize: 11, fontWeight: 500, color: '#C8723A', textTransform: 'uppercase' as const, letterSpacing: '0.06em', marginBottom: 12 }}>Heures équipe cette semaine</div>
             {equipeHeures.map((s: any) => {
