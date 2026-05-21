@@ -174,7 +174,7 @@ export default function AdminPage() {
                     <div style={{ display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap', alignItems: 'center' }}>
                       <span style={{ fontSize: 11, padding: '2px 10px', borderRadius: 20, background: roleInfo.bg, color: roleInfo.color, fontWeight: 500 }}>{roleInfo.label}</span>
                       <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: s.actif ? '#EBF5EE' : '#F4F0EA', color: s.actif ? '#2A6B3A' : '#888' }}>{s.actif ? 'Actif' : 'Inactif'}</span>
-                      <span style={{ fontSize: 11, color: '#C8723A' }}>{s.taux_horaire}€/h · {s.heures_contrat || 35}h/sem</span>
+                      {salarie?.role === 'gerant' && <span style={{ fontSize: 11, color: '#C8723A' }}>{s.taux_horaire}€/h · </span>}<span style={{ fontSize: 11, color: '#888' }}>{s.heures_contrat || 35}h/sem</span>
                     </div>
                   </div>
                 </div>
