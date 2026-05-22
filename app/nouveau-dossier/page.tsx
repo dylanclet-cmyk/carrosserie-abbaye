@@ -45,7 +45,7 @@ export default function NouveauDossier() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
       const { data: sal } = await supabase.from('salaries').select('*').eq('email', user.email).single()
-      if (sal?.role !== 'chef_atelier') { router.push('/'); return }
+      if (sal?.role !== 'chef_atelier' && sal?.role !== 'gerant') { router.push('/'); return }
       setSalarie(sal)
       const { data: v } = await supabase.from('vehicules_courtoisie').select('*').eq('actif', true)
       setVehiculesDisponibles(v || [])
