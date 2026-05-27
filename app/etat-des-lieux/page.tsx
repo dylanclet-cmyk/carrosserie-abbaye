@@ -22,6 +22,14 @@ const ZONES = [
 const CTRL_INT = ['Proprete interieure', 'Tableau de bord', 'Sieges / sellerie', 'Tapis de sol', 'Coffre']
 const CTRL_EQ = ['Roue de secours', 'Cric / cle de roue', 'Gilet / triangle', 'Documents de bord', '2e jeu de cles']
 
+const PHOTOS_OBLIGATOIRES = [
+  { id: 'avant', label: 'Avant', icon: '⬆️' },
+  { id: 'arriere', label: 'Arrière', icon: '⬇️' },
+  { id: 'cote_gauche', label: 'Côté gauche', icon: '◀️' },
+  { id: 'cote_droit', label: 'Côté droit', icon: '▶️' },
+  { id: 'interieur', label: 'Intérieur', icon: '🪑' },
+]
+
 export default function EtatDesLieux() {
   const [type, setType] = useState<'entree' | 'sortie'>('entree')
   const [dossierId, setDossierId] = useState<string | null>(null)
@@ -34,7 +42,7 @@ export default function EtatDesLieux() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [photos, setPhotos] = useState<{ url: string, nom: string, zone?: string }[]>([])
-  const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const [uploadingPhoto, setUploadingPhoto] = useState<string | null>(null)
   const sigCanvas = useRef<HTMLCanvasElement>(null)
   const [drawing, setDrawing] = useState(false)
   const [hasSig, setHasSig] = useState(false)
@@ -62,18 +70,25 @@ export default function EtatDesLieux() {
   async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>, zone?: string) {
     const files = e.target.files
     if (!files || files.length === 0) return
-    setUploadingPhoto(true)
+    setUploadingPhoto(zone || 'general')
     const newPhotos = [...photos]
     for (const file of Array.from(files)) {
       const path = dossierId + '/' + Date.now() + '_' + file.name
       const { error } = await supabase.storage.from('photos').upload(path, file)
       if (!error) {
         const { data: urlData } = supabase.storage.from('photos').getPublicUrl(path)
-        newPhotos.push({ url: urlData.publicUrl, nom: file.name, zone })
+        // Remplacer si photo obligatoire déjà prise
+        if (zone && PHOTOS_OBLIGATOIRES.find(p => p.id === zone)) {
+          const idx = newPhotos.findIndex(p => p.zone === zone)
+          if (idx >= 0) newPhotos[idx] = { url: urlData.publicUrl, nom: file.name, zone }
+          else newPhotos.push({ url: urlData.publicUrl, nom: file.name, zone })
+        } else {
+          newPhotos.push({ url: urlData.publicUrl, nom: file.name, zone })
+        }
       }
     }
     setPhotos(newPhotos)
-    setUploadingPhoto(false)
+    setUploadingPhoto(null)
     e.target.value = ''
   }
 
@@ -107,7 +122,6 @@ export default function EtatDesLieux() {
     setHasSig(true)
   }
 
-  // Support tactile signature
   function startDrawTouch(e: React.TouchEvent<HTMLCanvasElement>) {
     e.preventDefault()
     setDrawing(true)
@@ -130,7 +144,15 @@ export default function EtatDesLieux() {
     setHasSig(true)
   }
 
+  // Vérifier si toutes les photos obligatoires sont prises
+  const photosObligatoiresOk = PHOTOS_OBLIGATOIRES.every(p => photos.some(ph => ph.zone === p.id))
+  const photosManquantes = PHOTOS_OBLIGATOIRES.filter(p => !photos.some(ph => ph.zone === p.id))
+
   async function handleSave() {
+    if (!photosObligatoiresOk) {
+      alert('Veuillez prendre les 4 photos obligatoires : ' + photosManquantes.map(p => p.label).join(', '))
+      return
+    }
     setSaving(true)
     const signature = hasSig ? sigCanvas.current!.toDataURL() : null
     const dommagesArray = Object.entries(dommages).map(([zone, v]: any) => ({ zone, gravite: v.gravite, description: v.description }))
@@ -154,25 +176,79 @@ export default function EtatDesLieux() {
   return (
     <div style={{ minHeight: '100vh', background: '#FAF7F2', fontFamily: 'system-ui, sans-serif' }}>
       <div style={{ background: '#C8723A', padding: '0 1.5rem', height: 52, display: 'flex', alignItems: 'center', gap: 12 }}>
-        <button onClick={() => router.back()} style={{ fontSize: 13, padding: '6px 14px', borderRadius: 8, border: '1px solid #4a5568', background: 'transparent', cursor: 'pointer', color: '#EDE5D8' }}>← Retour</button>
+        <button onClick={() => router.back()} style={{ fontSize: 12, padding: '5px 12px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.3)', background: 'transparent', cursor: 'pointer', color: '#FAF7F2' }}>← Retour</button>
         <img src="/logo.png" alt="Logo" style={{ height: 34, objectFit: 'contain' }} />
-        <span style={{ color: 'white', fontSize: 15, fontWeight: 600 }}>Etat des lieux — {type === 'entree' ? 'Entree' : 'Sortie'} — {dossier.immatriculation}</span>
+        <span style={{ color: 'white', fontSize: 14, fontWeight: 500 }}>Etat des lieux — {type === 'entree' ? 'Entrée' : 'Sortie'} — {dossier.immatriculation}</span>
       </div>
 
       <div style={{ padding: '20px 16px', maxWidth: 900, margin: '0 auto' }}>
-        {saved && <div style={{ background: '#EBF5EE', border: '1px solid #97C459', borderRadius: 12, padding: '1rem', marginBottom: 16, color: '#2A6B3A', fontWeight: 600, textAlign: 'center' as const }}>Sauvegarde !</div>}
+        {saved && <div style={{ background: '#EBF5EE', border: '1px solid #A8D8B8', borderRadius: 12, padding: '1rem', marginBottom: 16, color: '#2A6B3A', fontWeight: 600, textAlign: 'center' as const }}>✓ Sauvegardé !</div>}
 
         <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
           {(['entree', 'sortie'] as const).map(t => (
-            <button key={t} onClick={() => setType(t)} style={{ padding: '8px 20px', borderRadius: 8, border: '2px solid ' + (type === t ? '#C8723A' : '#EDE5D8'), background: type === t ? '#C8723A' : 'white', color: type === t ? 'white' : '#1C2A2F', fontWeight: 600, cursor: 'pointer', fontSize: 14 }}>
-              {t === 'entree' ? 'Entree du vehicule' : 'Sortie du vehicule'}
+            <button key={t} onClick={() => setType(t)} style={{ padding: '8px 20px', borderRadius: 8, border: '2px solid ' + (type === t ? '#C8723A' : '#EDE5D8'), background: type === t ? '#C8723A' : 'white', color: type === t ? 'white' : '#1A1A1A', fontWeight: 600, cursor: 'pointer', fontSize: 14 }}>
+              {t === 'entree' ? '↓ Entrée du véhicule' : '↑ Sortie du véhicule'}
             </button>
           ))}
         </div>
 
+        {/* PHOTOS OBLIGATOIRES */}
+        <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '1.25rem', border: !photosObligatoiresOk ? '2px solid #C8723A' : '1px solid #EDE5D8', marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#C8723A', textTransform: 'uppercase' as const, letterSpacing: 1 }}>
+              Photos obligatoires
+            </div>
+            <span style={{ fontSize: 12, background: photosObligatoiresOk ? '#EBF5EE' : '#FFF0F0', color: photosObligatoiresOk ? '#2A6B3A' : '#A32D2D', padding: '3px 10px', borderRadius: 20, fontWeight: 600 }}>
+              {photos.filter(p => PHOTOS_OBLIGATOIRES.find(ob => ob.id === p.zone)).length} / 5
+            </span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+            {PHOTOS_OBLIGATOIRES.map(p => {
+              const photo = photos.find(ph => ph.zone === p.id)
+              const isUploading = uploadingPhoto === p.id
+              return (
+                <div key={p.id} style={{ borderRadius: 10, overflow: 'hidden', border: '2px solid ' + (photo ? '#2A6B3A' : '#C8723A'), position: 'relative' as const }}>
+                  {photo ? (
+                    <div style={{ position: 'relative' as const }}>
+                      <img src={photo.url} alt={p.label} style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', display: 'block' }} />
+                      <div style={{ position: 'absolute' as const, bottom: 0, left: 0, right: 0, background: 'rgba(42,107,58,0.85)', color: 'white', fontSize: 12, padding: '4px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span>✓ {p.label}</span>
+                        <label style={{ cursor: 'pointer', fontSize: 11, background: 'rgba(255,255,255,0.2)', padding: '2px 6px', borderRadius: 4 }}>
+                          Changer
+                          <input type="file" accept="image/*" capture="environment" onChange={e => handlePhotoUpload(e, p.id)} style={{ display: 'none' }} />
+                        </label>
+                      </div>
+                    </div>
+                  ) : (
+                    <label style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', aspectRatio: '4/3', background: '#FFF8F3', cursor: 'pointer', gap: 6 }}>
+                      {isUploading ? (
+                        <span style={{ fontSize: 13, color: '#888' }}>Upload...</span>
+                      ) : (
+                        <>
+                          <span style={{ fontSize: 28 }}>📷</span>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: '#C8723A' }}>{p.label}</span>
+                          <span style={{ fontSize: 11, color: '#888' }}>Appuyez pour photographier</span>
+                        </>
+                      )}
+                      <input type="file" accept="image/*" capture="environment" onChange={e => handlePhotoUpload(e, p.id)} style={{ display: 'none' }} />
+                    </label>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+
+          {!photosObligatoiresOk && (
+            <div style={{ marginTop: 10, padding: '8px 12px', background: '#FFF0F0', borderRadius: 8, fontSize: 12, color: '#A32D2D', border: '1px solid #F09595' }}>
+              ⚠ Photos manquantes : {photosManquantes.map(p => p.label).join(', ')}
+            </div>
+          )}
+        </div>
+
         {/* Schema vehicule */}
         <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '1.5rem', border: '1px solid #EDE5D8', marginBottom: 16 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#C8723A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 16 }}>Schema du vehicule — cliquez sur une zone</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#C8723A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 16 }}>Schéma du véhicule — cliquez sur une zone</div>
           <svg viewBox="0 0 600 280" style={{ width: '100%', display: 'block', background: '#FAF7F2', borderRadius: 8, marginBottom: 12 }}>
             <rect x="60" y="100" width="480" height="80" rx="10" fill="#D3D1C7" />
             <rect x="120" y="70" width="280" height="80" rx="8" fill="#B4B2A9" />
@@ -187,12 +263,10 @@ export default function EtatDesLieux() {
               const dmg = dommages[z.id]
               const color = dmg ? (dmg.gravite === 'grave' ? '#E24B4A' : '#EF9F27') : '#C8723A'
               const isSelected = selectedZone === z.id
-              const hasPhoto = photos.some(p => p.zone === z.id)
               return (
                 <g key={z.id} onClick={() => setSelectedZone(selectedZone === z.id ? null : z.id)} style={{ cursor: 'pointer' }}>
-                  <circle cx={z.x} cy={z.y} r={isSelected ? 14 : 10} fill={dmg ? color : 'rgba(224,123,42,0.15)'} stroke={color} strokeWidth={isSelected ? 2.5 : 1} />
+                  <circle cx={z.x} cy={z.y} r={isSelected ? 14 : 10} fill={dmg ? color : 'rgba(200,114,58,0.15)'} stroke={color} strokeWidth={isSelected ? 2.5 : 1} />
                   {dmg && <text x={z.x} y={z.y + 4} textAnchor="middle" fontSize="10" fill="white" fontWeight="700">{dmg.gravite === 'grave' ? '!' : '~'}</text>}
-                  {hasPhoto && !dmg && <text x={z.x} y={z.y + 4} textAnchor="middle" fontSize="10" fill="#C8723A">📷</text>}
                 </g>
               )
             })}
@@ -200,71 +274,60 @@ export default function EtatDesLieux() {
 
           {selectedZone && (
             <div style={{ background: '#FFF0E6', borderRadius: 10, padding: '1rem', border: '1px solid #C8723A' }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: '#1C2A2F', marginBottom: 10 }}>{ZONES.find(z => z.id === selectedZone)?.label}</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#1A1A1A', marginBottom: 10 }}>{ZONES.find(z => z.id === selectedZone)?.label}</div>
               <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' as const }}>
-                <button onClick={() => toggleDommage(selectedZone, 'leger')} style={{ padding: '6px 14px', borderRadius: 8, border: '2px solid ' + (dommages[selectedZone]?.gravite === 'leger' ? '#EF9F27' : '#EDE5D8'), background: dommages[selectedZone]?.gravite === 'leger' ? '#FFF0E6' : 'white', color: '#7A3E10', fontWeight: 600, cursor: 'pointer', fontSize: 13 }}>Leger</button>
+                <button onClick={() => toggleDommage(selectedZone, 'leger')} style={{ padding: '6px 14px', borderRadius: 8, border: '2px solid ' + (dommages[selectedZone]?.gravite === 'leger' ? '#EF9F27' : '#EDE5D8'), background: dommages[selectedZone]?.gravite === 'leger' ? '#FFF0E6' : 'white', color: '#7A3E10', fontWeight: 600, cursor: 'pointer', fontSize: 13 }}>Léger</button>
                 <button onClick={() => toggleDommage(selectedZone, 'grave')} style={{ padding: '6px 14px', borderRadius: 8, border: '2px solid ' + (dommages[selectedZone]?.gravite === 'grave' ? '#E24B4A' : '#EDE5D8'), background: dommages[selectedZone]?.gravite === 'grave' ? '#FCEBEB' : 'white', color: '#791F1F', fontWeight: 600, cursor: 'pointer', fontSize: 13 }}>Grave</button>
                 {dommages[selectedZone] && <button onClick={() => { const n = {...dommages}; delete n[selectedZone]; setDommages(n) }} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #EDE5D8', background: '#FFFFFF', color: '#888', cursor: 'pointer', fontSize: 13 }}>Effacer</button>}
-                {/* Bouton photo pour cette zone */}
-                <label style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #EDE5D8', background: '#FFFFFF', color: '#1C2A2F', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 4 }}>
-                  📷 Photo
+                <label style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #EDE5D8', background: '#FFFFFF', color: '#1A1A1A', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  📷 Photo zone
                   <input type="file" accept="image/*" capture="environment" onChange={e => handlePhotoUpload(e, selectedZone)} style={{ display: 'none' }} multiple />
                 </label>
               </div>
-              {dommages[selectedZone] && <input style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #EDE5D8', fontSize: 13, color: '#1C2A2F' }} placeholder="Description..." value={dommages[selectedZone]?.description || ''} onChange={e => setDommages((p: any) => ({ ...p, [selectedZone]: { ...p[selectedZone], description: e.target.value } }))} />}
+              {dommages[selectedZone] && <input style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #EDE5D8', fontSize: 13, color: '#1A1A1A' }} placeholder="Description..." value={dommages[selectedZone]?.description || ''} onChange={e => setDommages((p: any) => ({ ...p, [selectedZone]: { ...p[selectedZone], description: e.target.value } }))} />}
             </div>
           )}
         </div>
 
-        {/* Section photos generales */}
+        {/* Photos supplémentaires */}
         <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '1.25rem', border: '1px solid #EDE5D8', marginBottom: 16 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#C8723A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 12 }}>Photos du vehicule</div>
-          
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#C8723A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 12 }}>Photos supplémentaires</div>
           <div style={{ display: 'flex', gap: 10, marginBottom: 12, flexWrap: 'wrap' as const }}>
-            {/* Bouton prendre photo (mobile/tablette) */}
             <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 10, border: '2px solid #C8723A', background: '#FFF0E6', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#C8723A' }}>
               📷 Prendre une photo
               <input type="file" accept="image/*" capture="environment" onChange={e => handlePhotoUpload(e)} style={{ display: 'none' }} multiple />
             </label>
-            {/* Bouton importer photo */}
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 10, border: '1px solid #EDE5D8', background: '#FFFFFF', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#1C2A2F' }}>
-              🖼 Importer des photos
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 10, border: '1px solid #EDE5D8', background: '#FFFFFF', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#1A1A1A' }}>
+              🖼 Importer
               <input type="file" accept="image/*" onChange={e => handlePhotoUpload(e)} style={{ display: 'none' }} multiple />
             </label>
-            {uploadingPhoto && <span style={{ fontSize: 13, color: '#888', alignSelf: 'center' }}>Upload en cours...</span>}
+            {uploadingPhoto === 'general' && <span style={{ fontSize: 13, color: '#888', alignSelf: 'center' }}>Upload...</span>}
           </div>
 
-          {photos.length > 0 && (
+          {photos.filter(p => !PHOTOS_OBLIGATOIRES.find(ob => ob.id === p.zone)).length > 0 && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 8 }}>
-              {photos.map((p, i) => (
-                <div key={i} style={{ position: 'relative' as const, borderRadius: 8, overflow: 'hidden', aspectRatio: '4/3' }}>
-                  <img src={p.url} alt={p.nom} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  {p.zone && (
-                    <div style={{ position: 'absolute' as const, bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.6)', color: 'white', fontSize: 9, padding: '3px 5px', textAlign: 'center' as const }}>
-                      {ZONES.find(z => z.id === p.zone)?.label || p.zone}
-                    </div>
-                  )}
-                  <button onClick={() => removePhoto(i)} style={{ position: 'absolute' as const, top: 4, right: 4, background: 'rgba(0,0,0,0.6)', border: 'none', color: 'white', borderRadius: '50%', width: 20, height: 20, cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {photos.length === 0 && (
-            <div style={{ textAlign: 'center' as const, color: '#888', fontSize: 13, padding: '1rem', background: '#FAF7F2', borderRadius: 8 }}>
-              Aucune photo — utilisez les boutons ci-dessus
+              {photos.filter(p => !PHOTOS_OBLIGATOIRES.find(ob => ob.id === p.zone)).map((p, i) => {
+                const realIdx = photos.indexOf(p)
+                return (
+                  <div key={i} style={{ position: 'relative' as const, borderRadius: 8, overflow: 'hidden', aspectRatio: '4/3' }}>
+                    <img src={p.url} alt={p.nom} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    {p.zone && <div style={{ position: 'absolute' as const, bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.6)', color: 'white', fontSize: 9, padding: '3px 5px', textAlign: 'center' as const }}>{ZONES.find(z => z.id === p.zone)?.label || p.zone}</div>}
+                    <button onClick={() => removePhoto(realIdx)} style={{ position: 'absolute' as const, top: 4, right: 4, background: 'rgba(0,0,0,0.6)', border: 'none', color: 'white', borderRadius: '50%', width: 20, height: 20, cursor: 'pointer', fontSize: 12 }}>×</button>
+                  </div>
+                )
+              })}
             </div>
           )}
         </div>
 
         {/* Controles */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-          {[{ title: 'Controle interieur', items: CTRL_INT, state: controleInt, setter: setControleInt }, { title: 'Controle equipements', items: CTRL_EQ, state: controleEquip, setter: setControleEquip }].map(({ title, items, state, setter }) => (
+          {[{ title: 'Contrôle intérieur', items: CTRL_INT, state: controleInt, setter: setControleInt }, { title: 'Contrôle équipements', items: CTRL_EQ, state: controleEquip, setter: setControleEquip }].map(({ title, items, state, setter }) => (
             <div key={title} style={{ background: '#FFFFFF', borderRadius: 12, padding: '1.25rem', border: '1px solid #EDE5D8' }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: '#C8723A', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 12 }}>{title}</div>
               {items.map(item => (
                 <div key={item} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f5f5f5' }}>
-                  <span style={{ fontSize: 13, color: '#1C2A2F' }}>{item}</span>
+                  <span style={{ fontSize: 13, color: '#1A1A1A' }}>{item}</span>
                   <input type="checkbox" checked={state[item] || false} onChange={e => setter((p: any) => ({ ...p, [item]: e.target.checked }))} style={{ width: 18, height: 18, cursor: 'pointer', accentColor: '#C8723A' }} />
                 </div>
               ))}
@@ -284,9 +347,10 @@ export default function EtatDesLieux() {
         </div>
 
         <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
-          <button onClick={() => router.back()} style={{ padding: '10px 20px', borderRadius: 8, border: '1px solid #EDE5D8', background: '#FFFFFF', cursor: 'pointer', fontSize: 14, color: '#1C2A2F' }}>Annuler</button>
-          <button onClick={handleSave} disabled={saving} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: '#C8723A', color: 'white', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>
-            {saving ? 'Sauvegarde...' : 'Sauvegarder'}
+          <button onClick={() => router.back()} style={{ padding: '10px 20px', borderRadius: 8, border: '1px solid #EDE5D8', background: '#FFFFFF', cursor: 'pointer', fontSize: 14, color: '#1A1A1A' }}>Annuler</button>
+          <button onClick={handleSave} disabled={saving || !photosObligatoiresOk}
+            style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: photosObligatoiresOk ? '#C8723A' : '#EDE5D8', color: photosObligatoiresOk ? 'white' : '#888', cursor: photosObligatoiresOk ? 'pointer' : 'not-allowed', fontSize: 14, fontWeight: 700 }}>
+            {saving ? 'Sauvegarde...' : !photosObligatoiresOk ? `⚠ ${photosManquantes.length} photo(s) manquante(s)` : 'Sauvegarder'}
           </button>
         </div>
       </div>
